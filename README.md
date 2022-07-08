@@ -1,2 +1,2 @@
 # QuarkAsset
-Lightweight unity resource management solution
+轻量级的Unity资源管理方案
