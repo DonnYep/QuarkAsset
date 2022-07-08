@@ -18,6 +18,7 @@ namespace Quark.Editor
         QuarkAssetObjectSearchLable assetObjectSearchLable = new QuarkAssetObjectSearchLable();
 
         QuarkAssetDataset dataset;
+        EditorCoroutine coroutine;
         public void OnEnable()
         {
             try
@@ -38,25 +39,14 @@ namespace Quark.Editor
         }
         public void OnDatasetAssign(QuarkAssetDataset dataset)
         {
-            this.dataset = dataset;
-            var bundles = dataset.QuarkBundleInfoList;
-            var bundleLen = bundles.Count;
-            assetBundleSearchLable.TreeView.Clear();
-            for (int i = 0; i < bundleLen; i++)
-            {
-                var bundle = bundles[i];
-                assetBundleSearchLable.TreeView.AddPath(bundle.AssetBundlePath);
-            }
-            assetObjectSearchLable.TreeView.Clear();
-            var objects = dataset.QuarkAssetObjectList;
-            for (int i = 0; i < objects.Count; i++)
-            {
-                assetObjectSearchLable.TreeView.AddPath(objects[i].AssetPath);
-            }
-            assetObjectSearchLable.TreeView.Reload();
+            if (coroutine != null)
+                QuarkEditorUtility.StopCoroutine(coroutine);
+            coroutine = QuarkEditorUtility.StartCoroutine(EnumAssignDataset(dataset));
         }
         public void OnDatasetUnassign()
         {
+            if (coroutine != null)
+                QuarkEditorUtility.StopCoroutine(coroutine);
             assetObjectSearchLable.TreeView.Clear();
             assetBundleSearchLable.TreeView.Clear();
         }
@@ -302,6 +292,26 @@ namespace Quark.Editor
                 }
                 progress.Invoke();
             }
+        }
+        IEnumerator EnumAssignDataset(QuarkAssetDataset dataset)
+        {
+            this.dataset = dataset;
+            var bundles = dataset.QuarkBundleInfoList;
+            var bundleLen = bundles.Count;
+            assetBundleSearchLable.TreeView.Clear();
+            for (int i = 0; i < bundleLen; i++)
+            {
+                var bundle = bundles[i];
+                assetBundleSearchLable.TreeView.AddPath(bundle.AssetBundlePath);
+            }
+            assetObjectSearchLable.TreeView.Clear();
+            var objects = dataset.QuarkAssetObjectList;
+            for (int i = 0; i < objects.Count; i++)
+            {
+                assetObjectSearchLable.TreeView.AddPath(objects[i].AssetPath);
+            }
+            assetObjectSearchLable.TreeView.Reload();
+            yield return null;
         }
     }
 

@@ -8,7 +8,7 @@
   },
   "repository": {
 		"type": "git",
-		"url": "git@github.com:DonnYep/CosmosFramework.git"
+		"url": "git@github.com:DonnYep/QuarkAsset.git"
 	},
   "keywords": [
     "AssetBundle"
@@ -16,6 +16,6 @@
   "author": {
     "name": "DonnYep",
 		"email": "zhengdonn@gmail.com",
-    "url": "https://github.com/DonnYep/CosmosFramework"
+    "url": "https://github.com/DonnYep/QuarkAsset"
   }
 }
