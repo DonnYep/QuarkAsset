@@ -43,24 +43,12 @@ namespace Quark
                 other.ReferenceCount == this.ReferenceCount&&
                 other.AssetType==this.AssetType;
         }
-        public override bool Equals(object obj)
-        {
-            return (obj is QuarkAssetObjectInfo) && Equals((QuarkAssetObjectInfo)obj);
-        }
         public override string ToString()
         {
             return $"AssetName:{AssetName},AssetPath:{AssetPath},AssetType{AssetType}" +
                 $",AssetBundleName:{AssetBundleName},ReferenceCount:{ReferenceCount}";
         }
         public static QuarkAssetObjectInfo None { get { return new QuarkAssetObjectInfo(); } }
-        public static bool operator ==(QuarkAssetObjectInfo a, QuarkAssetObjectInfo b)
-        {
-            return a.Equals(b);
-        }
-        public static bool operator !=(QuarkAssetObjectInfo a, QuarkAssetObjectInfo b)
-        {
-            return !a.Equals(b);
-        }
         internal static QuarkAssetObjectInfo Create(string assetName, string assetPath, string assetBundleName, string assetExtension,string assetType, int referenceCount)
         {
             QuarkAssetObjectInfo info = new QuarkAssetObjectInfo();

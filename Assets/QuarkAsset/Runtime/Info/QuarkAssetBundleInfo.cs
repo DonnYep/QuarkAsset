@@ -16,21 +16,9 @@ namespace Quark
             return other.AssetBundleName==this.AssetBundleName&&
                 other.ReferenceCount==this.ReferenceCount;
         }
-        public override bool Equals(object obj)
-        {
-            return (obj is QuarkAssetBundleInfo) && Equals((QuarkAssetBundleInfo)obj);
-        }
         public override string ToString()
         {
             return $"AssetBundleName:{AssetBundleName},ReferenceCount:{ReferenceCount}";
-        }
-        public static bool operator ==(QuarkAssetBundleInfo a, QuarkAssetBundleInfo b)
-        {
-            return a.Equals(b);
-        }
-        public static bool operator !=(QuarkAssetBundleInfo a, QuarkAssetBundleInfo b)
-        {
-            return !a.Equals(b);
         }
         internal static QuarkAssetBundleInfo Create(string assetBundleName,int referenceCount)
         {

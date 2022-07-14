@@ -405,7 +405,7 @@ namespace Quark.Loader
         protected override void IncrementQuarkAssetObject(QuarkAssetObjectWapper wapper)
         {
             wapper.AssetReferenceCount++;
-            hashQuarkAssetObjectInfoDict[wapper.GetHashCode()] = wapper.GetQuarkAssetObjectInfo();
+            QuarkAssetObjectInfoDict[wapper.QuarkAssetObject.AssetPath] = wapper.GetQuarkAssetObjectInfo();
             //增加一个AB的引用计数；
             if (assetBundleDict.TryGetValue(wapper.QuarkAssetObject.AssetBundleName, out var assetBundle))
             {
@@ -419,8 +419,7 @@ namespace Quark.Loader
         protected override void DecrementQuarkAssetObject(QuarkAssetObjectWapper wapper)
         {
             wapper.AssetReferenceCount--;
-            var hashCode = wapper.GetHashCode();
-            hashQuarkAssetObjectInfoDict[hashCode] = wapper.GetQuarkAssetObjectInfo();
+            QuarkAssetObjectInfoDict[wapper.QuarkAssetObject.AssetPath] = wapper.GetQuarkAssetObjectInfo();
             //减少一个AB的引用计数
             if (assetBundleDict.TryGetValue(wapper.QuarkAssetObject.AssetBundleName, out var assetBundle))
             {
@@ -618,7 +617,7 @@ where T : Object
             }
             yield return EnumLoadDependenciesAssetBundleAsync(wapper.QuarkAssetObject.AssetBundleName);
             LoadSceneMode loadSceneMode = additive == true ? LoadSceneMode.Additive : LoadSceneMode.Single;
-            var operation = SceneManager.LoadSceneAsync(wapper.QuarkAssetObject.AssetPath, loadSceneMode);
+            var operation = SceneManager.LoadSceneAsync(wapper.QuarkAssetObject.AssetName, loadSceneMode);
             operation.allowSceneActivation = false;
             var hasProviderProgress = progressProvider != null;
             while (!operation.isDone)
@@ -745,8 +744,7 @@ where T : Object
         {
             var count = wapper.AssetReferenceCount;
             wapper.AssetReferenceCount = 0;
-            var hashCode = wapper.GetHashCode();
-            hashQuarkAssetObjectInfoDict[hashCode] = wapper.GetQuarkAssetObjectInfo();
+            QuarkAssetObjectInfoDict[wapper.QuarkAssetObject.AssetPath] = wapper.GetQuarkAssetObjectInfo();
             if (assetBundleDict.TryGetValue(wapper.QuarkAssetObject.AssetBundleName, out var assetBundle))
             {
                 assetBundle.ReferenceCount -= count;

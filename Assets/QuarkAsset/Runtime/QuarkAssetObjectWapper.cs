@@ -16,10 +16,6 @@ namespace Quark.Asset
             return other.QuarkAssetObject==this.QuarkAssetObject&&
                 other.AssetReferenceCount == this.AssetReferenceCount;
         }
-        public override bool Equals(object obj)
-        {
-            return (obj is QuarkAssetObjectWapper) && Equals((QuarkAssetObjectWapper)obj);
-        }
         public QuarkAssetObjectInfo GetQuarkAssetObjectInfo()
         {
             var assetBundleName = QuarkAssetObject.AssetBundleName;

@@ -125,13 +125,13 @@ namespace Quark.Editor
 
         QuarkAssetDataset CreateQuarkAssetDataset()
         {
-            var so = ScriptableObject.CreateInstance<QuarkAssetDataset>();
-            so.hideFlags = HideFlags.NotEditable;
-            AssetDatabase.CreateAsset(so, "Assets/New QuarkAssetDataset.asset");
-            EditorUtility.SetDirty(so);
+            var dataset = ScriptableObject.CreateInstance<QuarkAssetDataset>();
+            dataset.hideFlags = HideFlags.NotEditable;
+            AssetDatabase.CreateAsset(dataset, "Assets/New QuarkAssetDataset.asset");
+            dataset.QuarkAssetExts.AddRange(QuarkEditorConstant.Extensions);
+            EditorUtility.SetDirty(dataset);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            var dataset = AssetDatabase.LoadAssetAtPath<QuarkAssetDataset>("Assets/New QuarkAssetDataset.asset");
             QuarkUtility.LogInfo("QuarkAssetDataset is created");
             return dataset;
         }

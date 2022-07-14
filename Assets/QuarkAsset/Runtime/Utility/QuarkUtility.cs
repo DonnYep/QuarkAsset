@@ -29,12 +29,6 @@ namespace Quark
             }
             return stringBuilderCache.ToString();
         }
-        public static string WebPathCombine(params string[] paths)
-        {
-            var pathResult = Path.Combine(paths);
-            pathResult = pathResult.Replace("\\", "/");
-            return pathResult;
-        }
         /// <summary>
         /// 读取指定路径下某text类型文件的内容
         /// </summary>
@@ -117,23 +111,6 @@ namespace Quark
             stringArray = fullString.Split(separator, StringSplitOptions.None);
             return stringArray;
         }
-        /// <summary>
-        /// 字段合并；
-        /// </summary>
-        /// <param name="strings">字段数组</param>
-        /// <returns></returns>
-        public static string Combine(params string[] strings)
-        {
-            if (strings == null)
-                throw new ArgumentNullException("Combine is invalid.");
-            stringBuilderCache.Length = 0;
-            int length = strings.Length;
-            for (int i = 0; i < length; i++)
-            {
-                stringBuilderCache.Append(strings[i]);
-            }
-            return stringBuilderCache.ToString();
-        }
         public static void IsStringValid(string context, string exceptionContext)
         {
             if (string.IsNullOrEmpty(context))
@@ -146,7 +123,6 @@ namespace Quark
                 File.Delete(fileFullPath);
             }
         }
-
         /// <summary>
         /// 格式化AB名称；
         /// 此方法Quark专供；

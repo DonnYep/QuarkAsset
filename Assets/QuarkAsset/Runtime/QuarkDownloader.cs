@@ -172,7 +172,7 @@ namespace Quark.Networking
                 pendingURIs.RemoveAt(0);
                 currentDownloadIndex = downloadCount - pendingURIs.Count - 1;
                 var fileDownloadPath = Path.Combine(PersistentPath, uri);
-                var remoteUri = QuarkUtility.WebPathCombine(URL, uri);
+                var remoteUri = Path.Combine(URL, uri);
                 yield return EnumDownloadSingleFile(remoteUri, fileDownloadPath);
             }
             OnDownloadedPendingFiles();
@@ -204,7 +204,7 @@ namespace Quark.Networking
                     yield return null;
                 }
 #if UNITY_2020_1_OR_NEWER
-                if (request.result != UnityWebRequest.Result.ConnectionError && request.result != UnityWebRequest.Result.ProtocolError&& canDownload)
+                if (request.result != UnityWebRequest.Result.ConnectionError && request.result != UnityWebRequest.Result.ProtocolError && canDownload)
 #elif UNITY_2018_1_OR_NEWER
                 if (!request.isNetworkError && !request.isHttpError && canDownload)
 #endif

@@ -11,8 +11,6 @@ namespace Quark.Editor
     {
         QuarkAssetBundleTabData tabData;
         const string AssetBundleTabDataFileName = "QuarkAsset_AssetBundleTabData.json";
-        const string quarkABBuildInfo = "BuildInfo.json";
-        const string quarkManifest = "Manifest.json";
         Dictionary<string, AssetImporter> importerCacheDict = new Dictionary<string, AssetImporter>();
         QuarkBuildInfo abBuildInfo = new QuarkBuildInfo();
         QuarkManifest quarkAssetManifest = new QuarkManifest();
@@ -197,14 +195,26 @@ namespace Quark.Editor
         }
         IEnumerator EnumBuildAssetBundle()
         {
-            yield return assetDatabaseTab.EnumUpdateADBMode();
+            yield return assetDatabaseTab.BuildDataset();
             yield return SetBuildInfo();
             var path = tabData.AssetBundleBuildPath;
             if (!Directory.Exists(path))
             {
                 Directory.CreateDirectory(path);
             }
-            BuildPipeline.BuildAssetBundles(tabData.AssetBundleBuildPath, tabData.BuildAssetBundleOptions, tabData.BuildTarget);
+            try
+            {
+                BuildPipeline.BuildAssetBundles(tabData.AssetBundleBuildPath, tabData.BuildAssetBundleOptions, tabData.BuildTarget);
+            }
+            catch
+            {
+                var bundles = quarkAssetDataset.QuarkBundleInfoList;
+                foreach (var bundle in bundles)
+                {
+                    AssetDatabase.RemoveAssetBundleName(bundle.AssetBundleName, true);
+                }
+                EditorUtility.ClearProgressBar();
+            }
             yield return OperateManifest();
         }
         IEnumerator SetBuildInfo()
@@ -218,10 +228,11 @@ namespace Quark.Editor
                     QuarkUtility.DeleteFolder(path);
                 }
             }
-            var dirHashPairs = quarkAssetDataset.QuarkBundleInfoList;
-            var dirs = dirHashPairs.ToArray();
+            var bundles = quarkAssetDataset.QuarkBundleInfoList;
+            var dirs = bundles.ToArray();
             yield return QuarkEditorUtility.StartCoroutine(TraverseTargetDirectories(dirs));
         }
+
         IEnumerator TraverseTargetDirectories(QuarkBundleInfo[] dirs)
         {
             foreach (var dir in dirs)
@@ -252,7 +263,7 @@ namespace Quark.Editor
                 var buildPath = tabData.AssetBundleBuildPath;
                 if (Directory.Exists(buildPath))
                 {
-                    var streamingAssetPath = QuarkUtility.WebPathCombine(Application.streamingAssetsPath, tabData.StreamingRelativePath);
+                    var streamingAssetPath = Path.Combine(Application.streamingAssetsPath, tabData.StreamingRelativePath);
                     QuarkUtility.Copy(buildPath, streamingAssetPath);
                 }
             }
@@ -275,16 +286,16 @@ namespace Quark.Editor
             var url = Path.Combine(buildPath, tabData.BuildTarget.ToString());
             AssetBundleManifest manifest = null;
             AssetBundle mainBundle = null;
-            yield return QuarkEditorUtility. DownloadAssetBundleAsync(url, (percent) =>
-            {
-                var per = percent * 100;
-                EditorUtility.DisplayProgressBar("LoadManifest", $"current progress : {per} %", percent);
-            }, (mainAB) =>
-            {
-                EditorUtility.ClearProgressBar();
-                manifest = mainAB.LoadAsset<AssetBundleManifest>("AssetBundleManifest");
-                mainBundle = mainAB;
-            });
+            yield return QuarkEditorUtility.DownloadAssetBundleAsync(url, (percent) =>
+           {
+               var per = percent * 100;
+               EditorUtility.DisplayProgressBar("LoadManifest", $"current progress : {per} %", percent);
+           }, (mainAB) =>
+           {
+               EditorUtility.ClearProgressBar();
+               manifest = mainAB.LoadAsset<AssetBundleManifest>("AssetBundleManifest");
+               mainBundle = mainAB;
+           });
             var abNames = manifest.GetAllAssetBundles();
             var length = abNames.Length;
             for (int i = 0; i < length; i++)
@@ -317,12 +328,6 @@ namespace Quark.Editor
                             case AssetBundleHashType.DefaultName:
                                 {
                                     newFileName = fileName;
-                                }
-                                break;
-                            case AssetBundleHashType.AppendHash:
-                                {
-                                    newFileName = fileName + "_" + ad.ABHash;
-                                    QuarkUtility.RenameFile(path, newFileName);
                                 }
                                 break;
                             case AssetBundleHashType.HashInstead:
@@ -361,7 +366,7 @@ namespace Quark.Editor
             var length = urls.Length;
             for (int i = 0; i < length; i++)
             {
-                urls[i] = QuarkUtility.WebPathCombine(GetBuildPath(), abNames[i]);
+                urls[i] = Path.Combine(GetBuildPath(), abNames[i]);
             }
             //assetPath===assetName；这里统一使用unity的地址格式；
             var assetObjsDict = quarkAssetDataset.QuarkAssetObjectList.ToDictionary((obj) => { return obj.AssetPath.ToLower().Replace("\\", "/"); });
@@ -405,10 +410,10 @@ namespace Quark.Editor
         {
             abBuildInfo.BuildTime = System.DateTime.Now.ToString();
             var abBuildInfoJson = QuarkUtility.ToJson(abBuildInfo);
-            var abBuildInfoPath = QuarkUtility.PathCombine(GetBuildPath(), quarkABBuildInfo);
+            var abBuildInfoPath = QuarkUtility.PathCombine(GetBuildPath(), QuarkConstant.BuildInfoFileName);
 
             var manifestJson = QuarkUtility.ToJson(quarkAssetManifest);
-            var manifestPath = QuarkUtility.PathCombine(GetBuildPath(), quarkManifest);
+            var manifestPath = QuarkUtility.PathCombine(GetBuildPath(), QuarkConstant.ManifestName);
             abBuildInfo.Dispose();
             buildInfoCache.Clear();
             if (tabData.UseAesEncryptionForBuildInfo)
@@ -435,8 +440,6 @@ namespace Quark.Editor
                 importer = AssetImporter.GetAtPath(path);
                 importerCacheDict[path] = importer;
                 importer.assetBundleName = abName;
-                //QuarkUtility.LogInfo(importer.assetBundleName);
-                //importer.assetBundleVariant = "bytes";
                 if (importer == null)
                     QuarkUtility.LogError("AssetImporter is empty : " + path);
                 else
@@ -447,7 +450,6 @@ namespace Quark.Editor
                         DependList = AssetDatabase.GetAssetBundleDependencies(path, true).ToList(),
                         Id = abBuildInfo.AssetDataMaps.Count,
                         ABName = abName,
-                        //ABName = abName+".bytes",
                     };
 
                     abBuildInfo.AssetDataMaps[importer.assetPath] = assetData;
@@ -465,12 +467,12 @@ namespace Quark.Editor
                 var offset = tabData.EncryptionOffsetForAssetBundle;
                 var count = paths.Length;
                 int abIndex = 0;
-;                foreach (var path in paths)
+                ; foreach (var path in paths)
                 {
                     QuarkUtility.LogInfo(path);
-                    var bytes= File.ReadAllBytes(path);
+                    var bytes = File.ReadAllBytes(path);
                     var percent = abIndex / (float)count;
-                    var per = Mathf.RoundToInt( percent * 100);
+                    var per = Mathf.RoundToInt(percent * 100);
                     EditorUtility.DisplayProgressBar("AssetBundle encrypting", $"current progress : {per} %", percent);
                     using (MemoryStream stream = new MemoryStream(bytes.Length + offset))
                     {

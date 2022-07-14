@@ -6,7 +6,6 @@ namespace Quark.Editor
     internal enum AssetBundleHashType : byte
     {
         DefaultName = 0,
-        AppendHash = 1,
         HashInstead = 2
     }
     [Serializable]

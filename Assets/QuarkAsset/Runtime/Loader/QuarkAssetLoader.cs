@@ -23,11 +23,10 @@ namespace Quark.Loader
         /// </summary>` 
         protected Dictionary<string, LinkedList<QuarkAssetObjectWapper>> quarkAssetObjectDict
             = new Dictionary<string, LinkedList<QuarkAssetObjectWapper>>();
-
         /// <summary>
-        /// Hash===QuarkAssetObjectInfo
+        /// AssetPath===QuarkAssetObjectInfo
         /// </summary>
-        protected Dictionary<int, QuarkAssetObjectInfo> hashQuarkAssetObjectInfoDict = new Dictionary<int, QuarkAssetObjectInfo>();
+        protected Dictionary<string, QuarkAssetObjectInfo> QuarkAssetObjectInfoDict = new Dictionary<string, QuarkAssetObjectInfo>();
         /// <summary>
         /// 被加载的场景字典；
         /// SceneName===Scene
@@ -86,7 +85,7 @@ namespace Quark.Loader
         }
         public QuarkAssetObjectInfo[] GetAllLoadedInfos()
         {
-            return hashQuarkAssetObjectInfoDict.Values.ToArray();
+            return QuarkAssetObjectInfoDict.Values.ToArray();
         }
         protected bool GetAssetObjectWapper(string assetName, string assetExtension, Type type, out QuarkAssetObjectWapper wapper)
         {

@@ -12,12 +12,12 @@ namespace Quark.Asset
     {
         Dictionary<string, List<QuarkAssetObject>> assetBundleDict;
         [SerializeField]
-        int quarkAssetCount;
-        [SerializeField]
         List<QuarkBundleInfo> quarkBundleInfoList;
         [SerializeField]
         List<QuarkAssetObject> quarkAssetObjectList;
-        public int QuarkAssetCount { get { return quarkAssetCount; } set { quarkAssetCount = value; } }
+        [SerializeField]
+        List<string> quarkAssetExts;
+        public int QuarkAssetCount { get { return QuarkAssetObjectList.Count; } }
         /// <summary>
         /// 包含的路径；
         /// <see cref="QuarkBundleInfo"/>
@@ -52,9 +52,17 @@ namespace Quark.Asset
                 return assetBundleDict;
             }
         }
+        public List<string> QuarkAssetExts
+        {
+            get
+            {
+                if (quarkAssetExts == null)
+                    quarkAssetExts = new List<string>();
+                return quarkAssetExts;
+            }
+        }
         public void Dispose()
         {
-            quarkAssetCount = 0;
             quarkAssetObjectList?.Clear();
             quarkBundleInfoList?.Clear();
             assetBundleDict?.Clear();

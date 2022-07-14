@@ -46,7 +46,7 @@ namespace Quark.Networking
         /// </summary>
         public void CheckForUpdates()
         {
-            var uriManifestPath = QuarkUtility.WebPathCombine(URL, QuarkConstant.ManifestName);
+            var uriManifestPath = Path.Combine(URL, QuarkConstant.ManifestName);
             QuarkUtility.Unity.StartCoroutine(EnumDownloadManifest(uriManifestPath));
         }
         public void LoadFromStreamingAssets()

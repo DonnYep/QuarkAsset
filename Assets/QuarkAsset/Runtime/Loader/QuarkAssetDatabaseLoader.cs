@@ -188,7 +188,7 @@ namespace Quark.Loader
         protected override void IncrementQuarkAssetObject(QuarkAssetObjectWapper wapper)
         {
             wapper.AssetReferenceCount++;
-            hashQuarkAssetObjectInfoDict[wapper.GetHashCode()] = wapper.GetQuarkAssetObjectInfo();
+            QuarkAssetObjectInfoDict[wapper.QuarkAssetObject.AssetPath] = wapper.GetQuarkAssetObjectInfo();
             //增加一个AB的引用计数；
             if (!assetBundleDict.TryGetValue(wapper.QuarkAssetObject.AssetBundleName, out var assetBundle))
             {
@@ -207,7 +207,7 @@ namespace Quark.Loader
                 return;
             }
             wapper.AssetReferenceCount--;
-            hashQuarkAssetObjectInfoDict[wapper.GetHashCode()] = wapper.GetQuarkAssetObjectInfo();
+            QuarkAssetObjectInfoDict[wapper.QuarkAssetObject.AssetPath] = wapper.GetQuarkAssetObjectInfo();
             //减少一个AB的引用计数
             if (assetBundleDict.TryGetValue(wapper.QuarkAssetObject.AssetBundleName, out var assetBundle))
             {
@@ -295,10 +295,19 @@ namespace Quark.Loader
                 yield break;
             }
             LoadSceneMode loadSceneMode = additive == true ? LoadSceneMode.Additive : LoadSceneMode.Single;
+            AsyncOperation operation = null;
 #if UNITY_EDITOR
-            var operation = UnityEditor.SceneManagement.EditorSceneManager.LoadSceneAsyncInPlayMode(wapper.QuarkAssetObject.AssetPath, new LoadSceneParameters(loadSceneMode));
+            var buildIndex = UnityEngine.SceneManagement.SceneUtility.GetBuildIndexByScenePath(wapper.QuarkAssetObject.AssetName);
+            if (buildIndex >= 0)
+            {
+                operation = UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(wapper.QuarkAssetObject.AssetName, loadSceneMode);
+            }
+            else
+            {
+                operation = UnityEditor.SceneManagement.EditorSceneManager.LoadSceneAsyncInPlayMode(wapper.QuarkAssetObject.AssetPath, new LoadSceneParameters(loadSceneMode));
+            }
 #else
-            var operation = UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(wapper.QuarkAssetObject.AssetName, loadSceneMode);
+            operation = UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(wapper.QuarkAssetObject.AssetName, loadSceneMode);
 #endif
             operation.allowSceneActivation = false;
             var hasProviderProgress = progressProvider != null;

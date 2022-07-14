@@ -239,7 +239,7 @@ where T : UnityEngine.Object
                 return loader.LoadMainAndSubAssetsAsync(assetName, assetExtension, type, callback);
             return null;
         }
-        internal Coroutine LoadAllAssetAsync(string assetBundleName,Action<Object[]>callback)
+        internal Coroutine LoadAllAssetAsync(string assetBundleName, Action<Object[]> callback)
         {
             if (quarkLoaderDict.TryGetValue(QuarkAssetLoadMode, out var loader))
                 return loader.LoadAllAssetAsync(assetBundleName, callback);
@@ -302,7 +302,7 @@ where T : UnityEngine.Object
         internal QuarkAssetObjectInfo[] GetAllLoadedInfos()
         {
             if (quarkLoaderDict.TryGetValue(QuarkAssetLoadMode, out var loader))
-                loader.GetAllLoadedInfos();
+                return loader.GetAllLoadedInfos();
             return new QuarkAssetObjectInfo[0];
         }
         /// <summary>

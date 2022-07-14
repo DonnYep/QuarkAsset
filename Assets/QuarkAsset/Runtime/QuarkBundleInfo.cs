@@ -13,8 +13,8 @@ namespace Quark.Asset
         public string AssetBundleName { get { return assetBundleName; } }
         public QuarkBundleInfo(string assetBundlePath,  string assetBundleName)
         {
-            this.assetBundlePath = assetBundlePath;
-            this.assetBundleName = assetBundleName;
+            this.assetBundlePath = assetBundlePath.Replace("\\","/");
+            this.assetBundleName = assetBundleName.Replace(".", "_").Replace("\\", "_").Replace("/", "_").ToLower(); ;
         }
         public static bool operator ==(QuarkBundleInfo a, QuarkBundleInfo b)
         {

@@ -34,9 +34,5 @@ namespace Quark.Asset
                 other.AssetBundleName == this.AssetBundleName &&
                 other.AssetExtension == this.AssetExtension;
         }
-        public override bool Equals(object obj)
-        {
-            return (obj is QuarkAssetObjectWapper) && Equals((QuarkAssetObjectWapper)obj);
-        }
     }
 }

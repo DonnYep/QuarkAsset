@@ -50,12 +50,12 @@ namespace Quark.Editor
             {
                 if (QuarkEditorDataProxy.QuarkAssetDataset == null)
                     return;
-                var dirHashPairs = QuarkEditorDataProxy.QuarkAssetDataset.QuarkBundleInfoList;
-                var length = dirHashPairs.Count;
+                var bundles= QuarkEditorDataProxy.QuarkAssetDataset.QuarkBundleInfoList;
+                var length = bundles.Count;
                 int removeindex = -1;
                 for (int i = 0; i < length; i++)
                 {
-                    if (dirHashPairs[i].AssetBundlePath == path)
+                    if (bundles[i].AssetBundleName== path)
                     {
                         removeindex = i;
                         break;
