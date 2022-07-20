@@ -97,28 +97,6 @@ namespace Quark
                 var aesKey = QuarkUtility.GenerateBytesAESKey(keyStr);
                 QuarkResources.QuarkAESEncryptionKey = aesKey;
             }
-            //switch (QuarkAssetLoadMode)
-            //{
-            //    case QuarkLoadMode.AssetDatabase:
-            //        {
-            //            if (QuarkAssetDataset != null)
-            //                QuarkEngine.Instance.SetAssetDatabaseModeData(QuarkAssetDataset);
-            //        }
-            //        break;
-            //    case QuarkLoadMode.AssetBundle:
-            //        {
-            //            switch (QuarkBuildPath)
-            //            {
-            //                case QuarkBuildPath.StreamingAssets:
-            //                    StreamingAssetsTab();
-            //                    break;
-            //                case QuarkBuildPath.URL:
-            //                    URLTab();
-            //                    break;
-            //            }
-            //        }
-            //        break;
-            //}
         }
         void OnEnable()
         {

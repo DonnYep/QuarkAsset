@@ -37,14 +37,6 @@ namespace Quark
             add { QuarkEngine.Instance.onCompareManifestFailure += value; }
             remove { QuarkEngine.Instance.onCompareManifestFailure -= value; }
         }
-        public static Coroutine RequestManifestFromStreamingAssetsAsync()
-        {
-            return QuarkEngine.Instance.RequestManifestFromStreamingAssetsAsync();
-        }
-        public Coroutine RequestMainifestFromURLAsync()
-        {
-            return QuarkEngine.Instance.RequestMainifestFromURLAsync();
-        }
         public static T LoadAsset<T>(string assetName, string assetExtension = null)
 where T : Object
         {
@@ -112,17 +104,17 @@ where T : Object
         {
             return QuarkEngine.Instance.LoadMainAndSubAssetsAsync<T>(assetName, assetExtension, callback);
         }
-        public static Coroutine LoadMainAndSubAssetsAsync(string assetName, Type type,Action<Object[]> callback)
+        public static Coroutine LoadMainAndSubAssetsAsync(string assetName, Type type, Action<Object[]> callback)
         {
-            return QuarkEngine.Instance.LoadMainAndSubAssetsAsync(assetName, string.Empty, type,callback);
+            return QuarkEngine.Instance.LoadMainAndSubAssetsAsync(assetName, string.Empty, type, callback);
         }
-        public static Coroutine LoadMainAndSubAssetsAsync(string assetName, string assetExtension, Type type,Action<Object[]> callback)
+        public static Coroutine LoadMainAndSubAssetsAsync(string assetName, string assetExtension, Type type, Action<Object[]> callback)
         {
-            return QuarkEngine.Instance.LoadMainAndSubAssetsAsync(assetName, assetExtension, type,callback);
+            return QuarkEngine.Instance.LoadMainAndSubAssetsAsync(assetName, assetExtension, type, callback);
         }
         public static Coroutine LoadAllAssetAsync(string assetBundleName, Action<Object[]> callback)
         {
-            return QuarkEngine.Instance.LoadAllAssetAsync(assetBundleName,  callback);
+            return QuarkEngine.Instance.LoadAllAssetAsync(assetBundleName, callback);
         }
         public static Coroutine LoadSceneAsync(string sceneName, Action<float> progress, Action callback, bool additive = false)
         {
@@ -168,13 +160,13 @@ where T : Object
         {
             return QuarkEngine.Instance.GetInfo<T>(assetName, string.Empty, out info);
         }
-        public static bool GetInfo(string assetName, string assetExtension, Type type,out QuarkAssetObjectInfo info) 
+        public static bool GetInfo(string assetName, string assetExtension, Type type, out QuarkAssetObjectInfo info)
         {
-            return QuarkEngine.Instance.GetInfo(assetName, assetExtension, type,out info);
+            return QuarkEngine.Instance.GetInfo(assetName, assetExtension, type, out info);
         }
-        public static bool GetInfo(string assetName, Type type,out QuarkAssetObjectInfo info) 
+        public static bool GetInfo(string assetName, Type type, out QuarkAssetObjectInfo info)
         {
-            return QuarkEngine.Instance.GetInfo(assetName, string.Empty,type , out info);
+            return QuarkEngine.Instance.GetInfo(assetName, string.Empty, type, out info);
         }
         public static bool GetInfo(string assetName, string assetExtension, out QuarkAssetObjectInfo info)
         {
