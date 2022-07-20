@@ -43,7 +43,7 @@ namespace Quark.Editor
         public QuarkAssetBundleTabData()
         {
             BuildTarget = BuildTarget.StandaloneWindows;
-            OutputPath = Path.Combine(Path.GetFullPath("."), "AssetBundles").Replace("\\","/");
+            OutputPath = Path.Combine(Path.GetFullPath("."), "AssetBundles","QuarkAsset").Replace("\\","/");
             ClearOutputFolders = true;
             CopyToStreamingAssets = false;
             StreamingRelativePath = string.Empty;

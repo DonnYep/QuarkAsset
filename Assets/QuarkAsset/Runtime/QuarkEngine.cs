@@ -48,84 +48,23 @@ namespace Quark
             get { return QuarkDataProxy.QuarkEncryptionOffset; }
             set { QuarkDataProxy.QuarkEncryptionOffset = value; }
         }
-        QuarkDownloader quarkDownloader;
         QuarkComparator quarkComparator;
         Dictionary<QuarkLoadMode, QuarkAssetLoader> quarkLoaderDict;
-        public bool LoadStreamingManifestDone
-        {
-            get { return quarkComparator.LoadStreamingManifestDone; }
-        }
-        public bool LoadURLManifestDone
-        {
-            get { return quarkComparator.LoadURLManifestDone; }
-        }
         /// <summary>
         /// 当检测到最新的；
         /// </summary>
-        public Action<long> onDetectedSuccess;
+        public Action<long> onCompareManifestSuccess;
         /// <summary>
         /// 当检测失败；
         /// </summary>
-        public Action<string> onDetectedFailure;
+        public Action<string> onCompareManifestFailure;
         public QuarkEngine()
         {
             quarkComparator = new QuarkComparator();
-            quarkDownloader = new QuarkDownloader();
             quarkComparator.Initiate(OnCompareSuccess, OnCompareFailure);
             quarkLoaderDict = new Dictionary<QuarkLoadMode, QuarkAssetLoader>();
             quarkLoaderDict[QuarkLoadMode.AssetDatabase] = new QuarkAssetDatabaseLoader();
             quarkLoaderDict[QuarkLoadMode.AssetBundle] = new QuarkAssetBundleLoader();
-        }
-        /// <summary>
-        /// URL---DownloadPath
-        /// </summary>
-        public event Action<string, string> OnDownloadStart
-        {
-            add { quarkDownloader.onDownloadStart += value; }
-            remove { quarkDownloader.onDownloadStart -= value; }
-        }
-        /// <summary>
-        /// URL---DownloadPath
-        /// </summary>
-        public event Action<string, string> OnDownloadSuccess
-        {
-            add { quarkDownloader.onDownloadSuccess += value; }
-            remove { quarkDownloader.onDownloadSuccess -= value; }
-        }
-        /// <summary>
-        /// URL---DownloadPath---ErrorMessage
-        /// </summary>
-        public event Action<string, string, string> OnDownloadFailure
-        {
-            add { quarkDownloader.onDownloadFailure += value; }
-            remove { quarkDownloader.onDownloadFailure -= value; }
-        }
-        /// <summary>
-        /// URL---DownloadPath---OverallProgress(0~100%)---IndividualProgress(0~100%)
-        /// </summary>
-        public event Action<string, string, float, float> OnDownloadOverall
-        {
-            add { quarkDownloader.onDownloadOverall += value; }
-            remove { quarkDownloader.onDownloadOverall -= value; }
-        }
-        /// <summary>
-        /// SuccessURIs---FailureURIs---TimeSpan
-        /// </summary>
-        public event Action<string[], string[], TimeSpan> OnDownloadFinish
-        {
-            add { quarkDownloader.onDownloadFinish += value; }
-            remove { quarkDownloader.onDownloadFinish -= value; }
-        }
-        /// <summary>
-        /// 启动下载；
-        /// </summary>
-        public void LaunchDownload()
-        {
-            quarkDownloader.LaunchDownload();
-        }
-        public void StopDownload()
-        {
-            quarkDownloader.RemoveAllDownload();
         }
         /// <summary>
         /// 初始化，传入资源定位符与本地持久化路径；
@@ -137,27 +76,23 @@ namespace Quark
             QuarkDataProxy.PersistentPath = persistentPath;
             QuarkDataProxy.URL = url;
         }
-        public void LoadFromStreamingAssets()
+        public Coroutine RequestManifestFromStreamingAssetsAsync()
         {
-            quarkComparator.LoadFromStreamingAssets();
+            return quarkComparator.RequestManifestFromStreamingAssetsAsync();
         }
-        /// <summary>
-        /// 检查更新；
-        /// </summary>
-        internal void LoadFromURL()
+        public Coroutine RequestMainifestFromURLAsync()
         {
-            quarkComparator.LoadFromURL();
+            return quarkComparator.RequestMainifestFromURLAsync();
         }
         /// <summary>
         /// 对Manifest进行编码；
         /// 用于Built assetbundle模式；
         /// </summary>
         /// <param name="manifest">unityWebRequest获取的Manifest文件对象</param>
-        internal void SetBuiltAssetBundleModeData(QuarkManifest manifest)
+        internal void SetBuiltAssetBundleModeData(QuarkAssetManifest manifest)
         {
             if (quarkLoaderDict.TryGetValue(QuarkLoadMode.AssetBundle, out var loader))
                 loader.SetLoaderData(manifest);
-            QuarkDataProxy.QuarkManifest = manifest;
         }
         /// <summary>
         /// 用于Editor开发模式；
@@ -315,8 +250,7 @@ where T : UnityEngine.Object
                 }
                 catch { }
             }
-            quarkDownloader.AddDownloadFiles(latest);
-            onDetectedSuccess?.Invoke(size);
+            onCompareManifestSuccess?.Invoke(size);
         }
         /// <summary>
         /// 当比较失败；
@@ -324,7 +258,7 @@ where T : UnityEngine.Object
         /// <param name="errorMessage">错误信息</param>
         void OnCompareFailure(string errorMessage)
         {
-            onDetectedFailure?.Invoke(errorMessage);
+            onCompareManifestFailure?.Invoke(errorMessage);
         }
     }
 }

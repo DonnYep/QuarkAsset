@@ -3,7 +3,7 @@ using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 namespace Quark.Editor
 {
-    public  class QuarkAssetBundleSearchLable
+    public class QuarkAssetBundleSearchLable
     {
         QuarkAssetBundleTreeView treeView;
         TreeViewState treeViewState;
@@ -27,7 +27,7 @@ namespace Quark.Editor
             GUILayout.FlexibleSpace();
             if (GUILayout.Button("ClearAllAssetBundle"))
             {
-                QuarkEditorDataProxy.QuarkAssetDataset.QuarkBundleInfoList?.Clear();
+                QuarkEditorDataProxy.QuarkAssetDataset.QuarkAssetBundleList?.Clear();
                 treeView.Clear();
             }
             GUILayout.EndHorizontal();
@@ -63,16 +63,14 @@ namespace Quark.Editor
                     {
                         Object obj = DragAndDrop.objectReferences[i];
                         string path = DragAndDrop.paths[i];
-                        // Folder.
-                        //if (obj is DefaultAsset)
-                        //{
-                        //}
-                        //else if (!(obj is MonoScript))
-                        //{
-                        //	treeView.AddPath(path);
-                        //}
-                        if (!(obj is MonoScript)/*&&!(obj is SceneAsset)*/)
+                        if (!(obj is MonoScript))
                         {
+                            var isInSameBundle = QuarkUtility.CheckAssetsAndScenesInOneAssetBundle(path);
+                            if (isInSameBundle)
+                            {
+                                QuarkUtility.LogError($"Cannot mark assets and scenes in one AssetBundle. AssetBundle name is {path}");
+                                continue;
+                            }
                             treeView.AddPath(path);
                         }
                     }

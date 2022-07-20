@@ -1,9 +1,11 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
+using System.Collections.Generic;
 namespace Quark
 {
     public partial class QuarkUtility
@@ -500,6 +502,45 @@ namespace Quark
                     writer.Flush();
                 }
             }
+        }
+        /// <summary>
+        /// 追加并完全写入所有bytes;
+        /// </summary>
+        /// <param name="path">写入的地址</param>
+        /// <param name="bytesArray">数组集合</param>
+        public static void AppendAndWriteAllBytes(string path, params byte[][] bytesArray)
+        {
+            using (MemoryStream stream = new MemoryStream())
+            {
+                var bytesArrayLength = bytesArray.Length;
+                int size = 0;
+                for (int i = 0; i < bytesArrayLength; i++)
+                {
+                    stream.Write(bytesArray[i], 0, bytesArray[i].Length);
+                    size += bytesArray[i].Length;
+                }
+                File.WriteAllBytes(path, stream.ToArray());
+                stream.Close();
+            }
+        }
+        /// <summary>
+        /// 检测资源与场景是否同处于一个AB包中；
+        /// </summary>
+        /// <param name="bundlePath">包地址</param>
+        /// <returns>是否处于同一个包</returns>
+        public static bool CheckAssetsAndScenesInOneAssetBundle(string bundlePath)
+        {
+            if (File.Exists(bundlePath))//若是文件
+                return false;
+            var col = Directory.GetFiles(bundlePath, ".", SearchOption.AllDirectories).Select(path => Path.GetExtension(path));
+            var exts = new HashSet<string>(col);
+            exts.Remove(".meta");
+            if (exts.Contains(".unity"))
+            {
+                exts.Remove(".unity");
+                return exts.Count != 0;
+            }
+            return false;
         }
     }
 }

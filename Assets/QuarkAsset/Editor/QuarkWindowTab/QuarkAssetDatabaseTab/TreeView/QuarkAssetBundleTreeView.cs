@@ -25,12 +25,12 @@ namespace Quark.Editor
         {
             if (QuarkEditorDataProxy.QuarkAssetDataset == null)
                 return;
-            var namePathInfoList = QuarkEditorDataProxy.QuarkAssetDataset.QuarkBundleInfoList;
-            var length = namePathInfoList.Count;
+            var bundles = QuarkEditorDataProxy.QuarkAssetDataset.QuarkAssetBundleList;
+            var length = bundles.Count;
             bool existed = false;
             for (int i = 0; i < length; i++)
             {
-                if (namePathInfoList[i].AssetBundlePath == path)
+                if (bundles[i].AssetBundlePath == path)
                 {
                     existed = true;
                     break;
@@ -38,24 +38,27 @@ namespace Quark.Editor
             }
             if (!existed)
             {
-                var hash = AssetDatabase.AssetPathToGUID(path);
-                var pair = new QuarkBundleInfo(path, path);
-                QuarkEditorDataProxy.QuarkAssetDataset.QuarkBundleInfoList.Add(pair);
+                var bundle = new QuarkAssetBundle()
+                {
+                    AssetBundleName = QuarkUtility.FormatAssetBundleName(path),
+                    AssetBundlePath = path
+                };
+                QuarkEditorDataProxy.QuarkAssetDataset.QuarkAssetBundleList.Add(bundle);
             }
             Reload();
         }
-        public void RemovePath(string path)
+        public void RemoveBundleByName(string bundleName)
         {
             try
             {
                 if (QuarkEditorDataProxy.QuarkAssetDataset == null)
                     return;
-                var bundles= QuarkEditorDataProxy.QuarkAssetDataset.QuarkBundleInfoList;
+                var bundles = QuarkEditorDataProxy.QuarkAssetDataset.QuarkAssetBundleList;
                 var length = bundles.Count;
                 int removeindex = -1;
                 for (int i = 0; i < length; i++)
                 {
-                    if (bundles[i].AssetBundleName== path)
+                    if (bundles[i].AssetBundleName == bundleName)
                     {
                         removeindex = i;
                         break;
@@ -63,7 +66,7 @@ namespace Quark.Editor
                 }
                 if (removeindex != -1)
                 {
-                    QuarkEditorDataProxy.QuarkAssetDataset.QuarkBundleInfoList.RemoveAt(removeindex);
+                    QuarkEditorDataProxy.QuarkAssetDataset.QuarkAssetBundleList.RemoveAt(removeindex);
                 }
             }
             catch (Exception e)
@@ -76,8 +79,8 @@ namespace Quark.Editor
         {
             if (QuarkEditorDataProxy.QuarkAssetDataset == null)
                 return;
-            var infos = QuarkEditorDataProxy.QuarkAssetDataset.QuarkBundleInfoList;
-            var obj = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(infos[id].AssetBundlePath);
+            var bundles = QuarkEditorDataProxy.QuarkAssetDataset.QuarkAssetBundleList;
+            var obj = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(bundles[id].AssetBundlePath);
             EditorGUIUtility.PingObject(obj);
             Selection.activeObject = obj;
             base.SingleClickedItem(id);
@@ -86,31 +89,27 @@ namespace Quark.Editor
         {
             if (QuarkEditorDataProxy.QuarkAssetDataset == null)
                 return;
-            var infos = QuarkEditorDataProxy.QuarkAssetDataset.QuarkBundleInfoList;
-            var obj = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(infos[id].AssetBundlePath);
+            var bundles = QuarkEditorDataProxy.QuarkAssetDataset.QuarkAssetBundleList;
+            var obj = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(bundles[id].AssetBundlePath);
             EditorGUIUtility.PingObject(obj);
             Selection.activeObject = obj;
             base.DoubleClickedItem(id);
         }
         protected override TreeViewItem BuildRoot()
         {
-            int length = 0;
-            List<QuarkBundleInfo> namePathInfoList = null;
-            if (QuarkEditorDataProxy.QuarkAssetDataset != null)
-            {
-                namePathInfoList = QuarkEditorDataProxy.QuarkAssetDataset.QuarkBundleInfoList;
-                length = namePathInfoList.Count;
-            }
             var root = new TreeViewItem { id = -1, depth = -1, displayName = "Root" };
             var allItems = new List<TreeViewItem>();
-            var assetIcon = EditorGUIUtility.FindTexture("PreMatCube");
-            if (length > 0)
+            if (QuarkEditorDataProxy.QuarkAssetDataset == null)
             {
-                for (int i = 0; i < length; i++)
-                {
-                    var item = new TreeViewItem { id = i, depth = 1, displayName = namePathInfoList[i].AssetBundleName, icon = assetIcon };
-                    allItems.Add(item);
-                }
+                SetupParentsAndChildrenFromDepths(root, allItems);
+                return root;
+            }
+            var bundles = QuarkEditorDataProxy.QuarkAssetDataset.QuarkAssetBundleList;
+            var assetIcon = EditorGUIUtility.FindTexture("PreMatCube");
+            for (int i = 0; i < bundles.Count; i++)
+            {
+                var item = new TreeViewItem { id = i, depth = 1, displayName = bundles[i].AssetBundleName, icon = assetIcon };
+                allItems.Add(item);
             }
             SetupParentsAndChildrenFromDepths(root, allItems);
             return root;
@@ -120,16 +119,16 @@ namespace Quark.Editor
             if (QuarkEditorDataProxy.QuarkAssetDataset == null)
                 return;
             var item = FindItem(args.itemID, rootItem);
-            var bundleList = QuarkEditorDataProxy.QuarkAssetDataset.QuarkBundleInfoList;
+            var bundles = QuarkEditorDataProxy.QuarkAssetDataset.QuarkAssetBundleList;
             if (!string.IsNullOrEmpty(args.newName))
             {
                 //防止重名
                 var canUse = true;
                 var newName = args.newName;
-                var length = bundleList.Count;
+                var length = bundles.Count;
                 for (int i = 0; i < length; i++)
                 {
-                    if (bundleList[i].AssetBundleName == newName)
+                    if (bundles[i].AssetBundleName == newName)
                     {
                         canUse = false;
                         break;
@@ -137,9 +136,9 @@ namespace Quark.Editor
                 }
                 if (canUse)
                 {
-                    var bundleInfo = bundleList[args.itemID];
-                    bundleList[args.itemID] = new QuarkBundleInfo(bundleInfo.AssetBundlePath, newName);
-                    item.displayName = args.newName;
+                    var bundle = bundles[args.itemID];
+                    bundle.AssetBundleName = QuarkUtility.FormatAssetBundleName(newName);
+                    item.displayName = bundle.AssetBundleName;
                 }
                 else
                 {
@@ -191,11 +190,11 @@ namespace Quark.Editor
         {
             if (QuarkEditorDataProxy.QuarkAssetDataset == null)
                 return;
-            var infos = QuarkEditorDataProxy.QuarkAssetDataset.QuarkBundleInfoList;
-            for (int i = 0; i < infos.Count; i++)
+            var bundles = QuarkEditorDataProxy.QuarkAssetDataset.QuarkAssetBundleList;
+            for (int i = 0; i < bundles.Count; i++)
             {
-                var info = infos[i];
-                infos[i] = new QuarkBundleInfo(info.AssetBundlePath, info.AssetBundlePath);
+                var bundle = bundles[i];
+                bundle.AssetBundleName = QuarkUtility.FormatAssetBundleName(bundle.AssetBundlePath);
             }
             EditorUtility.SetDirty(QuarkEditorDataProxy.QuarkAssetDataset);
             Reload();
@@ -205,9 +204,8 @@ namespace Quark.Editor
             var id = Convert.ToInt32(context);
             if (QuarkEditorDataProxy.QuarkAssetDataset == null)
                 return;
-            var info = QuarkEditorDataProxy.QuarkAssetDataset.QuarkBundleInfoList[id];
-            QuarkEditorDataProxy.QuarkAssetDataset.QuarkBundleInfoList[id]
-                = new QuarkBundleInfo(info.AssetBundlePath, info.AssetBundlePath);
+            var bundle = QuarkEditorDataProxy.QuarkAssetDataset.QuarkAssetBundleList[id];
+            bundle.AssetBundleName = QuarkUtility.FormatAssetBundleName(bundle.AssetBundlePath);
             EditorUtility.SetDirty(QuarkEditorDataProxy.QuarkAssetDataset);
             Reload();
         }
@@ -218,7 +216,7 @@ namespace Quark.Editor
                 var list = context as List<string>;
                 for (int i = 0; i < list.Count; i++)
                 {
-                    RemovePath(list[i]);
+                    RemoveBundleByName(list[i]);
                 }
                 Reload();
             }

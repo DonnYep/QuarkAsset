@@ -6,11 +6,7 @@
     public class QuarkConstant
     {
         /// <summary>
-        /// Quark资源打包出来后信息表；
-        /// </summary>
-        public const string BuildInfoFileName = "BuildInfo.json";
-        /// <summary>
-        /// Quark自带的Manifest名称；
+        /// QuarkAsset打包后的文件清单；
         /// </summary>
         public const string ManifestName = "Manifest.json";
     }

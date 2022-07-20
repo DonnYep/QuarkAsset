@@ -2,7 +2,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
@@ -15,23 +14,29 @@ namespace Quark.Loader
     internal abstract class QuarkAssetLoader
     {
         /// <summary>
-        /// Key : [ABName] ; Value : [QuarkAssetBundle]
+        /// BundleName===QuarkBundleWarpper
         /// </summary>
-        protected Dictionary<string, QuarkAssetBundle> assetBundleDict = new Dictionary<string, QuarkAssetBundle>();
+        protected Dictionary<string, QuarkBundleWarpper> bundleWarpperDict
+            = new Dictionary<string, QuarkBundleWarpper>();
         /// <summary>
-        /// Key : AssetName---Value :  Lnk [QuarkAssetABObjectWapper]
-        /// </summary>` 
-        protected Dictionary<string, LinkedList<QuarkAssetObjectWapper>> quarkAssetObjectDict
-            = new Dictionary<string, LinkedList<QuarkAssetObjectWapper>>();
-        /// <summary>
-        /// AssetPath===QuarkAssetObjectInfo
+        /// AssetName===Lnk[QuarkObjectWapper]
         /// </summary>
-        protected Dictionary<string, QuarkAssetObjectInfo> QuarkAssetObjectInfoDict = new Dictionary<string, QuarkAssetObjectInfo>();
+        protected Dictionary<string, LinkedList<QuarkObject>> quarkObjectLnkDict
+            = new Dictionary<string, LinkedList<QuarkObject>>();
+        /// <summary>
+        /// AssetPath===QuarkObjectWapper
+        /// </summary>
+        protected Dictionary<string, QuarkObjectWapper> objectWarpperDict
+            = new Dictionary<string, QuarkObjectWapper>();
         /// <summary>
         /// 被加载的场景字典；
         /// SceneName===Scene
         /// </summary>
         protected Dictionary<string, Scene> loadedSceneDict = new Dictionary<string, Scene>();
+        /// <summary>
+        /// 主动加载的场景列表；
+        /// </summary>
+        protected List<string> loadSceneList = new List<string>();
         public abstract void SetLoaderData(IQuarkLoaderData loaderData);
         public abstract T LoadAsset<T>(string assetName, string assetExtension) where T : Object;
         public abstract Object LoadAsset(string assetName, string assetExtension, Type type);
@@ -45,6 +50,7 @@ namespace Quark.Loader
         public abstract Coroutine LoadMainAndSubAssetsAsync(string assetName, string assetExtension, Type type, Action<Object[]> callback);
         public abstract Coroutine LoadAllAssetAsync(string assetBundleName, Action<Object[]> callback);
         public abstract Coroutine LoadSceneAsync(string sceneName, Func<float> progressProvider, Action<float> progress, Func<bool> condition, Action callback, bool additive = false);
+        public abstract void ReleaseAsset(string assetName);
         public abstract void UnloadAsset(string assetName, string assetExtension);
         public abstract void UnloadAssetBundle(string assetBundleName, bool unloadAllLoadedObjects = false);
         public abstract void UnloadAllAssetBundle(bool unloadAllLoadedObjects = false);
@@ -53,10 +59,11 @@ namespace Quark.Loader
         public bool GetInfo<T>(string assetName, string assetExtension, out QuarkAssetObjectInfo info) where T : Object
         {
             info = QuarkAssetObjectInfo.None;
-            var hasWapper = GetAssetObjectWapper(assetName, assetExtension, typeof(T), out var wapper);
+            var hasWapper = GetQuarkObject(assetName, assetExtension, typeof(T), out var wapper);
             if (hasWapper)
             {
-                info = wapper.GetQuarkAssetObjectInfo();
+                var referenceCount = objectWarpperDict[wapper.AssetPath].ReferenceCount;
+                info = QuarkAssetObjectInfo.Create(wapper.AssetName, wapper.AssetPath, wapper.AssetBundleName, wapper.AssetExtension, wapper.AssetType, referenceCount);
                 return true;
             }
             return false;
@@ -64,10 +71,11 @@ namespace Quark.Loader
         public bool GetInfo(string assetName, string assetExtension, Type type, out QuarkAssetObjectInfo info)
         {
             info = QuarkAssetObjectInfo.None;
-            var hasWapper = GetAssetObjectWapper(assetName, assetExtension, type, out var wapper);
+            var hasWapper = GetQuarkObject(assetName, assetExtension, type, out var wapper);
             if (hasWapper)
             {
-                info = wapper.GetQuarkAssetObjectInfo();
+                var referenceCount = objectWarpperDict[wapper.AssetPath].ReferenceCount;
+                info = QuarkAssetObjectInfo.Create(wapper.AssetName, wapper.AssetPath, wapper.AssetBundleName, wapper.AssetExtension, wapper.AssetType, referenceCount);
                 return true;
             }
             return false;
@@ -75,66 +83,76 @@ namespace Quark.Loader
         public bool GetInfo(string assetName, string assetExtension, out QuarkAssetObjectInfo info)
         {
             info = QuarkAssetObjectInfo.None;
-            var hasWapper = GetAssetObjectWapper(assetName, assetExtension, out var wapper);
+            var hasWapper = GetQuarkObject(assetName, assetExtension, out var wapper);
             if (hasWapper)
             {
-                info = wapper.GetQuarkAssetObjectInfo();
+                var referenceCount = objectWarpperDict[wapper.AssetPath].ReferenceCount;
+                info = QuarkAssetObjectInfo.Create(wapper.AssetName, wapper.AssetPath, wapper.AssetBundleName, wapper.AssetExtension, wapper.AssetType, referenceCount);
                 return true;
             }
             return false;
         }
         public QuarkAssetObjectInfo[] GetAllLoadedInfos()
         {
-            return QuarkAssetObjectInfoDict.Values.ToArray();
+            QuarkAssetObjectInfo[] quarkAssetObjectInfos = new QuarkAssetObjectInfo[objectWarpperDict.Count];
+            int idx = 0;
+            foreach (var objectWarpper in objectWarpperDict.Values)
+            {
+                var obj = objectWarpper.QuarkObject;
+                var info = QuarkAssetObjectInfo.Create(obj.AssetName, obj.AssetPath, obj.AssetBundleName, obj.AssetExtension, obj.AssetType, objectWarpper.ReferenceCount);
+                quarkAssetObjectInfos[idx] = info;
+                idx++;
+            }
+            return quarkAssetObjectInfos;
         }
-        protected bool GetAssetObjectWapper(string assetName, string assetExtension, Type type, out QuarkAssetObjectWapper wapper)
+        protected bool GetQuarkObject(string assetName, string assetExtension, Type type, out QuarkObject quarkObject)
         {
-            wapper = null;
+            quarkObject = null;
             var typeString = type.ToString();
-            if (quarkAssetObjectDict.TryGetValue(assetName, out var abLnk))
+            if (quarkObjectLnkDict.TryGetValue(assetName, out var abLnk))
             {
                 if (string.IsNullOrEmpty(assetExtension))
                 {
                     var obj = abLnk.First.Value;
-                    if (obj.QuarkAssetObject.AssetType == typeString)
-                        wapper = abLnk.First.Value;
+                    if (obj.AssetType == typeString)
+                        quarkObject = abLnk.First.Value;
                 }
                 else
                 {
-                    foreach (var abWapper in abLnk)
+                    foreach (var quarkObj in abLnk)
                     {
-                        if (abWapper.QuarkAssetObject.AssetExtension == assetExtension && abWapper.QuarkAssetObject.AssetType == typeString)
+                        if (quarkObj.AssetExtension == assetExtension && quarkObj.AssetType == typeString)
                         {
-                            wapper = abWapper;
+                            quarkObject = quarkObj;
                             break;
                         }
                     }
                 }
             }
-            return wapper != null;
+            return quarkObject != null;
         }
-        protected bool GetAssetObjectWapper(string assetName, string assetExtension, out QuarkAssetObjectWapper wapper)
+        protected bool GetQuarkObject(string assetName, string assetExtension, out QuarkObject quarkObject)
         {
-            wapper = null;
-            if (quarkAssetObjectDict.TryGetValue(assetName, out var abLnk))
+            quarkObject = null;
+            if (quarkObjectLnkDict.TryGetValue(assetName, out var abLnk))
             {
                 if (string.IsNullOrEmpty(assetExtension))
                 {
-                    wapper = abLnk.First.Value;
+                    quarkObject = abLnk.First.Value;
                 }
                 else
                 {
                     foreach (var abWapper in abLnk)
                     {
-                        if (abWapper.QuarkAssetObject.AssetExtension == assetExtension)
+                        if (abWapper.AssetExtension == assetExtension)
                         {
-                            wapper = abWapper;
+                            quarkObject = abWapper;
                             break;
                         }
                     }
                 }
             }
-            return wapper != null;
+            return quarkObject != null;
         }
         protected IEnumerator EnumUnloadSceneAsync(string sceneName, Action<float> progress, Action callback)
         {
@@ -152,7 +170,7 @@ namespace Quark.Loader
                 callback?.Invoke();
                 yield break;
             }
-            var hasWapper = GetAssetObjectWapper(sceneName, ".unity", out var wapper);
+            var hasWapper = GetQuarkObject(sceneName, ".unity", out var wapper);
             if (!hasWapper)
             {
                 QuarkUtility.LogError($"Scene：{sceneName}.unity not existed !");
@@ -170,17 +188,8 @@ namespace Quark.Loader
                 }
             }
             loadedSceneDict.Remove(sceneName);
-            DecrementQuarkAssetObject(wapper);
             progress?.Invoke(1);
             callback?.Invoke();
         }
-        /// <summary>
-        /// 增加一个引用计数；
-        /// </summary>
-        protected abstract void IncrementQuarkAssetObject(QuarkAssetObjectWapper wapper);
-        /// <summary>
-        /// 减少一个引用计数；
-        /// </summary>
-        protected abstract void DecrementQuarkAssetObject(QuarkAssetObjectWapper wapper);
     }
 }

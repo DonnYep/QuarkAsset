@@ -4,7 +4,6 @@ using Quark.Asset;
 
 namespace Quark
 {
-    [DefaultExecutionOrder(2000)]
     /// <summary>
     /// Quark配置脚本，挂载到物体上配置即可；
     /// </summary>
@@ -22,6 +21,7 @@ namespace Quark
         /// ab Build 的相对地址；
         /// </summary>
         public string RelativeBuildPath;
+
 
         /// <summary>
         /// 资源所在URI；
@@ -90,13 +90,38 @@ namespace Quark
         void Awake()
         {
             instance = this;
-            QuarkResources.QuarkAssetLoadMode = QuarkAssetLoadMode;
             QuarkResources.QuarkEncryptionOffset = EncryptionOffset;
+            QuarkResources.QuarkAssetLoadMode = QuarkAssetLoadMode;
             {
                 var keyStr = BuildInfoAESEncryptionKey;
                 var aesKey = QuarkUtility.GenerateBytesAESKey(keyStr);
                 QuarkResources.QuarkAESEncryptionKey = aesKey;
             }
+            //switch (QuarkAssetLoadMode)
+            //{
+            //    case QuarkLoadMode.AssetDatabase:
+            //        {
+            //            if (QuarkAssetDataset != null)
+            //                QuarkEngine.Instance.SetAssetDatabaseModeData(QuarkAssetDataset);
+            //        }
+            //        break;
+            //    case QuarkLoadMode.AssetBundle:
+            //        {
+            //            switch (QuarkBuildPath)
+            //            {
+            //                case QuarkBuildPath.StreamingAssets:
+            //                    StreamingAssetsTab();
+            //                    break;
+            //                case QuarkBuildPath.URL:
+            //                    URLTab();
+            //                    break;
+            //            }
+            //        }
+            //        break;
+            //}
+        }
+        void OnEnable()
+        {
             switch (QuarkAssetLoadMode)
             {
                 case QuarkLoadMode.AssetDatabase:
@@ -149,7 +174,7 @@ namespace Quark
             if (!Directory.Exists(downloadPath))
                 Directory.CreateDirectory(downloadPath);
             QuarkEngine.Instance.Initiate(Url, downloadPath);
-            QuarkEngine.Instance.LoadFromURL();
+            QuarkEngine.Instance.RequestMainifestFromURLAsync();
         }
         void StreamingAssetsTab()
         {
@@ -159,11 +184,7 @@ namespace Quark
             else
                 streamingAssetPath = Application.streamingAssetsPath;
             QuarkEngine.Instance.Initiate(streamingAssetPath, streamingAssetPath);
-            QuarkEngine.Instance.LoadFromStreamingAssets();
-        }
-        void OnDestroy()
-        {
-            QuarkResources.StopDownload();
+            QuarkEngine.Instance.RequestManifestFromStreamingAssetsAsync();
         }
     }
 }

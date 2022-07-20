@@ -3,41 +3,62 @@ using System.Collections.Generic;
 using UnityEngine;
 namespace Quark.Asset
 {
-    internal class QuarkAssetBundle : IDisposable
+    [Serializable]
+    public class QuarkAssetBundle : IEquatable<QuarkAssetBundle>
     {
+        [SerializeField]
+        string assetBundleName;
+        [SerializeField]
+        string assetBundlePath;
+        [SerializeField]
+        List<string> dependList;
+        [SerializeField]
+        List<QuarkObject> quarkObjects;
         /// <summary>
         /// AB包的名称；
         /// </summary>
-        public string AssetBundleName { get; set; }
+        public string AssetBundleName
+        {
+            get { return assetBundleName; }
+            set { assetBundleName = value; }
+        }
         /// <summary>
         /// AB在Assets目录下的地址；
         /// </summary>
-        public string AssetBundlePath{ get; set; }
+        public string AssetBundlePath
+        {
+            get { return assetBundlePath; }
+            set { assetBundlePath = value; }
+        }
         /// <summary>
-        /// AssetBundle 包体对象；
+        /// 资源的依赖项；
         /// </summary>
-        public AssetBundle AssetBundle { get; set; }
+        public List<string> DependList
+        {
+            get
+            {
+                if (dependList == null)
+                    dependList = new List<string>();
+                return dependList;
+            }
+            set { dependList = value; }
+        }
         /// <summary>
         /// 包所含的资源列表；
         /// </summary>
-        public HashSet<QuarkAssetObjectWapper> Assets{ get; set; }
-        /// <summary>
-        /// 包体对应的引用计数；
-        /// </summary>
-        public int ReferenceCount { get; set; }
-        public QuarkAssetBundle(string assetBundleName, AssetBundle assetBundle)
+        public List<QuarkObject> QuarkObjects
         {
-            AssetBundleName = assetBundleName;
-            AssetBundle = assetBundle;
-            Assets = new HashSet<QuarkAssetObjectWapper>();
+            get
+            {
+                if (quarkObjects == null)
+                    quarkObjects = new List<QuarkObject>();
+                return quarkObjects;
+            }
+            set { quarkObjects = value; }
         }
-        public void Dispose()
+        public bool Equals(QuarkAssetBundle other)
         {
-            AssetBundleName = string.Empty;
-            AssetBundlePath = string.Empty;
-            AssetBundle = null;
-            ReferenceCount = 0;
-            Assets.Clear();
+            return other.AssetBundleName == this.AssetBundleName;
         }
     }
 }

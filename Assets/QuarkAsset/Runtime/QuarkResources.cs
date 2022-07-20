@@ -6,14 +6,6 @@ namespace Quark
 {
     public sealed class QuarkResources
     {
-        public static bool LoadStreamingManifestDone
-        { 
-            get { return QuarkEngine.Instance.LoadStreamingManifestDone; } 
-        }
-        public static bool LoadURLManifestDone
-        { 
-            get { return QuarkEngine.Instance.LoadURLManifestDone; } 
-        }
         public static ulong QuarkEncryptionOffset
         {
             get { return QuarkDataProxy.QuarkEncryptionOffset; }
@@ -32,70 +24,26 @@ namespace Quark
         /// <summary>
         /// 当检测到最新的；
         /// </summary>
-        public static event Action<long> OnDetectedSuccess
+        public static event Action<long> OnCompareManifestSuccess
         {
-            add { QuarkEngine.Instance.onDetectedSuccess += value; }
-            remove { QuarkEngine.Instance.onDetectedSuccess -= value; }
+            add { QuarkEngine.Instance.onCompareManifestSuccess += value; }
+            remove { QuarkEngine.Instance.onCompareManifestSuccess -= value; }
         }
         /// <summary>
         /// 当检测失败；
         /// </summary>
-        public static event Action<string> OnDetectedFailure
+        public static event Action<string> OnCompareManifestFailure
         {
-            add { QuarkEngine.Instance.onDetectedFailure += value; }
-            remove { QuarkEngine.Instance.onDetectedFailure -= value; }
+            add { QuarkEngine.Instance.onCompareManifestFailure += value; }
+            remove { QuarkEngine.Instance.onCompareManifestFailure -= value; }
         }
-        /// <summary>
-        /// URL---DownloadPath
-        /// </summary>
-        public static event Action<string, string> OnDownloadStart
+        public static Coroutine RequestManifestFromStreamingAssetsAsync()
         {
-            add { QuarkEngine.Instance.OnDownloadStart += value; }
-            remove { QuarkEngine.Instance.OnDownloadStart -= value; }
+            return QuarkEngine.Instance.RequestManifestFromStreamingAssetsAsync();
         }
-        /// <summary>
-        /// URL---DownloadPath
-        /// </summary>
-        public static event Action<string, string> OnDownloadSuccess
+        public Coroutine RequestMainifestFromURLAsync()
         {
-            add { QuarkEngine.Instance.OnDownloadSuccess += value; }
-            remove { QuarkEngine.Instance.OnDownloadSuccess -= value; }
-        }
-        /// <summary>
-        /// URL---DownloadPath---ErrorMessage
-        /// </summary>
-        public static event Action<string, string, string> OnDownloadFailure
-        {
-            add { QuarkEngine.Instance.OnDownloadFailure += value; }
-            remove { QuarkEngine.Instance.OnDownloadFailure -= value; }
-        }
-        /// <summary>
-        /// URL---DownloadPath---OverallProgress(0~100%)---IndividualProgress(0~100%)
-        /// </summary>
-        public static event Action<string, string, float, float> OnDownloadOverall
-        {
-            add { QuarkEngine.Instance.OnDownloadOverall += value; }
-            remove { QuarkEngine.Instance.OnDownloadOverall -= value; }
-        }
-        /// <summary>
-        /// SuccessURIs---FailureURIs---TimeSpan
-        /// </summary>
-        public static event Action<string[], string[], TimeSpan> OnDownloadFinish
-        {
-            add { QuarkEngine.Instance.OnDownloadFinish += value; }
-            remove { QuarkEngine.Instance.OnDownloadFinish -= value; }
-        }
-
-        /// <summary>
-        /// 启动下载；
-        /// </summary>
-        public static void LaunchDownload()
-        {
-            QuarkEngine.Instance.LaunchDownload();
-        }
-        public static void StopDownload()
-        {
-            QuarkEngine.Instance.StopDownload();
+            return QuarkEngine.Instance.RequestMainifestFromURLAsync();
         }
         public static T LoadAsset<T>(string assetName, string assetExtension = null)
 where T : Object
@@ -164,17 +112,17 @@ where T : Object
         {
             return QuarkEngine.Instance.LoadMainAndSubAssetsAsync<T>(assetName, assetExtension, callback);
         }
-        public static Coroutine LoadMainAndSubAssetsAsync(string assetName, Type type, Action<Object[]> callback)
+        public static Coroutine LoadMainAndSubAssetsAsync(string assetName, Type type,Action<Object[]> callback)
         {
-            return QuarkEngine.Instance.LoadMainAndSubAssetsAsync(assetName, string.Empty, type, callback);
+            return QuarkEngine.Instance.LoadMainAndSubAssetsAsync(assetName, string.Empty, type,callback);
         }
-        public static Coroutine LoadMainAndSubAssetsAsync(string assetName, string assetExtension, Type type, Action<Object[]> callback)
+        public static Coroutine LoadMainAndSubAssetsAsync(string assetName, string assetExtension, Type type,Action<Object[]> callback)
         {
-            return QuarkEngine.Instance.LoadMainAndSubAssetsAsync(assetName, assetExtension, type, callback);
+            return QuarkEngine.Instance.LoadMainAndSubAssetsAsync(assetName, assetExtension, type,callback);
         }
         public static Coroutine LoadAllAssetAsync(string assetBundleName, Action<Object[]> callback)
         {
-            return QuarkEngine.Instance.LoadAllAssetAsync(assetBundleName, callback);
+            return QuarkEngine.Instance.LoadAllAssetAsync(assetBundleName,  callback);
         }
         public static Coroutine LoadSceneAsync(string sceneName, Action<float> progress, Action callback, bool additive = false)
         {
@@ -220,13 +168,13 @@ where T : Object
         {
             return QuarkEngine.Instance.GetInfo<T>(assetName, string.Empty, out info);
         }
-        public static bool GetInfo(string assetName, string assetExtension, Type type, out QuarkAssetObjectInfo info)
+        public static bool GetInfo(string assetName, string assetExtension, Type type,out QuarkAssetObjectInfo info) 
         {
-            return QuarkEngine.Instance.GetInfo(assetName, assetExtension, type, out info);
+            return QuarkEngine.Instance.GetInfo(assetName, assetExtension, type,out info);
         }
-        public static bool GetInfo(string assetName, Type type, out QuarkAssetObjectInfo info)
+        public static bool GetInfo(string assetName, Type type,out QuarkAssetObjectInfo info) 
         {
-            return QuarkEngine.Instance.GetInfo(assetName, string.Empty, type, out info);
+            return QuarkEngine.Instance.GetInfo(assetName, string.Empty,type , out info);
         }
         public static bool GetInfo(string assetName, string assetExtension, out QuarkAssetObjectInfo info)
         {

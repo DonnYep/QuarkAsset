@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 namespace Quark.Editor
@@ -118,13 +117,10 @@ namespace Quark.Editor
                 yield break;
             }
             EditorUtility.ClearProgressBar();
-            var bundles = dataset.QuarkBundleInfoList;
+            var bundles = dataset.QuarkAssetBundleList;
             var extensions = dataset.QuarkAssetExts;
-            var lowerExtensions = extensions.Select(s => s.ToLower()).ToArray();
-            extensions.Clear();
-            extensions.AddRange(lowerExtensions);
-            List<QuarkAssetObject> quarkAssetList = new List<QuarkAssetObject>();
-            List<QuarkBundleInfo> validBundleList = new List<QuarkBundleInfo>();
+            List<QuarkObject> quarkAssetList = new List<QuarkObject>();
+            List<QuarkAssetBundle> validBundleList = new List<QuarkAssetBundle>();
             int currentBundleIndex = 0;
             int bundleCount = bundles.Count;
             foreach (var bundle in bundles)
@@ -134,15 +130,16 @@ namespace Quark.Editor
                 if (!AssetDatabase.IsValidFolder(bundlePath))
                     continue;
                 validBundleList.Add(bundle);
+                bundle.QuarkObjects.Clear();
                 var filePaths = Directory.GetFiles(bundlePath, ".", SearchOption.AllDirectories);
                 var fileLength = filePaths.Length;
                 for (int i = 0; i < fileLength; i++)
                 {
                     var filePath = filePaths[i].Replace("\\", "/");
-                    var fileExt = Path.GetExtension(filePath).ToLower();
+                    var fileExt = Path.GetExtension(filePath);
                     if (extensions.Contains(fileExt))
                     {
-                        var assetObject = new QuarkAssetObject()
+                        var assetObject = new QuarkObject()
                         {
                             AssetName = Path.GetFileNameWithoutExtension(filePath),
                             AssetExtension = Path.GetExtension(filePath),
@@ -151,16 +148,17 @@ namespace Quark.Editor
                             AssetType = AssetDatabase.LoadAssetAtPath(filePath, typeof(UnityEngine.Object)).GetType().FullName
                         };
                         quarkAssetList.Add(assetObject);
+                        bundle.QuarkObjects.Add(assetObject);
                     }
                 }
                 EditorUtility.DisplayCancelableProgressBar("QuarkAsset", "QuarkDataset Building", currentBundleIndex / (float)bundleCount);
                 yield return null;
             }
             EditorUtility.ClearProgressBar();
-            dataset.QuarkAssetObjectList.Clear();
-            dataset.QuarkAssetObjectList.AddRange(quarkAssetList);
-            dataset.QuarkBundleInfoList.Clear();
-            dataset.QuarkBundleInfoList.AddRange(validBundleList);
+            dataset.QuarkObjectList.Clear();
+            dataset.QuarkObjectList.AddRange(quarkAssetList);
+            dataset.QuarkAssetBundleList.Clear();
+            dataset.QuarkAssetBundleList.AddRange(validBundleList);
 
             EditorUtility.SetDirty(dataset);
             QuarkEditorUtility.SaveData(QuarkAssetDatabaseTabDataFileName, tabData);
@@ -175,9 +173,9 @@ namespace Quark.Editor
         {
             var str = "public static class QuarkAssetDefine\n{\n";
             var con = "    public static string ";
-            for (int i = 0; i < dataset.QuarkAssetCount; i++)
+            for (int i = 0; i < dataset.QuarkObjectList.Count; i++)
             {
-                var srcName = dataset.QuarkAssetObjectList[i].AssetName;
+                var srcName = dataset.QuarkObjectList[i].AssetName;
                 srcName = srcName.Trim();
                 var fnlName = srcName.Contains(".") == true ? srcName.Replace(".", "_") : srcName;
                 fnlName = srcName.Contains(" ") == true ? srcName.Replace(" ", "_") : srcName;
@@ -190,7 +188,7 @@ namespace Quark.Editor
         IEnumerator EnumOnAssignDataset(QuarkAssetDataset dataset)
         {
             this.dataset = dataset;
-            var bundles = dataset.QuarkBundleInfoList;
+            var bundles = dataset.QuarkAssetBundleList;
             var bundleLen = bundles.Count;
             assetBundleSearchLable.TreeView.Clear();
             for (int i = 0; i < bundleLen; i++)
@@ -199,7 +197,7 @@ namespace Quark.Editor
                 assetBundleSearchLable.TreeView.AddPath(bundle.AssetBundlePath);
             }
             assetObjectSearchLable.TreeView.Clear();
-            var objects = dataset.QuarkAssetObjectList;
+            var objects = dataset.QuarkObjectList;
             for (int i = 0; i < objects.Count; i++)
             {
                 assetObjectSearchLable.TreeView.AddPath(objects[i].AssetPath);

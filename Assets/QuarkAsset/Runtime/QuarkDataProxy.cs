@@ -14,13 +14,9 @@
         /// </summary>
         public static string PersistentPath { get; set; }
         /// <summary>
-        /// 存储ab包之间的引用关系；
-        /// </summary>
-        public static QuarkBuildInfo QuarkBuildInfo { get; set; }
-        /// <summary>
         /// 存储ab包中包含的资源信息；
         /// </summary>
-        public static QuarkManifest QuarkManifest { get; set; }
+        public static QuarkAssetManifest QuarkManifest { get; set; }
         /// <summary>
         /// AssetBundle加密偏移量；
         /// </summary>
