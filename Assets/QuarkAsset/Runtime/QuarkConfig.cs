@@ -92,20 +92,22 @@ namespace Quark
             instance = this;
             QuarkResources.QuarkEncryptionOffset = EncryptionOffset;
             QuarkResources.QuarkAssetLoadMode = QuarkAssetLoadMode;
-            {
-                var keyStr = BuildInfoAESEncryptionKey;
-                var aesKey = QuarkUtility.GenerateBytesAESKey(keyStr);
-                QuarkResources.QuarkAESEncryptionKey = aesKey;
-            }
-        }
-        void OnEnable()
-        {
+            var keyStr = BuildInfoAESEncryptionKey;
+            var aesKey = QuarkUtility.GenerateBytesAESKey(keyStr);
+            QuarkResources.QuarkAESEncryptionKey = aesKey;
             switch (QuarkAssetLoadMode)
             {
                 case QuarkLoadMode.AssetDatabase:
                     {
                         if (QuarkAssetDataset != null)
+                        {
                             QuarkEngine.Instance.SetAssetDatabaseModeData(QuarkAssetDataset);
+                            QuarkEngine.Instance.onCompareManifestSuccess?.Invoke(0);
+                        }
+                        else
+                        {
+                            QuarkEngine.Instance.onCompareManifestFailure?.Invoke(null);
+                        }
                     }
                     break;
                 case QuarkLoadMode.AssetBundle:
@@ -113,17 +115,17 @@ namespace Quark
                         switch (QuarkBuildPath)
                         {
                             case QuarkBuildPath.StreamingAssets:
-                                StreamingAssetsTab();
+                                LoadStreamingManifest();
                                 break;
                             case QuarkBuildPath.URL:
-                                URLTab();
+                                LoadURLManifest();
                                 break;
                         }
                     }
                     break;
             }
         }
-        void URLTab()
+        void LoadURLManifest()
         {
             QuarkUtility.IsStringValid(Url, "URI is invalid !");
             if (PingUrl)
@@ -154,7 +156,7 @@ namespace Quark
             QuarkEngine.Instance.Initiate(Url, downloadPath);
             QuarkEngine.Instance.RequestMainifestFromURLAsync();
         }
-        void StreamingAssetsTab()
+        void LoadStreamingManifest()
         {
             string streamingAssetPath = string.Empty;
             if (EnableRelativeBuildPath)

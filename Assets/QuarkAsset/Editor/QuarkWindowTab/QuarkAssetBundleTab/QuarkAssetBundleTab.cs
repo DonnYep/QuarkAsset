@@ -245,6 +245,8 @@ namespace Quark.Editor
         IEnumerator FinishBuild(AssetBundleManifest manifest, QuarkAssetManifest quarkManifest)
         {
             var assetBundleBuildPath = tabData.AssetBundleBuildPath;
+            if (manifest == null)
+                yield break;
             var bundleNames = manifest.GetAllAssetBundles();
             var bundleNameLength = bundleNames.Length;
             for (int i = 0; i < bundleNameLength; i++)
