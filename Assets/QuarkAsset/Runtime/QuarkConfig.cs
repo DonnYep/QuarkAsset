@@ -161,7 +161,7 @@ namespace Quark
             QuarkEngine.Instance.Initiate(streamingAssetPath, streamingAssetPath);
             QuarkEngine.Instance.LoadFromStreamingAssets();
         }
-        private void OnDestroy()
+        void OnDestroy()
         {
             QuarkResources.StopDownload();
         }

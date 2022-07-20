@@ -10,7 +10,7 @@ namespace Quark.Networking
     /// <summary>
     /// Quark Manifest比较器；
     /// </summary>
-    public class QuarkComparator
+    internal class QuarkComparator
     {
         /// <summary>
         /// 比较失败，传入ErrorMessage；

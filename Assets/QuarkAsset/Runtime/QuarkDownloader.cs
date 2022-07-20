@@ -11,54 +11,29 @@ namespace Quark.Networking
     /// Quark资源下载器；
     /// 资源被下载到本地持久化路径后，再由Qurk加载器进行资源加载；
     /// </summary>
-    public class QuarkDownloader
+    internal class QuarkDownloader
     {
         #region events
-        Action<string, string> onDownloadStart;
-        Action<string, string> onDownloadSuccess;
-        Action<string, string, string> onDownloadFailure;
-        Action<string, string, float, float> onDownloadOverall;
-        Action<string[], string[], TimeSpan> onDownloadFinish;
         /// <summary>
         /// URL---DownloadPath
         /// </summary>
-        public event Action<string, string> OnDownloadStart
-        {
-            add { onDownloadStart += value; }
-            remove { onDownloadStart -= value; }
-        }
+        public Action<string, string> onDownloadStart;
         /// <summary>
         /// URL---DownloadPath---Data
         /// </summary>
-        public event Action<string, string> OnDownloadSuccess
-        {
-            add { onDownloadSuccess += value; }
-            remove { onDownloadSuccess -= value; }
-        }
+        public Action<string, string> onDownloadSuccess;
         /// <summary>
         /// URL---DownloadPath---ErrorMessage
         /// </summary>
-        public event Action<string, string, string> OnDownloadFailure
-        {
-            add { onDownloadFailure += value; }
-            remove { onDownloadFailure -= value; }
-        }
+        public Action<string, string, string> onDownloadFailure;
         /// <summary>
         /// URL---DownloadPath---OverallProgress(0~100%)---IndividualProgress(0~100%)
         /// </summary>
-        public event Action<string, string, float, float> OnDownloadOverall
-        {
-            add { onDownloadOverall += value; }
-            remove { onDownloadOverall -= value; }
-        }
+        public Action<string, string, float, float> onDownloadOverall;
         /// <summary>
         /// SuccessURIs---FailureURIs---TimeSpan
         /// </summary>
-        public event Action<string[], string[], TimeSpan> OnDownloadFinish
-        {
-            add { onDownloadFinish += value; }
-            remove { onDownloadFinish -= value; }
-        }
+        public Action<string[], string[], TimeSpan> onDownloadFinish;
         #endregion
         public string PersistentPath { get { return QuarkDataProxy.PersistentPath; } }
         public string URL { get { return QuarkDataProxy.URL; } }

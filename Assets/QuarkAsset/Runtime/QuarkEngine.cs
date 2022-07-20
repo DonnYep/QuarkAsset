@@ -54,11 +54,11 @@ namespace Quark
         /// <summary>
         /// 当检测到最新的；
         /// </summary>
-        Action<long> onDetectedSuccess;
+        public Action<long> onDetectedSuccess;
         /// <summary>
         /// 当检测失败；
         /// </summary>
-        Action<string> onDetectedFailure;
+        public Action<string> onDetectedFailure;
         public QuarkEngine()
         {
             quarkComparator = new QuarkComparator();
@@ -69,60 +69,44 @@ namespace Quark
             quarkLoaderDict[QuarkAssetLoadMode.BuiltAssetBundle] = new QuarkAssetBundleLoader();
         }
         /// <summary>
-        /// 当检测到最新的；
-        /// </summary>
-        public event Action<long> OnDetectedSuccess
-        {
-            add { onDetectedSuccess += value; }
-            remove { onDetectedSuccess -= value; }
-        }
-        /// <summary>
-        /// 当检测失败；
-        /// </summary>
-        public event Action<string> OnDetectedFailure
-        {
-            add { onDetectedFailure += value; }
-            remove { onDetectedFailure -= value; }
-        }
-        /// <summary>
         /// URL---DownloadPath
         /// </summary>
         public event Action<string, string> OnDownloadStart
         {
-            add { quarkDownloader.OnDownloadStart += value; }
-            remove { quarkDownloader.OnDownloadStart -= value; }
+            add { quarkDownloader.onDownloadStart += value; }
+            remove { quarkDownloader.onDownloadStart -= value; }
         }
         /// <summary>
         /// URL---DownloadPath
         /// </summary>
         public event Action<string, string> OnDownloadSuccess
         {
-            add { quarkDownloader.OnDownloadSuccess += value; }
-            remove { quarkDownloader.OnDownloadSuccess -= value; }
+            add { quarkDownloader.onDownloadSuccess += value; }
+            remove { quarkDownloader.onDownloadSuccess -= value; }
         }
         /// <summary>
         /// URL---DownloadPath---ErrorMessage
         /// </summary>
         public event Action<string, string, string> OnDownloadFailure
         {
-            add { quarkDownloader.OnDownloadFailure += value; }
-            remove { quarkDownloader.OnDownloadFailure -= value; }
+            add { quarkDownloader.onDownloadFailure += value; }
+            remove { quarkDownloader.onDownloadFailure -= value; }
         }
         /// <summary>
         /// URL---DownloadPath---OverallProgress(0~100%)---IndividualProgress(0~100%)
         /// </summary>
         public event Action<string, string, float, float> OnDownloadOverall
         {
-            add { quarkDownloader.OnDownloadOverall += value; }
-            remove { quarkDownloader.OnDownloadOverall -= value; }
+            add { quarkDownloader.onDownloadOverall += value; }
+            remove { quarkDownloader.onDownloadOverall -= value; }
         }
         /// <summary>
         /// SuccessURIs---FailureURIs---TimeSpan
         /// </summary>
         public event Action<string[], string[], TimeSpan> OnDownloadFinish
         {
-            add { quarkDownloader.OnDownloadFinish += value; }
-            remove { quarkDownloader.OnDownloadFinish -= value; }
+            add { quarkDownloader.onDownloadFinish += value; }
+            remove { quarkDownloader.onDownloadFinish -= value; }
         }
         /// <summary>
         /// 启动下载；

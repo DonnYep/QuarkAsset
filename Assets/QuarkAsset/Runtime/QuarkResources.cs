@@ -26,16 +26,16 @@ namespace Quark
         /// </summary>
         public static event Action<long> OnDetectedSuccess
         {
-            add { QuarkEngine.Instance.OnDetectedSuccess += value; }
-            remove { QuarkEngine.Instance.OnDetectedSuccess -= value; }
+            add { QuarkEngine.Instance.onDetectedSuccess += value; }
+            remove { QuarkEngine.Instance.onDetectedSuccess -= value; }
         }
         /// <summary>
         /// 当检测失败；
         /// </summary>
         public static event Action<string> OnDetectedFailure
         {
-            add { QuarkEngine.Instance.OnDetectedFailure += value; }
-            remove { QuarkEngine.Instance.OnDetectedFailure -= value; }
+            add { QuarkEngine.Instance.onDetectedFailure += value; }
+            remove { QuarkEngine.Instance.onDetectedFailure -= value; }
         }
         /// <summary>
         /// URL---DownloadPath
