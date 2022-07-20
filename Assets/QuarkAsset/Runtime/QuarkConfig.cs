@@ -4,6 +4,7 @@ using Quark.Asset;
 
 namespace Quark
 {
+    [DefaultExecutionOrder(2000)]
     /// <summary>
     /// Quark配置脚本，挂载到物体上配置即可；
     /// </summary>
@@ -22,7 +23,6 @@ namespace Quark
         /// </summary>
         public string RelativeBuildPath;
 
-
         /// <summary>
         /// 资源所在URI；
         /// </summary>
@@ -34,10 +34,10 @@ namespace Quark
         /// <summary>
         /// 加载模式，分别为Editor与Build；
         /// </summary>
-        public QuarkAssetLoadMode QuarkAssetLoadMode;
+        public QuarkLoadMode QuarkAssetLoadMode;
         /// <summary>
         /// QuarkAssetLoadMode 下AssetDatabase模式所需的寻址数据；
-        /// <see cref="Quark.QuarkAssetLoadMode"/>
+        /// <see cref="Quark.QuarkLoadMode"/>
         /// </summary>
         public QuarkAssetDataset QuarkAssetDataset;
         /// <summary>
@@ -90,8 +90,8 @@ namespace Quark
         void Awake()
         {
             instance = this;
-            QuarkResources.QuarkEncryptionOffset = EncryptionOffset;
             QuarkResources.QuarkAssetLoadMode = QuarkAssetLoadMode;
+            QuarkResources.QuarkEncryptionOffset = EncryptionOffset;
             {
                 var keyStr = BuildInfoAESEncryptionKey;
                 var aesKey = QuarkUtility.GenerateBytesAESKey(keyStr);
@@ -99,13 +99,13 @@ namespace Quark
             }
             switch (QuarkAssetLoadMode)
             {
-                case QuarkAssetLoadMode.AssetDatabase:
+                case QuarkLoadMode.AssetDatabase:
                     {
                         if (QuarkAssetDataset != null)
                             QuarkEngine.Instance.SetAssetDatabaseModeData(QuarkAssetDataset);
                     }
                     break;
-                case QuarkAssetLoadMode.BuiltAssetBundle:
+                case QuarkLoadMode.AssetBundle:
                     {
                         switch (QuarkBuildPath)
                         {
@@ -149,7 +149,7 @@ namespace Quark
             if (!Directory.Exists(downloadPath))
                 Directory.CreateDirectory(downloadPath);
             QuarkEngine.Instance.Initiate(Url, downloadPath);
-            QuarkEngine.Instance.CheckForUpdates();
+            QuarkEngine.Instance.LoadFromURL();
         }
         void StreamingAssetsTab()
         {

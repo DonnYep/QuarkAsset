@@ -42,7 +42,7 @@ namespace Quark
                 return instance;
             }
         }
-        public QuarkAssetLoadMode QuarkAssetLoadMode { get; set; }
+        public QuarkLoadMode QuarkAssetLoadMode { get; set; }
         public ulong QuarkEncryptionOffset
         {
             get { return QuarkDataProxy.QuarkEncryptionOffset; }
@@ -50,7 +50,15 @@ namespace Quark
         }
         QuarkDownloader quarkDownloader;
         QuarkComparator quarkComparator;
-        Dictionary<QuarkAssetLoadMode, QuarkAssetLoader> quarkLoaderDict;
+        Dictionary<QuarkLoadMode, QuarkAssetLoader> quarkLoaderDict;
+        public bool LoadStreamingManifestDone
+        {
+            get { return quarkComparator.LoadStreamingManifestDone; }
+        }
+        public bool LoadURLManifestDone
+        {
+            get { return quarkComparator.LoadURLManifestDone; }
+        }
         /// <summary>
         /// 当检测到最新的；
         /// </summary>
@@ -64,9 +72,9 @@ namespace Quark
             quarkComparator = new QuarkComparator();
             quarkDownloader = new QuarkDownloader();
             quarkComparator.Initiate(OnCompareSuccess, OnCompareFailure);
-            quarkLoaderDict = new Dictionary<QuarkAssetLoadMode, QuarkAssetLoader>();
-            quarkLoaderDict[QuarkAssetLoadMode.AssetDatabase] = new QuarkAssetDatabaseLoader();
-            quarkLoaderDict[QuarkAssetLoadMode.BuiltAssetBundle] = new QuarkAssetBundleLoader();
+            quarkLoaderDict = new Dictionary<QuarkLoadMode, QuarkAssetLoader>();
+            quarkLoaderDict[QuarkLoadMode.AssetDatabase] = new QuarkAssetDatabaseLoader();
+            quarkLoaderDict[QuarkLoadMode.AssetBundle] = new QuarkAssetBundleLoader();
         }
         /// <summary>
         /// URL---DownloadPath
@@ -136,9 +144,9 @@ namespace Quark
         /// <summary>
         /// 检查更新；
         /// </summary>
-        internal void CheckForUpdates()
+        internal void LoadFromURL()
         {
-            quarkComparator.CheckForUpdates();
+            quarkComparator.LoadFromURL();
         }
         /// <summary>
         /// 对Manifest进行编码；
@@ -147,7 +155,7 @@ namespace Quark
         /// <param name="manifest">unityWebRequest获取的Manifest文件对象</param>
         internal void SetBuiltAssetBundleModeData(QuarkManifest manifest)
         {
-            if (quarkLoaderDict.TryGetValue(QuarkAssetLoadMode.BuiltAssetBundle, out var loader))
+            if (quarkLoaderDict.TryGetValue(QuarkLoadMode.AssetBundle, out var loader))
                 loader.SetLoaderData(manifest);
             QuarkDataProxy.QuarkManifest = manifest;
         }
@@ -158,7 +166,7 @@ namespace Quark
         /// <param name="assetData">QuarkAssetDataset对象</param>
         internal void SetAssetDatabaseModeData(QuarkAssetDataset assetData)
         {
-            if (quarkLoaderDict.TryGetValue(QuarkAssetLoadMode.AssetDatabase, out var loader))
+            if (quarkLoaderDict.TryGetValue(QuarkLoadMode.AssetDatabase, out var loader))
                 loader.SetLoaderData(assetData);
         }
         internal T LoadAsset<T>(string assetName, string assetExtension)

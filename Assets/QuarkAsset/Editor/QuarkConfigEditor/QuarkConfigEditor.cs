@@ -14,15 +14,15 @@ namespace Quark.Editor
         public override void OnInspectorGUI()
         {
             targetObject.Update();
-            sp_QuarkAssetLoadMode.enumValueIndex = (byte)(QuarkAssetLoadMode)EditorGUILayout.EnumPopup("QuarkAssetLoadMode", (QuarkAssetLoadMode)sp_QuarkAssetLoadMode.enumValueIndex);
-            switch ((QuarkAssetLoadMode)sp_QuarkAssetLoadMode.enumValueIndex)
+            sp_QuarkAssetLoadMode.enumValueIndex = (byte)(QuarkLoadMode)EditorGUILayout.EnumPopup("QuarkAssetLoadMode", (QuarkLoadMode)sp_QuarkAssetLoadMode.enumValueIndex);
+            switch ((QuarkLoadMode)sp_QuarkAssetLoadMode.enumValueIndex)
             {
-                case QuarkAssetLoadMode.AssetDatabase:
+                case QuarkLoadMode.AssetDatabase:
                     {
                         sp_QuarkAssetDataset.objectReferenceValue = EditorGUILayout.ObjectField("QuarkAssetDataset", (QuarkAssetDataset)sp_QuarkAssetDataset.objectReferenceValue, typeof(QuarkAssetDataset), false);
                     }
                     break;
-                case QuarkAssetLoadMode.BuiltAssetBundle:
+                case QuarkLoadMode.AssetBundle:
                     {
                         DrawBuildAssetBundleTab();
                         EditorGUILayout.Space(8);

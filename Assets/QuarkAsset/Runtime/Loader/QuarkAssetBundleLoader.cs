@@ -600,24 +600,37 @@ where T : Object
         }
         IEnumerator EnumLoadSceneAsync(string sceneName, Func<float> progressProvider, Action<float> progress, Func<bool> condition, Action callback, bool additive)
         {
-            if (loadedSceneDict.ContainsKey(sceneName))
+            if (loadedSceneDict.TryGetValue(sceneName, out var loadedScene))
             {
-                QuarkUtility.LogError($"Scene：{sceneName} is already loaded !");
+                SceneManager.SetActiveScene(loadedScene);
                 progress?.Invoke(1);
                 callback?.Invoke();
                 yield break;
             }
-            var hasWapper = GetAssetObjectWapper(sceneName, ".unity", out var wapper);
-            if (!hasWapper)
-            {
-                QuarkUtility.LogError($"Scene：{sceneName} not existed !");
-                progress?.Invoke(1);
-                callback?.Invoke();
-                yield break;
-            }
-            yield return EnumLoadDependenciesAssetBundleAsync(wapper.QuarkAssetObject.AssetBundleName);
             LoadSceneMode loadSceneMode = additive == true ? LoadSceneMode.Additive : LoadSceneMode.Single;
-            var operation = SceneManager.LoadSceneAsync(wapper.QuarkAssetObject.AssetName, loadSceneMode);
+            AsyncOperation operation = null;
+            var buildIndex = UnityEngine.SceneManagement.SceneUtility.GetBuildIndexByScenePath(sceneName);
+            var hasWapper = GetAssetObjectWapper(sceneName, ".unity", out var wapper);
+            bool isBuiltIn = false;//是否是内嵌的场景
+            if (buildIndex >= 0)
+            {
+                //若场景为built-in，则执行默认加载场景方法
+                operation = UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(sceneName, loadSceneMode);
+                isBuiltIn = true;
+            }
+            else
+            {
+                if (!hasWapper)
+                {
+                    QuarkUtility.LogError($"Scene：{sceneName} not existed !");
+                    progress?.Invoke(1);
+                    callback?.Invoke();
+                    yield break;
+                }
+                yield return EnumLoadDependenciesAssetBundleAsync(wapper.QuarkAssetObject.AssetBundleName);
+                operation = SceneManager.LoadSceneAsync(wapper.QuarkAssetObject.AssetName, loadSceneMode);
+            }
+
             operation.allowSceneActivation = false;
             var hasProviderProgress = progressProvider != null;
             while (!operation.isDone)
@@ -648,9 +661,12 @@ where T : Object
             progress?.Invoke(1);
             if (condition != null)
                 yield return new WaitUntil(condition);
-            var scene = SceneManager.GetSceneByPath(wapper.QuarkAssetObject.AssetPath);
-            loadedSceneDict.Add(sceneName, scene);
-            IncrementQuarkAssetObject(wapper);
+            if (!isBuiltIn)
+            {
+                var scene = SceneManager.GetSceneByPath(wapper.QuarkAssetObject.AssetPath);
+                loadedSceneDict.Add(sceneName, scene);
+                IncrementQuarkAssetObject(wapper);
+            }
             operation.allowSceneActivation = true;
             callback?.Invoke();
         }

@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 namespace Quark.Editor
@@ -119,6 +120,9 @@ namespace Quark.Editor
             EditorUtility.ClearProgressBar();
             var bundles = dataset.QuarkBundleInfoList;
             var extensions = dataset.QuarkAssetExts;
+            var lowerExtensions = extensions.Select(s => s.ToLower()).ToArray();
+            extensions.Clear();
+            extensions.AddRange(lowerExtensions);
             List<QuarkAssetObject> quarkAssetList = new List<QuarkAssetObject>();
             List<QuarkBundleInfo> validBundleList = new List<QuarkBundleInfo>();
             int currentBundleIndex = 0;
@@ -134,8 +138,8 @@ namespace Quark.Editor
                 var fileLength = filePaths.Length;
                 for (int i = 0; i < fileLength; i++)
                 {
-                    var filePath = filePaths[i].Replace("\\","/");
-                    var fileExt = Path.GetExtension(filePath);
+                    var filePath = filePaths[i].Replace("\\", "/");
+                    var fileExt = Path.GetExtension(filePath).ToLower();
                     if (extensions.Contains(fileExt))
                     {
                         var assetObject = new QuarkAssetObject()

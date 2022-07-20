@@ -10,7 +10,7 @@ namespace Quark.Loader
 {
     /// <summary>
     /// Runtime加载时的方案；
-    /// <see cref="QuarkAssetLoadMode"/>
+    /// <see cref="QuarkLoadMode"/>
     /// </summary>
     internal abstract class QuarkAssetLoader
     {

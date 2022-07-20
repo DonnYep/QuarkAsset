@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using UnityEngine;
 using UnityEngine.Networking;
 namespace Quark.Networking
 {
@@ -24,6 +25,8 @@ namespace Quark.Networking
         List<string> latest = new List<string>();
         //本地有但是远程没有，则标记为可过期文件；
         List<string> expired = new List<string>();
+        public bool LoadStreamingManifestDone { get; private set; }
+        public bool LoadURLManifestDone { get; private set; }
         /// <summary>
         /// 本地持久化路径；
         /// </summary>
@@ -44,15 +47,17 @@ namespace Quark.Networking
         /// 检查更新；
         /// 比较remote与local的manifest文件；
         /// </summary>
-        public void CheckForUpdates()
+        public void LoadFromURL()
         {
             var uriManifestPath = Path.Combine(URL, QuarkConstant.ManifestName);
+            LoadURLManifestDone = false;
             QuarkUtility.Unity.StartCoroutine(EnumDownloadManifest(uriManifestPath));
         }
         public void LoadFromStreamingAssets()
         {
             var localManifestPath = Path.Combine(URL, QuarkConstant.ManifestName);
             var uriBuildInfoPath = Path.Combine(URL, QuarkConstant.BuildInfoFileName);
+            LoadStreamingManifestDone = false;
             QuarkUtility.Unity.StartCoroutine(EnumLoadStreamingAsset(localManifestPath, uriBuildInfoPath));
         }
         public void Clear()
@@ -83,6 +88,7 @@ namespace Quark.Networking
                     OnUriManifestFailure(request.error);
                 }
             }
+            LoadURLManifestDone = true;
         }
         void OnUriManifestFailure(string errorMessage)
         {
@@ -350,6 +356,7 @@ namespace Quark.Networking
             }
             QuarkEngine.Instance.SetBuiltAssetBundleModeData(localManifest);
             onCompareSuccess(new string[0], new string[0], 0);
+            LoadStreamingManifestDone = true;
         }
     }
 }
