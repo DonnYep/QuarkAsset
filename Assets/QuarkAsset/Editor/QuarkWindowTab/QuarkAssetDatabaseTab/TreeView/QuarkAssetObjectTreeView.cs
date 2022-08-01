@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
-
+using Object = UnityEngine.Object;
 namespace Quark.Editor
 {
     public class QuarkAssetObjectTreeView : TreeView
@@ -48,6 +50,17 @@ namespace Quark.Editor
             EditorGUIUtility.PingObject(obj);
             Selection.activeObject = obj;
         }
+        protected override void ContextClickedItem(int id)
+        {
+            var selected = GetSelection();
+            GenericMenu menu = new GenericMenu();
+            if (selected.Count == 1)
+            {
+                menu.AddItem(new GUIContent("Copy object name to clipboard"), false, CopyObjectNameToClipboard, id);
+                menu.AddItem(new GUIContent("Copy object path to clipboard"), false, CopyObjectPathToClipboard, id);
+            }
+            menu.ShowAsContext();
+        }
         protected override TreeViewItem BuildRoot()
         {
             var root = new TreeViewItem { id = -1, depth = -1, displayName = "Root" };
@@ -56,7 +69,7 @@ namespace Quark.Editor
             {
                 for (int i = 0; i < pathList.Count; i++)
                 {
-                    var obj = AssetDatabase.LoadAssetAtPath(pathList[i], typeof(UnityEngine.Object));
+                    var obj = AssetDatabase.LoadAssetAtPath(pathList[i], typeof(Object));
                     bool isValidAsset = obj != null;
                     if (isValidAsset)
                     {
@@ -72,6 +85,19 @@ namespace Quark.Editor
                 SetupParentsAndChildrenFromDepths(root, allItems);
                 return root;
             }
+        }
+        void CopyObjectNameToClipboard(object context)
+        {
+            var id = Convert.ToInt32(context);
+            var path = pathList[id];
+            var name = Path.GetFileNameWithoutExtension(path);
+            GUIUtility.systemCopyBuffer = name;
+        }
+        void CopyObjectPathToClipboard(object context)
+        {
+            var id = Convert.ToInt32(context);
+            var path = pathList[id];
+            GUIUtility.systemCopyBuffer = path;
         }
     }
 }

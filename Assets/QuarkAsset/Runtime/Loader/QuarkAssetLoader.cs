@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
@@ -21,7 +22,7 @@ namespace Quark.Loader
         /// <summary>
         /// AssetName===Lnk[QuarkObjectWapper]
         /// </summary>
-        protected Dictionary<string, LinkedList<QuarkObject>> quarkObjectLnkDict
+        protected Dictionary<string, LinkedList<QuarkObject>> objectLnkDict
             = new Dictionary<string, LinkedList<QuarkObject>>();
         /// <summary>
         /// AssetPath===QuarkObjectWapper
@@ -38,28 +39,29 @@ namespace Quark.Loader
         /// </summary>
         protected List<string> loadSceneList = new List<string>();
         public abstract void SetLoaderData(IQuarkLoaderData loaderData);
-        public abstract T LoadAsset<T>(string assetName, string assetExtension) where T : Object;
-        public abstract Object LoadAsset(string assetName, string assetExtension, Type type);
-        public abstract GameObject LoadPrefab(string assetName, string assetExtension, bool instantiate = false);
-        public abstract T[] LoadMainAndSubAssets<T>(string assetName, string assetExtension) where T : Object;
-        public abstract Object[] LoadMainAndSubAssets(string assetName, string assetExtension, Type type);
-        public abstract Coroutine LoadAssetAsync<T>(string assetName, string assetExtension, Action<T> callback) where T : Object;
-        public abstract Coroutine LoadAssetAsync(string assetName, string assetExtension, Type type, Action<Object> callback);
-        public abstract Coroutine LoadPrefabAsync(string assetName, string assetExtension, Action<GameObject> callback, bool instantiate = false);
-        public abstract Coroutine LoadMainAndSubAssetsAsync<T>(string assetName, string assetExtension, Action<T[]> callback) where T : Object;
-        public abstract Coroutine LoadMainAndSubAssetsAsync(string assetName, string assetExtension, Type type, Action<Object[]> callback);
+        public abstract T LoadAsset<T>(string assetName) where T : Object;
+        public abstract Object LoadAsset(string assetName, Type type);
+        public abstract GameObject LoadPrefab(string assetName, bool instantiate = false);
+        public abstract T[] LoadMainAndSubAssets<T>(string assetName) where T : Object;
+        public abstract Object[] LoadMainAndSubAssets(string assetName, Type type);
+        public abstract Object[] LoadAllAssets(string assetBundleName);
+        public abstract Coroutine LoadAssetAsync<T>(string assetName, Action<T> callback) where T : Object;
+        public abstract Coroutine LoadAssetAsync(string assetName, Type type, Action<Object> callback);
+        public abstract Coroutine LoadPrefabAsync(string assetName, Action<GameObject> callback, bool instantiate = false);
+        public abstract Coroutine LoadMainAndSubAssetsAsync<T>(string assetName, Action<T[]> callback) where T : Object;
+        public abstract Coroutine LoadMainAndSubAssetsAsync(string assetName, Type type, Action<Object[]> callback);
         public abstract Coroutine LoadAllAssetAsync(string assetBundleName, Action<Object[]> callback);
         public abstract Coroutine LoadSceneAsync(string sceneName, Func<float> progressProvider, Action<float> progress, Func<bool> condition, Action callback, bool additive = false);
         public abstract void ReleaseAsset(string assetName);
-        public abstract void UnloadAsset(string assetName, string assetExtension);
+        public abstract void UnloadAsset(string assetName);
         public abstract void UnloadAssetBundle(string assetBundleName, bool unloadAllLoadedObjects = false);
         public abstract void UnloadAllAssetBundle(bool unloadAllLoadedObjects = false);
         public abstract Coroutine UnloadSceneAsync(string sceneName, Action<float> progress, Action callback);
         public abstract Coroutine UnloadAllSceneAsync(Action<float> progress, Action callback);
-        public bool GetInfo<T>(string assetName, string assetExtension, out QuarkAssetObjectInfo info) where T : Object
+        public bool GetInfo(string assetName, Type type, out QuarkAssetObjectInfo info)
         {
             info = QuarkAssetObjectInfo.None;
-            var hasWapper = GetQuarkObject(assetName, assetExtension, typeof(T), out var wapper);
+            var hasWapper = GetQuarkObject(assetName, type, out var wapper);
             if (hasWapper)
             {
                 var referenceCount = objectWarpperDict[wapper.AssetPath].ReferenceCount;
@@ -68,22 +70,10 @@ namespace Quark.Loader
             }
             return false;
         }
-        public bool GetInfo(string assetName, string assetExtension, Type type, out QuarkAssetObjectInfo info)
+        public bool GetInfo(string assetName, out QuarkAssetObjectInfo info)
         {
             info = QuarkAssetObjectInfo.None;
-            var hasWapper = GetQuarkObject(assetName, assetExtension, type, out var wapper);
-            if (hasWapper)
-            {
-                var referenceCount = objectWarpperDict[wapper.AssetPath].ReferenceCount;
-                info = QuarkAssetObjectInfo.Create(wapper.AssetName, wapper.AssetPath, wapper.AssetBundleName, wapper.AssetExtension, wapper.AssetType, referenceCount);
-                return true;
-            }
-            return false;
-        }
-        public bool GetInfo(string assetName, string assetExtension, out QuarkAssetObjectInfo info)
-        {
-            info = QuarkAssetObjectInfo.None;
-            var hasWapper = GetQuarkObject(assetName, assetExtension, out var wapper);
+            var hasWapper = GetQuarkObject(assetName, out var wapper);
             if (hasWapper)
             {
                 var referenceCount = objectWarpperDict[wapper.AssetPath].ReferenceCount;
@@ -105,25 +95,34 @@ namespace Quark.Loader
             }
             return quarkAssetObjectInfos;
         }
-        protected bool GetQuarkObject(string assetName, string assetExtension, Type type, out QuarkObject quarkObject)
+        protected bool GetQuarkObject(string assetName, Type type, out QuarkObject quarkObject)
         {
             quarkObject = null;
-            var typeString = type.ToString();
-            if (quarkObjectLnkDict.TryGetValue(assetName, out var abLnk))
+            if (assetName.StartsWith("Assets/"))
             {
-                if (string.IsNullOrEmpty(assetExtension))
+                var hasObjectWapper = objectWarpperDict.TryGetValue(assetName, out var objectWapper);
+                if (hasObjectWapper)
+                    quarkObject = objectWapper.QuarkObject;
+                return hasObjectWapper;
+            }
+            var typeString = type.ToString();
+            var ext = Path.GetExtension(assetName);
+            if (string.IsNullOrEmpty(ext))
+            {
+                if (objectLnkDict.TryGetValue(assetName, out var abLnk))
+                    quarkObject = abLnk.First.Value;
+            }
+            else
+            {
+                var lowerExt = ext.ToLower();
+                var nameWithoutExt = Path.GetFileNameWithoutExtension(assetName);
+                if (objectLnkDict.TryGetValue(nameWithoutExt, out var lnk))
                 {
-                    var obj = abLnk.First.Value;
-                    if (obj.AssetType == typeString)
-                        quarkObject = abLnk.First.Value;
-                }
-                else
-                {
-                    foreach (var quarkObj in abLnk)
+                    foreach (var qObject in lnk)
                     {
-                        if (quarkObj.AssetExtension == assetExtension && quarkObj.AssetType == typeString)
+                        if (qObject.AssetExtension == lowerExt && qObject.AssetType == typeString)
                         {
-                            quarkObject = quarkObj;
+                            quarkObject = qObject;
                             break;
                         }
                     }
@@ -131,24 +130,51 @@ namespace Quark.Loader
             }
             return quarkObject != null;
         }
-        protected bool GetQuarkObject(string assetName, string assetExtension, out QuarkObject quarkObject)
+        protected bool GetQuarkObject(string assetName, out QuarkObject quarkObject)
         {
             quarkObject = null;
-            if (quarkObjectLnkDict.TryGetValue(assetName, out var abLnk))
+            if (assetName.StartsWith("Assets/"))
             {
-                if (string.IsNullOrEmpty(assetExtension))
-                {
+                var hasObjectWapper = objectWarpperDict.TryGetValue(assetName, out var objectWapper);
+                if (hasObjectWapper)
+                    quarkObject = objectWapper.QuarkObject;
+                return hasObjectWapper;
+            }
+            var ext = Path.GetExtension(assetName);
+            if (string.IsNullOrEmpty(ext))
+            {
+                if (objectLnkDict.TryGetValue(assetName, out var abLnk))
                     quarkObject = abLnk.First.Value;
-                }
-                else
+            }
+            else
+            {
+                var lowerExt = ext.ToLower();
+                var nameWithoutExt = Path.GetFileNameWithoutExtension(assetName);
+                if (objectLnkDict.TryGetValue(nameWithoutExt, out var lnk))
                 {
-                    foreach (var abWapper in abLnk)
+                    foreach (var qObject in lnk)
                     {
-                        if (abWapper.AssetExtension == assetExtension)
+                        if (qObject.AssetExtension == lowerExt)
                         {
-                            quarkObject = abWapper;
+                            quarkObject = qObject;
                             break;
                         }
+                    }
+                }
+            }
+            return quarkObject != null;
+        }
+        protected bool GetSceneObject(string assetName, out QuarkObject quarkObject)
+        {
+            quarkObject = null;
+            if (objectLnkDict.TryGetValue(assetName, out var abLnk))
+            {
+                foreach (var quarkObj in abLnk)
+                {
+                    if (quarkObj.AssetExtension == ".unity")
+                    {
+                        quarkObject = quarkObj;
+                        break;
                     }
                 }
             }
@@ -170,7 +196,7 @@ namespace Quark.Loader
                 callback?.Invoke();
                 yield break;
             }
-            var hasWapper = GetQuarkObject(sceneName, ".unity", out var wapper);
+            var hasWapper = GetSceneObject(sceneName, out var wapper);
             if (!hasWapper)
             {
                 QuarkUtility.LogError($"Scene：{sceneName}.unity not existed !");

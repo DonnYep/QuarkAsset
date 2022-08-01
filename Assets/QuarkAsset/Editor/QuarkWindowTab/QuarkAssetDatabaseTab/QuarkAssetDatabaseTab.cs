@@ -36,11 +36,30 @@ namespace Quark.Editor
         {
             QuarkEditorUtility.SaveData(QuarkAssetDatabaseTabDataFileName, tabData);
         }
-        public void OnDatasetAssign(QuarkAssetDataset dataset)
+        public void OnDatasetAssign()
         {
             if (coroutine != null)
                 QuarkEditorUtility.StopCoroutine(coroutine);
+            var dataset = QuarkEditorDataProxy.QuarkAssetDataset;
             coroutine = QuarkEditorUtility.StartCoroutine(EnumOnAssignDataset(dataset));
+        }
+        public void OnDatasetRefresh()
+        {
+            var bundles = dataset.QuarkAssetBundleList;
+            var bundleLen = bundles.Count;
+            assetBundleSearchLable.TreeView.Clear();
+            for (int i = 0; i < bundleLen; i++)
+            {
+                var bundle = bundles[i];
+                assetBundleSearchLable.TreeView.AddPath(bundle.AssetBundlePath);
+            }
+            assetObjectSearchLable.TreeView.Clear();
+            var objects = dataset.QuarkObjectList;
+            for (int i = 0; i < objects.Count; i++)
+            {
+                assetObjectSearchLable.TreeView.AddPath(objects[i].AssetPath);
+            }
+            assetObjectSearchLable.TreeView.Reload();
         }
         public void OnDatasetUnassign()
         {
@@ -135,17 +154,20 @@ namespace Quark.Editor
                 var fileLength = filePaths.Length;
                 for (int i = 0; i < fileLength; i++)
                 {
+                    //强制将文件的后缀名统一成小写
                     var filePath = filePaths[i].Replace("\\", "/");
-                    var fileExt = Path.GetExtension(filePath);
-                    if (extensions.Contains(fileExt))
+                    var srcFileExt = Path.GetExtension(filePath);
+                    var lowerExt = srcFileExt.ToLower();
+                    var lowerExtFilePath = filePath.Replace(srcFileExt, lowerExt);
+                    if (extensions.Contains(lowerExt))
                     {
                         var assetObject = new QuarkObject()
                         {
                             AssetName = Path.GetFileNameWithoutExtension(filePath),
-                            AssetExtension = Path.GetExtension(filePath),
+                            AssetExtension = lowerExt,
                             AssetBundleName = bundle.AssetBundleName,
-                            AssetPath = filePath,
-                            AssetType = AssetDatabase.LoadAssetAtPath(filePath, typeof(UnityEngine.Object)).GetType().FullName
+                            AssetPath = lowerExtFilePath,
+                            AssetType = AssetDatabase.LoadAssetAtPath(filePath, typeof(Object)).GetType().FullName
                         };
                         quarkAssetList.Add(assetObject);
                         bundle.QuarkObjects.Add(assetObject);
@@ -165,7 +187,7 @@ namespace Quark.Editor
             if (tabData.GenerateAssetPathCode)
                 CreateAssetPathScript();
             yield return null;
-            OnDatasetAssign(dataset);
+            OnDatasetAssign();
             AssetDatabase.SaveAssets();
             QuarkUtility.LogInfo("Quark asset  build done ");
         }

@@ -91,6 +91,10 @@ namespace Quark.Editor
         {
             return EditorGUIUtility.FindTexture("Folder Icon");
         }
+        public static Texture2D GetRefreshIcon()
+        {
+            return EditorGUIUtility.FindTexture("Refresh");
+        }
         public static Texture2D ToTexture2D(Texture texture)
         {
             return Texture2D.CreateExternalTexture(

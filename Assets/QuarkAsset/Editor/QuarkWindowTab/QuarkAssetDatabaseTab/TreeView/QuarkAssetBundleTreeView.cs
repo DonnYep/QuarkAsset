@@ -162,7 +162,6 @@ namespace Quark.Editor
         protected override void ContextClickedItem(int id)
         {
             List<string> selectedNodes = new List<string>();
-
             var selected = GetSelection();
             foreach (var nodeID in selected)
             {
@@ -172,13 +171,15 @@ namespace Quark.Editor
             if (selectedNodes.Count > 1)
             {
                 menu.AddItem(new GUIContent("Delete "), false, Delete, selectedNodes);
-                menu.AddItem(new GUIContent("DeleteAll "), false, DeleteAll);
-                menu.AddItem(new GUIContent("ResetAllBundlesName"), false, ResetAllBundlesName);
+                menu.AddItem(new GUIContent("Delete all bundles"), false, DeleteAll);
+                menu.AddItem(new GUIContent("Reset the names of all bundles"), false, ResetAllBundlesName);
             }
             if (selectedNodes.Count == 1)
             {
-                menu.AddItem(new GUIContent("Delete "), false, Delete, selectedNodes);
-                menu.AddItem(new GUIContent("ResetBundleName"), false, ResetBundleName, id);
+                menu.AddItem(new GUIContent("Delete"), false, Delete, selectedNodes);
+                menu.AddItem(new GUIContent("Reset bundle name"), false, ResetBundleName, id);
+                menu.AddItem(new GUIContent("Copy bundle name to clipboard"), false, CopyBundleNameToClipboard, id);
+                menu.AddItem(new GUIContent("Copy bundle path to clipboard"), false, CopyBundlePathToClipboard, id);
             }
             menu.ShowAsContext();
         }
@@ -208,6 +209,22 @@ namespace Quark.Editor
             bundle.AssetBundleName = QuarkUtility.FormatAssetBundleName(bundle.AssetBundlePath);
             EditorUtility.SetDirty(QuarkEditorDataProxy.QuarkAssetDataset);
             Reload();
+        }
+        void CopyBundleNameToClipboard(object context)
+        {
+            var id = Convert.ToInt32(context);
+            if (QuarkEditorDataProxy.QuarkAssetDataset == null)
+                return;
+            var name = QuarkEditorDataProxy.QuarkAssetDataset.QuarkAssetBundleList[id].AssetBundleName;
+            GUIUtility.systemCopyBuffer = name;
+        }
+        void CopyBundlePathToClipboard(object context)
+        {
+            var id = Convert.ToInt32(context);
+            if (QuarkEditorDataProxy.QuarkAssetDataset == null)
+                return;
+            var path = QuarkEditorDataProxy.QuarkAssetDataset.QuarkAssetBundleList[id].AssetBundlePath;
+            GUIUtility.systemCopyBuffer = path;
         }
         void Delete(object context)
         {

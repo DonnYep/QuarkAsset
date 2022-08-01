@@ -34,6 +34,10 @@ namespace Quark.Editor
         public void OnDatasetAssign()
         {
         }
+        public void OnDatasetRefresh()
+        {
+
+        }
         public void OnDatasetUnassign()
         {
         }

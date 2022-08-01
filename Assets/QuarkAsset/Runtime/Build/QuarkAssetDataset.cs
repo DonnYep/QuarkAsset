@@ -25,6 +25,9 @@ namespace Quark.Asset
                 return quarkObjectList;
             }
         }
+        /// <summary>
+        /// 可识别的文件后缀名
+        /// </summary>
         public List<string> QuarkAssetExts
         {
             get
