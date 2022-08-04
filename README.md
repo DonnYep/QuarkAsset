@@ -3,17 +3,15 @@
 
 # QuarkAsset
 
-QuarkAsset是一套轻量级的Unity资源加载方案。 内置AssetDatabae与AssetBundle加载模式。加载模式皆支持引用计数，可实时查看资源信息。快速开发阶段可采用AssetDatabase模式，无需进行ab构建。调试阶段可采用AssetBundle模式，轻松构建ab资源。在构建ab时，支持对资源的加密。在运行时加载资源时，可通过对应的密钥对资源进行解密。
+QuarkAsset是一套轻量级的插件化Unity资源加载方案。 内置AssetDatabae与AssetBundle加载模式。加载模式皆支持引用计数，可实时查看资源信息。快速开发阶段可采用AssetDatabase模式，无需进行ab构建。调试阶段可采用AssetBundle模式，轻松构建ab资源。在构建ab时，支持对资源的加密。在运行时加载资源时，可通过对应的密钥对资源进行解密。
 
 * [QuarkAsset Wiki](https://github.com/DonnYep/QuarkAsset/wiki)<br/>
-
-* UPM url:https://github.com/DonnYep/QuarkAsset.git#upm
 -----
 
 <a name="标题导航"></a>
 
 # 标题导航
-
+- [UPM支持](#UPM支持)
 - [QuarkEditor编辑器](#QuarkEditor编辑器)
   - [AssetDatabaseTab-BundleLabel](#QuarkEditor-AssetDatabaseTab-BundleLabel)
     - [设置AssetBundle](#设置AssetBundle)
@@ -30,6 +28,16 @@ QuarkAsset是一套轻量级的Unity资源加载方案。 内置AssetDatabae与A
 - [QuarkResources加载](#QuarkResources加载)
   - [QuarkResources同步加载](#QuarkResources同步加载)
   - [QuarkResources异步加载](#QuarkResources异步加载)
+
+<a name="UPM支持"></a>
+
+## UPM支持
+
+* QuarkAsset是完全插件化的unity库，文件夹结构遵循unityPackage规范。
+
+* UPM本地导入。选择Assets/QuarkAsset文件夹，拷贝到工程目录的Packages目录下，完成导入。
+
+* UPM从git导入。url链接: https://github.com/DonnYep/QuarkAsset.git#upm 
 
 <a name="QuarkEditor编辑器"></a>
 
