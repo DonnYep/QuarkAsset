@@ -7,7 +7,7 @@ QuarkAsset是一套轻量级的Unity资源加载方案。 内置AssetDatabae与A
 
 * [QuarkAsset Wiki](https://github.com/DonnYep/QuarkAsset/wiki)<br/>
 
-* UPM安装链接: https://github.com/DonnYep/QuarkAsset.git#upm
+* UPM url:https://github.com/DonnYep/QuarkAsset.git#upm
 -----
 
 <a name="标题导航"></a>
