@@ -11,10 +11,10 @@ namespace Quark.Editor
         QuarkAssetDatabaseTabData tabData;
         internal const string QuarkAssetDatabaseTabDataFileName = "QuarkAsset_DatabaseTabData.json";
 
-        string[] selectBarArr = new string[] { "Asset bundle lable", "Asset object lable" };
+        string[] selectBarArr = new string[] { "Asset bundle label", "Asset object label" };
 
-        QuarkAssetBundleSearchLable assetBundleSearchLable = new QuarkAssetBundleSearchLable();
-        QuarkAssetObjectSearchLable assetObjectSearchLable = new QuarkAssetObjectSearchLable();
+        QuarkAssetBundleSearchLabel assetBundleSearchLabel = new QuarkAssetBundleSearchLabel();
+        QuarkAssetObjectSearchLabel assetObjectSearchLabel = new QuarkAssetObjectSearchLabel();
 
         QuarkAssetDataset dataset;
         EditorCoroutine coroutine;
@@ -29,8 +29,8 @@ namespace Quark.Editor
                 tabData = new QuarkAssetDatabaseTabData();
                 QuarkEditorUtility.SaveData(QuarkAssetDatabaseTabDataFileName, tabData);
             }
-            assetBundleSearchLable.OnEnable();
-            assetObjectSearchLable.OnEnable();
+            assetBundleSearchLabel.OnEnable();
+            assetObjectSearchLabel.OnEnable();
         }
         public void OnDisable()
         {
@@ -47,26 +47,26 @@ namespace Quark.Editor
         {
             var bundles = dataset.QuarkAssetBundleList;
             var bundleLen = bundles.Count;
-            assetBundleSearchLable.TreeView.Clear();
+            assetBundleSearchLabel.TreeView.Clear();
             for (int i = 0; i < bundleLen; i++)
             {
                 var bundle = bundles[i];
-                assetBundleSearchLable.TreeView.AddPath(bundle.AssetBundlePath);
+                assetBundleSearchLabel.TreeView.AddPath(bundle.AssetBundlePath);
             }
-            assetObjectSearchLable.TreeView.Clear();
+            assetObjectSearchLabel.TreeView.Clear();
             var objects = dataset.QuarkObjectList;
             for (int i = 0; i < objects.Count; i++)
             {
-                assetObjectSearchLable.TreeView.AddPath(objects[i].AssetPath);
+                assetObjectSearchLabel.TreeView.AddPath(objects[i].AssetPath);
             }
-            assetObjectSearchLable.TreeView.Reload();
+            assetObjectSearchLabel.TreeView.Reload();
         }
         public void OnDatasetUnassign()
         {
             if (coroutine != null)
                 QuarkEditorUtility.StopCoroutine(coroutine);
-            assetObjectSearchLable.TreeView.Clear();
-            assetBundleSearchLable.TreeView.Clear();
+            assetObjectSearchLabel.TreeView.Clear();
+            assetBundleSearchLabel.TreeView.Clear();
         }
         public void OnGUI()
         {
@@ -104,10 +104,10 @@ namespace Quark.Editor
                     switch (tabData.SelectedBarIndex)
                     {
                         case 0:
-                            assetBundleSearchLable.OnGUI();
+                            assetBundleSearchLabel.OnGUI();
                             break;
                         case 1:
-                            assetObjectSearchLable.OnGUI();
+                            assetObjectSearchLabel.OnGUI();
                             break;
                     }
                 }
@@ -122,8 +122,8 @@ namespace Quark.Editor
         void ClearDataset()
         {
             dataset.Dispose();
-            assetBundleSearchLable.TreeView.Clear();
-            assetObjectSearchLable.TreeView.Clear();
+            assetBundleSearchLabel.TreeView.Clear();
+            assetObjectSearchLabel.TreeView.Clear();
             EditorUtility.SetDirty(dataset);
             QuarkEditorUtility.ClearData(QuarkAssetDatabaseTabDataFileName);
             QuarkUtility.LogInfo("Quark asset clear done ");
@@ -212,19 +212,19 @@ namespace Quark.Editor
             this.dataset = dataset;
             var bundles = dataset.QuarkAssetBundleList;
             var bundleLen = bundles.Count;
-            assetBundleSearchLable.TreeView.Clear();
+            assetBundleSearchLabel.TreeView.Clear();
             for (int i = 0; i < bundleLen; i++)
             {
                 var bundle = bundles[i];
-                assetBundleSearchLable.TreeView.AddPath(bundle.AssetBundlePath);
+                assetBundleSearchLabel.TreeView.AddPath(bundle.AssetBundlePath);
             }
-            assetObjectSearchLable.TreeView.Clear();
+            assetObjectSearchLabel.TreeView.Clear();
             var objects = dataset.QuarkObjectList;
             for (int i = 0; i < objects.Count; i++)
             {
-                assetObjectSearchLable.TreeView.AddPath(objects[i].AssetPath);
+                assetObjectSearchLabel.TreeView.AddPath(objects[i].AssetPath);
             }
-            assetObjectSearchLable.TreeView.Reload();
+            assetObjectSearchLabel.TreeView.Reload();
             yield return null;
         }
     }
