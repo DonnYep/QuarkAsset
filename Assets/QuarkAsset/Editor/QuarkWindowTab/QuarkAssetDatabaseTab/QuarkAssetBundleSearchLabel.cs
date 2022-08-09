@@ -3,7 +3,7 @@ using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 namespace Quark.Editor
 {
-    public class QuarkAssetBundleSearchLable
+    public class QuarkAssetBundleSearchLabel
     {
         QuarkAssetBundleTreeView treeView;
         TreeViewState treeViewState;
