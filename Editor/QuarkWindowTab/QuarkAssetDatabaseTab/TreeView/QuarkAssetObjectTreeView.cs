@@ -10,8 +10,8 @@ namespace Quark.Editor
     public class QuarkAssetObjectTreeView : TreeView
     {
         List<string> pathList = new List<string>();
-        public QuarkAssetObjectTreeView(TreeViewState treeViewState)
-    : base(treeViewState)
+        public QuarkAssetObjectTreeView(TreeViewState treeViewState, MultiColumnHeader multiColumnHeader)
+    : base(treeViewState, multiColumnHeader)
         {
             Reload();
             showAlternatingRowBackgrounds = true;
@@ -84,6 +84,34 @@ namespace Quark.Editor
                 }
                 SetupParentsAndChildrenFromDepths(root, allItems);
                 return root;
+            }
+        }
+        protected override void RowGUI(RowGUIArgs args)
+        {
+            var length = args.GetNumVisibleColumns();
+            for (int i = 0; i < length; i++)
+            {
+                DrawCellGUI(args.GetCellRect(i), args.item, args.GetColumn(i), ref args);
+            }
+        }
+        void DrawCellGUI(Rect cellRect, TreeViewItem treeView, int column, ref RowGUIArgs args)
+        {
+            switch (column)
+            {
+                case 0:
+                    {
+                        DefaultGUI.Label(cellRect, args.row.ToString(), args.selected, args.focused);
+                    }
+                    break;
+                case 1:
+                    {
+                        var iconRect = new Rect(cellRect.x + 4, cellRect.y, cellRect.height, cellRect.height);
+                        if (treeView.icon != null)
+                            GUI.DrawTexture(iconRect, treeView.icon, ScaleMode.ScaleToFit);
+                        var lablCellRect = new Rect(cellRect.x + iconRect.width + 4, cellRect.y, cellRect.width - iconRect.width, cellRect.height);
+                        DefaultGUI.Label(lablCellRect, treeView.displayName, args.selected, args.focused);
+                    }
+                    break;
             }
         }
         void CopyObjectNameToClipboard(object context)

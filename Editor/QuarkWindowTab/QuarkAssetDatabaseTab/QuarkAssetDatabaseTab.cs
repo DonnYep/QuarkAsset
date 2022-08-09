@@ -11,7 +11,7 @@ namespace Quark.Editor
         QuarkAssetDatabaseTabData tabData;
         internal const string QuarkAssetDatabaseTabDataFileName = "QuarkAsset_DatabaseTabData.json";
 
-        string[] selectBarArr = new string[] { "Asset bundle label", "Asset object label" };
+        string[] selectBarArr = new string[] { "Asset bundle lable", "Asset object lable" };
 
         QuarkAssetBundleSearchLabel assetBundleSearchLabel = new QuarkAssetBundleSearchLabel();
         QuarkAssetObjectSearchLabel assetObjectSearchLabel = new QuarkAssetObjectSearchLabel();

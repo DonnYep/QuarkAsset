@@ -6,6 +6,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using UnityEditor;
+using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -192,6 +193,68 @@ namespace Quark.Editor
         public static void StopCoroutine(IEnumerator coroutine)
         {
             EditorCoroutineUtility.StartCoroutineOwnerless(coroutine);
+        }
+        public static MultiColumnHeaderState CreateBundleMultiColumnHeader()
+        {
+            var columns = new[]
+            {
+                new MultiColumnHeaderState.Column
+                {
+                    headerContent = new GUIContent("Index"),
+                    headerTextAlignment = TextAlignment.Left,
+                    sortingArrowAlignment = TextAlignment.Left,
+                    sortedAscending = false,
+                    minWidth=24,
+                    width=32,
+                    maxWidth=92,
+                    autoResize = true,
+                },
+                new MultiColumnHeaderState.Column
+                {
+                    headerContent = new GUIContent("Bundle"),
+                    headerTextAlignment = TextAlignment.Left,
+                    sortingArrowAlignment = TextAlignment.Left,
+                    sortedAscending = false,
+                    minWidth=192,
+                    width = 768,
+                    maxWidth=1024,
+                    autoResize = false,
+                    canSort=true
+                }
+            };
+            var state = new MultiColumnHeaderState(columns);
+            return state;
+        }
+        public static MultiColumnHeaderState CreateObjectMultiColumnHeader()
+        {
+            var columns = new[]
+            {
+            new MultiColumnHeaderState.Column
+                {
+                    headerContent = new GUIContent("Index"),
+                    headerTextAlignment = TextAlignment.Left,
+                    sortingArrowAlignment = TextAlignment.Left,
+                    sortedAscending = false,
+                    minWidth=24,
+                    width=32,
+                    maxWidth=92,
+                    autoResize = true,
+                },
+                new MultiColumnHeaderState.Column
+                {
+                    headerContent = new GUIContent("Object"),
+                    headerTextAlignment = TextAlignment.Left,
+                    sortingArrowAlignment = TextAlignment.Left,
+                    sortedAscending = false,
+                    minWidth=192,
+                    width=768,
+                    maxWidth=1024,
+                    autoResize = true,
+                },
+            };
+
+            var state = new MultiColumnHeaderState(columns);
+            return state;
         }
     }
 }

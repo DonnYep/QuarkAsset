@@ -14,7 +14,8 @@ namespace Quark.Editor
         {
             searchField = new SearchField();
             treeViewState = new TreeViewState();
-            treeView = new QuarkAssetObjectTreeView(treeViewState);
+            var multiColumnHeaderState = new MultiColumnHeader(QuarkEditorUtility.CreateObjectMultiColumnHeader());
+            treeView = new QuarkAssetObjectTreeView(treeViewState,multiColumnHeaderState);
             searchField.downOrUpArrowKeyPressed += treeView.SetFocusAndEnsureSelectedItem;
         }
         public void OnGUI()
