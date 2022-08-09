@@ -404,7 +404,7 @@ namespace Quark.Loader
                     var abReq = AssetBundle.LoadFromFileAsync(abPath, 0, QuarkDataProxy.QuarkEncryptionOffset);
                     yield return abReq;
                     var bundle = abReq.assetBundle;
-                    if (bundle == null)
+                    if (bundle != null)
                     {
                         bundleWarpper.AssetBundle = bundle;
                         bundleWarpper.ReferenceCount++;//AB包引用计数增加
