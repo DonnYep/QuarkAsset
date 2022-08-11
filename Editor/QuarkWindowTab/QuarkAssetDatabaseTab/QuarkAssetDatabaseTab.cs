@@ -203,11 +203,11 @@ namespace Quark.Editor
             {
                 var bundle = bundles[i];
                 assetBundleSearchLabel.TreeView.AddPath(bundle.AssetBundlePath);
-                var qobjects = bundle.QuarkObjects;
-                var length = qobjects.Count;
+                var objects = bundle.QuarkObjects;
+                var length = objects.Count;
                 for (int j = 0; j < length; j++)
                 {
-                    assetObjectSearchLabel.TreeView.AddPath(qobjects[i].AssetPath);
+                    assetObjectSearchLabel.TreeView.AddPath(objects[j].AssetPath);
                 }
                 yield return null;
             }
