@@ -45,21 +45,7 @@ namespace Quark.Editor
         }
         public void OnDatasetRefresh()
         {
-            var bundles = dataset.QuarkAssetBundleList;
-            var bundleLen = bundles.Count;
-            assetBundleSearchLabel.TreeView.Clear();
-            for (int i = 0; i < bundleLen; i++)
-            {
-                var bundle = bundles[i];
-                assetBundleSearchLabel.TreeView.AddPath(bundle.AssetBundlePath);
-            }
-            assetObjectSearchLabel.TreeView.Clear();
-            var objects = dataset.QuarkObjectList;
-            for (int i = 0; i < objects.Count; i++)
-            {
-                assetObjectSearchLabel.TreeView.AddPath(objects[i].AssetPath);
-            }
-            assetObjectSearchLabel.TreeView.Reload();
+            OnDatasetAssign();
         }
         public void OnDatasetUnassign()
         {
@@ -217,15 +203,15 @@ namespace Quark.Editor
             {
                 var bundle = bundles[i];
                 assetBundleSearchLabel.TreeView.AddPath(bundle.AssetBundlePath);
-            }
-            assetObjectSearchLabel.TreeView.Clear();
-            var objects = dataset.QuarkObjectList;
-            for (int i = 0; i < objects.Count; i++)
-            {
-                assetObjectSearchLabel.TreeView.AddPath(objects[i].AssetPath);
+                var objects = bundle.QuarkObjects;
+                var length = objects.Count;
+                for (int j = 0; j < length; j++)
+                {
+                    assetObjectSearchLabel.TreeView.AddPath(objects[j].AssetPath);
+                }
+                yield return null;
             }
             assetObjectSearchLabel.TreeView.Reload();
-            yield return null;
         }
     }
 }
