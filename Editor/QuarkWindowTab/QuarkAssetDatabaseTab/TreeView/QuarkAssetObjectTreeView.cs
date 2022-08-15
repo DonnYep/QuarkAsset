@@ -9,7 +9,7 @@ namespace Quark.Editor
 {
     public class QuarkAssetObjectTreeView : TreeView
     {
-        List<string> pathList = new List<string>();
+        List<QuarkObjectItem> objectItemList = new List<QuarkObjectItem>();
         public QuarkAssetObjectTreeView(TreeViewState treeViewState, MultiColumnHeader multiColumnHeader)
     : base(treeViewState, multiColumnHeader)
         {
@@ -17,36 +17,36 @@ namespace Quark.Editor
             showAlternatingRowBackgrounds = true;
             showBorder = true;
         }
-        public void AddPath(string path)
+        public void AddPath(QuarkObjectItem item)
         {
-            pathList.Add(path);
+            objectItemList.Add(item);
         }
-        public void AddPaths(IEnumerable<string> paths)
+        public void AddPaths(IEnumerable<QuarkObjectItem> items)
         {
-            pathList.Clear();
-            pathList.AddRange(paths);
+            objectItemList.Clear();
+            objectItemList.AddRange(items);
             Reload();
         }
         public void Clear()
         {
-            pathList.Clear();
+            objectItemList.Clear();
             Reload();
         }
         protected override void SingleClickedItem(int id)
         {
             base.SingleClickedItem(id);
-            if (pathList.Count < id)
+            if (objectItemList.Count < id)
                 return;
-            var obj = AssetDatabase.LoadAssetAtPath<Object>(pathList[id]);
+            var obj = AssetDatabase.LoadAssetAtPath<Object>(objectItemList[id].AssetPath);
             EditorGUIUtility.PingObject(obj);
             Selection.activeObject = obj;
         }
         protected override void DoubleClickedItem(int id)
         {
             base.DoubleClickedItem(id);
-            if (pathList.Count < id)
+            if (objectItemList.Count < id)
                 return;
-            var obj = AssetDatabase.LoadAssetAtPath<Object>(pathList[id]);
+            var obj = AssetDatabase.LoadAssetAtPath<Object>(objectItemList[id].AssetPath);
             EditorGUIUtility.PingObject(obj);
             Selection.activeObject = obj;
         }
@@ -67,9 +67,9 @@ namespace Quark.Editor
             Texture2D objectIcon = null;
             var allItems = new List<TreeViewItem>();
             {
-                for (int i = 0; i < pathList.Count; i++)
+                for (int i = 0; i < objectItemList.Count; i++)
                 {
-                    var obj = AssetDatabase.LoadAssetAtPath(pathList[i], typeof(Object));
+                    var obj = AssetDatabase.LoadAssetAtPath(objectItemList[i].AssetPath, typeof(Object));
                     bool isValidAsset = obj != null;
                     if (isValidAsset)
                     {
@@ -79,7 +79,9 @@ namespace Quark.Editor
                     {
                         objectIcon = EditorGUIUtility.FindTexture("console.erroricon");
                     }
-                    var item = new TreeViewItem { id = i, depth = 1, displayName = pathList[i], icon = objectIcon };
+                    var objItem = objectItemList[i];
+                    var item = new QuarkObjectTreeViewItem(i, 1, objItem.AssetName, objectIcon)
+                    { BundleName = objItem.AssetBundleName, AssetPath = objItem.AssetPath, AssetExtension = objItem.AssetExtension };
                     allItems.Add(item);
                 }
                 SetupParentsAndChildrenFromDepths(root, allItems);
@@ -91,10 +93,10 @@ namespace Quark.Editor
             var length = args.GetNumVisibleColumns();
             for (int i = 0; i < length; i++)
             {
-                DrawCellGUI(args.GetCellRect(i), args.item, args.GetColumn(i), ref args);
+                DrawCellGUI(args.GetCellRect(i), args.item as QuarkObjectTreeViewItem, args.GetColumn(i), ref args);
             }
         }
-        void DrawCellGUI(Rect cellRect, TreeViewItem treeView, int column, ref RowGUIArgs args)
+        void DrawCellGUI(Rect cellRect, QuarkObjectTreeViewItem treeView, int column, ref RowGUIArgs args)
         {
             switch (column)
             {
@@ -112,19 +114,33 @@ namespace Quark.Editor
                         DefaultGUI.Label(lablCellRect, treeView.displayName, args.selected, args.focused);
                     }
                     break;
+                case 2:
+                    {
+                        DefaultGUI.Label(cellRect, treeView.AssetExtension, args.selected, args.focused);
+                    }
+                    break;
+                case 3:
+                    {
+                        DefaultGUI.Label(cellRect, treeView.BundleName, args.selected, args.focused);
+                    }
+                    break;
+                case 4:
+                    {
+                        DefaultGUI.Label(cellRect, treeView.AssetPath, args.selected, args.focused);
+                    }
+                    break;
             }
         }
         void CopyObjectNameToClipboard(object context)
         {
             var id = Convert.ToInt32(context);
-            var path = pathList[id];
-            var name = Path.GetFileNameWithoutExtension(path);
+            var name = objectItemList[id].AssetName;
             GUIUtility.systemCopyBuffer = name;
         }
         void CopyObjectPathToClipboard(object context)
         {
             var id = Convert.ToInt32(context);
-            var path = pathList[id];
+            var path = objectItemList[id].AssetPath;
             GUIUtility.systemCopyBuffer = path;
         }
     }
