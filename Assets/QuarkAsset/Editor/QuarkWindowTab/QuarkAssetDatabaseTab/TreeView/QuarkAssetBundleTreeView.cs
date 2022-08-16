@@ -10,6 +10,10 @@ namespace Quark.Editor
     public class QuarkAssetBundleTreeView : TreeView
     {
         string originalName;
+        /// <summary>
+        /// 上一行的cellRect
+        /// </summary>
+        Rect latestBundleCellRect;
         public QuarkAssetBundleTreeView(TreeViewState treeViewState, MultiColumnHeader multiColumnHeader)
       : base(treeViewState, multiColumnHeader)
         {
@@ -95,6 +99,10 @@ namespace Quark.Editor
             Selection.activeObject = obj;
             base.DoubleClickedItem(id);
         }
+        protected override Rect GetRenameRect(Rect rowRect, int row, TreeViewItem item)
+        {
+            return new Rect(latestBundleCellRect.x, latestBundleCellRect.height * row, latestBundleCellRect.width, latestBundleCellRect.height);
+        }
         protected override TreeViewItem BuildRoot()
         {
             var root = new TreeViewItem { id = -1, depth = -1, displayName = "Root" };
@@ -108,7 +116,7 @@ namespace Quark.Editor
             var assetIcon = EditorGUIUtility.FindTexture("PreMatCube");
             for (int i = 0; i < bundles.Count; i++)
             {
-                var item = new TreeViewItem { id = i, depth = 1, displayName = bundles[i].AssetBundleName, icon = assetIcon };
+                var item = new QuarkBundleTreeViewItem(i, 1, bundles[i].AssetBundleName, assetIcon) { ObjectCount = bundles[i].QuarkObjects.Count };
                 allItems.Add(item);
             }
             SetupParentsAndChildrenFromDepths(root, allItems);
@@ -188,10 +196,10 @@ namespace Quark.Editor
             var length = args.GetNumVisibleColumns();
             for (int i = 0; i < length; i++)
             {
-                DrawCellGUI(args.GetCellRect(i), args.item, args.GetColumn(i), ref args);
+                DrawCellGUI(args.GetCellRect(i), args.item as QuarkBundleTreeViewItem, args.GetColumn(i), ref args);
             }
         }
-        void DrawCellGUI(Rect cellRect, TreeViewItem treeView, int column, ref RowGUIArgs args)
+        void DrawCellGUI(Rect cellRect, QuarkBundleTreeViewItem treeView, int column, ref RowGUIArgs args)
         {
             switch (column)
             {
@@ -202,11 +210,17 @@ namespace Quark.Editor
                     break;
                 case 1:
                     {
+                        DefaultGUI.Label(cellRect, treeView.ObjectCount.ToString(), args.selected, args.focused);
+                    }
+                    break;
+                case 2:
+                    {
                         var iconRect = new Rect(cellRect.x + 4, cellRect.y, cellRect.height, cellRect.height);
                         if (treeView.icon != null)
                             GUI.DrawTexture(iconRect, treeView.icon, ScaleMode.ScaleToFit);
-                        var lablCellRect = new Rect(cellRect.x + iconRect.width + 4, cellRect.y, cellRect.width - iconRect.width, cellRect.height);
-                        DefaultGUI.Label(lablCellRect, treeView.displayName, args.selected, args.focused);
+                        var labelCellRect = new Rect(cellRect.x + iconRect.width + 4, cellRect.y, cellRect.width - iconRect.width, cellRect.height);
+                        DefaultGUI.Label(labelCellRect, treeView.displayName, args.selected, args.focused);
+                        latestBundleCellRect = labelCellRect;
                     }
                     break;
             }

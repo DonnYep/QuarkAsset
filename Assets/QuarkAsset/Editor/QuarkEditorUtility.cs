@@ -205,9 +205,21 @@ namespace Quark.Editor
                     sortingArrowAlignment = TextAlignment.Left,
                     sortedAscending = false,
                     minWidth=24,
-                    width=32,
+                    width=40,
                     maxWidth=92,
                     autoResize = true,
+                },
+                new MultiColumnHeaderState.Column
+                {
+                    headerContent = new GUIContent("Count"),
+                    headerTextAlignment = TextAlignment.Left,
+                    sortingArrowAlignment = TextAlignment.Left,
+                    sortedAscending = false,
+                    minWidth=36,
+                    width = 48,
+                    maxWidth=92,
+                    autoResize = false,
+                    canSort=true
                 },
                 new MultiColumnHeaderState.Column
                 {
@@ -236,13 +248,46 @@ namespace Quark.Editor
                     sortingArrowAlignment = TextAlignment.Left,
                     sortedAscending = false,
                     minWidth=24,
-                    width=32,
+                    width=40,
                     maxWidth=92,
                     autoResize = true,
                 },
                 new MultiColumnHeaderState.Column
                 {
-                    headerContent = new GUIContent("Object"),
+                    headerContent = new GUIContent("ObjectName"),
+                    headerTextAlignment = TextAlignment.Left,
+                    sortingArrowAlignment = TextAlignment.Left,
+                    sortedAscending = false,
+                    minWidth=128,
+                    width=168,
+                    maxWidth=320,
+                    autoResize = true,
+                },
+                new MultiColumnHeaderState.Column
+                {
+                    headerContent = new GUIContent("Extension"),
+                    headerTextAlignment = TextAlignment.Left,
+                    sortingArrowAlignment = TextAlignment.Left,
+                    sortedAscending = false,
+                    minWidth=56,
+                    width=92,
+                    maxWidth=192,
+                    autoResize = true,
+                },
+                new MultiColumnHeaderState.Column
+                {
+                    headerContent = new GUIContent("BundleName"),
+                    headerTextAlignment = TextAlignment.Left,
+                    sortingArrowAlignment = TextAlignment.Left,
+                    sortedAscending = false,
+                    minWidth=92,
+                    width=320,
+                    maxWidth=384,
+                    autoResize = true,
+                },
+                 new MultiColumnHeaderState.Column
+                {
+                    headerContent = new GUIContent("AssetPath"),
                     headerTextAlignment = TextAlignment.Left,
                     sortingArrowAlignment = TextAlignment.Left,
                     sortedAscending = false,
@@ -250,7 +295,7 @@ namespace Quark.Editor
                     width=768,
                     maxWidth=1024,
                     autoResize = true,
-                },
+                }
             };
 
             var state = new MultiColumnHeaderState(columns);

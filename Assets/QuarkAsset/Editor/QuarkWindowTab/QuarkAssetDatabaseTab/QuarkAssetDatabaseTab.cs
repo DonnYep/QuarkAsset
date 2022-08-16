@@ -67,7 +67,6 @@ namespace Quark.Editor
                 if (GUILayout.Button("Build"))
                 {
                     QuarkEditorUtility.StartCoroutine(EnumBuildDataset());
-
                 }
                 if (GUILayout.Button("Clear"))
                 {
@@ -173,7 +172,7 @@ namespace Quark.Editor
             if (tabData.GenerateAssetPathCode)
                 CreateAssetPathScript();
             yield return null;
-            OnDatasetAssign();
+            yield return EnumOnAssignDataset(dataset);
             AssetDatabase.SaveAssets();
             QuarkUtility.LogInfo("Quark asset  build done ");
         }
@@ -199,6 +198,7 @@ namespace Quark.Editor
             var bundles = dataset.QuarkAssetBundleList;
             var bundleLen = bundles.Count;
             assetBundleSearchLabel.TreeView.Clear();
+            assetObjectSearchLabel.TreeView.Clear();
             for (int i = 0; i < bundleLen; i++)
             {
                 var bundle = bundles[i];
@@ -207,7 +207,9 @@ namespace Quark.Editor
                 var length = objects.Count;
                 for (int j = 0; j < length; j++)
                 {
-                    assetObjectSearchLabel.TreeView.AddPath(objects[j].AssetPath);
+                    var obj = objects[j];
+                    var item = new QuarkObjectItem(obj.AssetName, obj.AssetExtension, obj.AssetPath, obj.AssetBundleName);
+                    assetObjectSearchLabel.TreeView.AddPath(item);
                 }
                 yield return null;
             }
