@@ -37,7 +37,7 @@ namespace Quark.Loader
                 throw new ArgumentNullException("Asset name is invalid!");
             Object asset = null;
 #if UNITY_EDITOR
-            var hasObject = GetQuarkObject(assetName,  out var quarkObject);
+            var hasObject = GetQuarkObject(assetName, out var quarkObject);
             if (hasObject)
             {
                 asset = UnityEditor.AssetDatabase.LoadAssetAtPath(quarkObject.AssetPath, type);
@@ -61,7 +61,7 @@ namespace Quark.Loader
                 throw new ArgumentNullException("Asset name is invalid!");
             T[] assets = null;
 #if UNITY_EDITOR
-            var hasObject = GetQuarkObject(assetName,  out var quarkObject);
+            var hasObject = GetQuarkObject(assetName, out var quarkObject);
             if (hasObject)
             {
                 var assetObj = UnityEditor.AssetDatabase.LoadAllAssetsAtPath(quarkObject.AssetPath);
@@ -83,7 +83,7 @@ namespace Quark.Loader
                 throw new ArgumentNullException("Asset name is invalid!");
             Object[] assets = null;
 #if UNITY_EDITOR
-            var hasObject = GetQuarkObject(assetName,  out var quarkObject);
+            var hasObject = GetQuarkObject(assetName, out var quarkObject);
             if (hasObject)
             {
                 var assetObj = UnityEditor.AssetDatabase.LoadAllAssetsAtPath(quarkObject.AssetPath);
@@ -156,7 +156,7 @@ namespace Quark.Loader
         }
         public override Coroutine LoadMainAndSubAssetsAsync(string assetName, Type type, Action<Object[]> callback)
         {
-            return QuarkUtility.Unity.StartCoroutine(EnumLoadAssetWithSubAssetsAsync(assetName,  type, callback));
+            return QuarkUtility.Unity.StartCoroutine(EnumLoadAssetWithSubAssetsAsync(assetName, type, callback));
         }
         public override Coroutine LoadAssetAsync<T>(string assetName, Action<T> callback)
         {
@@ -172,7 +172,7 @@ namespace Quark.Loader
         }
         public override void ReleaseAsset(string assetName)
         {
-            var hasObject = GetQuarkObject(assetName,  out var quarkObject);
+            var hasObject = GetQuarkObject(assetName, out var quarkObject);
             if (hasObject)
             {
                 if (objectWarpperDict.TryGetValue(quarkObject.AssetPath, out var objectWapper))
@@ -212,7 +212,7 @@ namespace Quark.Loader
         {
             return QuarkUtility.Unity.StartCoroutine(EnumUnloadAllSceneAsync(progress, callback));
         }
-        IEnumerator EnumLoadAssetWithSubAssetsAsync(string assetName,  Type type, Action<Object[]> callback)
+        IEnumerator EnumLoadAssetWithSubAssetsAsync(string assetName, Type type, Action<Object[]> callback)
         {
             var assets = LoadMainAndSubAssets(assetName, type);
             yield return null;
@@ -220,7 +220,7 @@ namespace Quark.Loader
         }
         IEnumerator EnumLoadAssetAsync(string assetName, Type type, Action<Object> callback)
         {
-            var asset = LoadAsset(assetName,  type);
+            var asset = LoadAsset(assetName, type);
             yield return null;
             callback?.Invoke(asset);
         }
@@ -331,8 +331,10 @@ namespace Quark.Loader
             for (int i = 0; i < length; i++)
             {
                 var dependentABName = dependList[i];
-                if (bundleWarpperDict.ContainsKey(bundleName))
-                    yield return EnumLoadAssetBundleWithDependenciesAsync(dependentABName);
+                if (bundleWarpperDict.TryGetValue(dependentABName, out var dependBundleWarpper))
+                {
+                    dependBundleWarpper.ReferenceCount++; //AB包引用计数增加
+                }
             }
         }
         /// <summary>
@@ -343,12 +345,6 @@ namespace Quark.Loader
         void UnloadAssetBundleWithDependencies(QuarkBundleWarpper bundleWarpper, int count = 1, bool unloadAllLoadedObjects = false)
         {
             bundleWarpper.ReferenceCount -= count;
-            if (bundleWarpper.ReferenceCount <= 0)
-            {
-                //当包体的引用计数小于等于0时，则表示该包已经未被依赖。
-                //卸载AssetBundle；
-                bundleWarpper.AssetBundle?.Unload(unloadAllLoadedObjects);
-            }
             var dependBundleNames = bundleWarpper.QuarkAssetBundle.DependList;
             var dependBundleNameLength = dependBundleNames.Count;
             //遍历查询依赖包
@@ -357,7 +353,7 @@ namespace Quark.Loader
                 var dependBundleName = dependBundleNames[i];
                 if (!bundleWarpperDict.TryGetValue(dependBundleName, out var dependBundleWarpper))
                     continue;
-                UnloadAssetBundleWithDependencies(dependBundleWarpper, count, unloadAllLoadedObjects);
+                dependBundleWarpper.ReferenceCount -= count;
             }
         }
         void InitDataset(QuarkAssetDataset assetDataset)
@@ -399,8 +395,10 @@ namespace Quark.Loader
             for (int i = 0; i < length; i++)
             {
                 var dependentABName = dependList[i];
-                if (bundleWarpperDict.ContainsKey(assetBundleName))
-                    LoadAssetBundleWithDepend(dependentABName);
+                if (bundleWarpperDict.TryGetValue(dependentABName, out var dependBundleWarpper))
+                {
+                    dependBundleWarpper.ReferenceCount++;
+                }
             }
         }
         void OnResoucreObjectRelease(QuarkObjectWapper objectWarpper)
@@ -420,7 +418,7 @@ namespace Quark.Loader
             var sceneName = scene.name;
             if (loadSceneList.Contains(sceneName))
             {
-                var hasObject = GetSceneObject(sceneName,  out var quarkObject);
+                var hasObject = GetSceneObject(sceneName, out var quarkObject);
                 if (hasObject)
                     OnResourceObjectLoad(quarkObject);
                 loadedSceneDict[sceneName] = scene;
