@@ -11,7 +11,7 @@ namespace Quark.Asset
         [SerializeField]
         string assetBundlePath;
         [SerializeField]
-        List<string> dependList;
+        List<string> dependentList;
         [SerializeField]
         List<QuarkObject> quarkObjects;
         /// <summary>
@@ -33,15 +33,15 @@ namespace Quark.Asset
         /// <summary>
         /// 资源的依赖项；
         /// </summary>
-        public List<string> DependList
+        public List<string> DependentList
         {
             get
             {
-                if (dependList == null)
-                    dependList = new List<string>();
-                return dependList;
+                if (dependentList == null)
+                    dependentList = new List<string>();
+                return dependentList;
             }
-            set { dependList = value; }
+            set { dependentList = value; }
         }
         /// <summary>
         /// 包所含的资源列表；

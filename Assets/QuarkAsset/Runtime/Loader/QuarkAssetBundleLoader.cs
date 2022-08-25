@@ -410,26 +410,26 @@ namespace Quark.Loader
                 }
                 else
                     bundleWarpper.ReferenceCount++;
-                var dependList = bundleWarpper.QuarkAssetBundle.DependList;
-                var dependLength = dependList.Count;
-                for (int i = 0; i < dependLength; i++)
+                var dependentList = bundleWarpper.QuarkAssetBundle.DependentList;
+                var dependentLength = dependentList.Count;
+                for (int i = 0; i < dependentLength; i++)
                 {
-                    var dependBundleName = dependList[i];
-                    if (bundleWarpperDict.TryGetValue(dependBundleName,out var dependBundleWarpper))
+                    var dependentBundleName = dependentList[i];
+                    if (bundleWarpperDict.TryGetValue(dependentBundleName,out var dependentBundleWarpper))
                     {
-                        if (dependBundleWarpper.AssetBundle == null)
+                        if (dependentBundleWarpper.AssetBundle == null)
                         {
-                            var abPath = Path.Combine(PersistentPath, dependBundleName);
+                            var abPath = Path.Combine(PersistentPath, dependentBundleName);
                             var abReq = AssetBundle.LoadFromFileAsync(abPath, 0, QuarkDataProxy.QuarkEncryptionOffset);
                             yield return abReq;
-                            dependBundleWarpper.AssetBundle = abReq.assetBundle;
-                            if (dependBundleWarpper.AssetBundle != null)
+                            dependentBundleWarpper.AssetBundle = abReq.assetBundle;
+                            if (dependentBundleWarpper.AssetBundle != null)
                             {
-                                dependBundleWarpper.ReferenceCount++;//AB包引用计数增加
+                                dependentBundleWarpper.ReferenceCount++;//AB包引用计数增加
                             }
                         }
                         else
-                            dependBundleWarpper.ReferenceCount++;
+                            dependentBundleWarpper.ReferenceCount++;
                     }
                 }
             }
@@ -446,15 +446,15 @@ namespace Quark.Loader
                 //卸载AssetBundle；
                 bundleWarpper.AssetBundle?.Unload(unloadAllLoadedObjects);
             }
-            var dependBundleNames = bundleWarpper.QuarkAssetBundle.DependList;
-            var dependBundleNameLength = dependBundleNames.Count;
+            var dependentList= bundleWarpper.QuarkAssetBundle.DependentList;
+            var dependentLength = dependentList.Count;
             //遍历查询依赖包
-            for (int i = 0; i < dependBundleNameLength; i++)
+            for (int i = 0; i < dependentLength; i++)
             {
-                var dependBundleName = dependBundleNames[i];
-                if (!bundleWarpperDict.TryGetValue(dependBundleName, out var dependBundleWarpper))
+                var dependentBundleName = dependentList[i];
+                if (!bundleWarpperDict.TryGetValue(dependentBundleName, out var dependentBundleWarpper))
                     continue;
-                UnloadAssetBundleWithDependencies(dependBundleWarpper, count, unloadAllLoadedObjects);
+                UnloadAssetBundleWithDependencies(dependentBundleWarpper, count, unloadAllLoadedObjects);
             }
         }
         void InitManifest(QuarkAssetManifest manifest)
@@ -504,7 +504,7 @@ namespace Quark.Loader
                 else
                     bundleWarpper.ReferenceCount++;
                 //这里开始加载依赖包
-                var dependList = bundleWarpper.QuarkAssetBundle.DependList;
+                var dependList = bundleWarpper.QuarkAssetBundle.DependentList;
                 var dependLength = dependList.Count;
                 for (int i = 0; i < dependLength; i++)
                 {

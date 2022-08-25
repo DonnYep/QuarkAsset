@@ -241,9 +241,9 @@ namespace Quark.Editor
             for (int i = 0; i < bundles.Count; i++)
             {
                 var bundle = bundles[i];
-                bundle.DependList.Clear();
+                bundle.DependentList.Clear();
                 var importer = AssetImporter.GetAtPath(bundle.AssetBundlePath);
-                bundle.DependList.AddRange(AssetDatabase.GetAssetBundleDependencies(importer.assetBundleName, true));
+                bundle.DependentList.AddRange(AssetDatabase.GetAssetBundleDependencies(importer.assetBundleName, true));
             }
         }
         IEnumerator FinishBuild(AssetBundleManifest manifest, QuarkAssetManifest quarkManifest)
