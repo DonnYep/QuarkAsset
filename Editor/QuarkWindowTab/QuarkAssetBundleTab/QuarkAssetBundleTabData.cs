@@ -18,7 +18,7 @@ namespace Quark.Editor
         public bool ClearOutputFolders;
         public bool CopyToStreamingAssets;
         public string StreamingRelativePath;
-        public bool WithoutManifest;
+        public bool RetainUnityManifest;
         public AssetBundleHashType NameHashType;
         /// <summary>
         /// 使用偏移加密；
@@ -43,11 +43,11 @@ namespace Quark.Editor
         public QuarkAssetBundleTabData()
         {
             BuildTarget = BuildTarget.StandaloneWindows;
-            OutputPath = Path.Combine(Path.GetFullPath("."), "AssetBundles","QuarkAsset").Replace("\\","/");
+            OutputPath = Path.Combine(Path.GetFullPath("."), "AssetBundles", "QuarkAsset").Replace("\\", "/");
             ClearOutputFolders = true;
-            CopyToStreamingAssets = false;
+            CopyToStreamingAssets = true;
             StreamingRelativePath = string.Empty;
-            WithoutManifest = true;
+            RetainUnityManifest = false;
             NameHashType = AssetBundleHashType.DefaultName;
             UseOffsetEncryptionForAssetBundle = false;
             EncryptionOffsetForAssetBundle = 32;

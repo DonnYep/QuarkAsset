@@ -87,7 +87,7 @@ namespace Quark.Editor
 
             GUILayout.BeginVertical();
             {
-                tabData.WithoutManifest = EditorGUILayout.ToggleLeft("WithoutManifest", tabData.WithoutManifest);
+                tabData.RetainUnityManifest = EditorGUILayout.ToggleLeft("RetainUnityManifest", tabData.RetainUnityManifest);
 
                 tabData.ClearOutputFolders = EditorGUILayout.ToggleLeft("ClearOutputFolders", tabData.ClearOutputFolders);
                 tabData.CopyToStreamingAssets = EditorGUILayout.ToggleLeft("CopyToStreamingAssets", tabData.CopyToStreamingAssets);
@@ -202,7 +202,7 @@ namespace Quark.Editor
             var quarkManifest = new QuarkAssetManifest();
             yield return assetDatabaseTab.BuildDataset();
             yield return SetAssetBundleName(quarkManifest);
-            var assetBundleManifest = BuildPipeline.BuildAssetBundles(tabData.AssetBundleBuildPath, tabData.BuildAssetBundleOptions, tabData.BuildTarget);
+            var assetBundleManifest = BuildPipeline.BuildAssetBundles(assetBundleBuildPath, tabData.BuildAssetBundleOptions, tabData.BuildTarget);
             yield return FinishBuild(assetBundleManifest, quarkManifest);
         }
         IEnumerator SetAssetBundleName(QuarkAssetManifest quarkManifest)
@@ -269,7 +269,7 @@ namespace Quark.Editor
                     var bundleBytes = File.ReadAllBytes(bundlePath);
                     bundleSize = bundleBytes.LongLength;
                 }
-                if (tabData.WithoutManifest)
+                if (!tabData.RetainUnityManifest)
                 {
                     var bundleManifestPath = QuarkUtility.Append(bundlePath, ".manifest");
                     QuarkUtility.DeleteFile(bundleManifestPath);
@@ -291,7 +291,7 @@ namespace Quark.Editor
             QuarkUtility.WriteTextFile(manifestWritePath, manifestContext);
 
             yield return null;
-            if (tabData.WithoutManifest)
+            if (!tabData.RetainUnityManifest)
             {
                 //删除生成文对应的主manifest文件
                 var buildMainPath = Path.Combine(tabData.AssetBundleBuildPath, tabData.BuildTarget.ToString());
