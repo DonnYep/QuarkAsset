@@ -3,7 +3,7 @@
 
 # QuarkAsset
 
-QuarkAsset是一套轻量级的插件化Unity资源加载方案。 内置AssetDatabae与AssetBundle加载模式。加载模式皆支持引用计数，可实时查看资源信息。快速开发阶段可采用AssetDatabase模式，无需进行ab构建。调试阶段可采用AssetBundle模式，轻松构建ab资源。在构建ab时，支持对资源的加密。在运行时加载资源时，可通过对应的密钥对资源进行解密。
+QuarkAsset是一套轻量级的插件化Unity资源加载方案。 内置AssetDatabae与AssetBundle加载模式。加载模式皆支持引用计数，可实时查看资源信息。快速开发阶段可采用AssetDatabase模式，无需进行ab构建。调试阶段可采用AssetBundle模式，轻松构建ab资源。在构建ab时，支持对资源的加密。在Runtime加载资源时，可通过对应的密钥对资源进行解密。内置BuildPipeline，可通过命令行实现自动化ab资源构建。Jenkins自动化部署已通过。
 
 * [QuarkAsset Wiki](https://github.com/DonnYep/QuarkAsset/wiki)<br/>
 -----
