@@ -3,7 +3,7 @@
 
 # QuarkAsset
 
-QuarkAsset是一套轻量级的插件化Unity资源加载方案。 内置AssetDatabae与AssetBundle加载模式。加载模式皆支持引用计数，可实时查看资源信息。快速开发阶段可采用AssetDatabase模式，无需进行ab构建。调试阶段可采用AssetBundle模式，轻松构建ab资源。在构建ab时，支持对资源的加密。在Runtime加载资源时，可通过对应的密钥对资源进行解密。内置BuildPipeline，可通过命令行实现自动化ab资源构建。Jenkins自动化部署已通过。
+QuarkAsset是一套轻量级的插件化Unity资源加载方案。 内置AssetDatabae与AssetBundle加载模式。加载模式皆支持引用计数，可实时查看资源信息。快速开发阶段可采用AssetDatabase模式，无需进行ab构建。调试阶段可采用AssetBundle模式，轻松构建ab资源。在构建ab时，支持对资源的加密。在Runtime加载资源时，可通过对应的密钥对资源进行解密。内置BuildPipeline，可通过命令行实现自动化资源构建。Jenkins自动化部署测试已通过。
 
 * [QuarkAsset Wiki](https://github.com/DonnYep/QuarkAsset/wiki)<br/>
 -----
@@ -28,6 +28,11 @@ QuarkAsset是一套轻量级的插件化Unity资源加载方案。 内置AssetDa
 - [QuarkResources加载](#QuarkResources加载)
   - [QuarkResources同步加载](#QuarkResources同步加载)
   - [QuarkResources异步加载](#QuarkResources异步加载)
+- [BuildPipeline](#BuildPipeline)
+  - [打包配置](#打包配置)
+  - [命令行打包](#命令行打包)
+- [注意事项](#注意事项)
+
 
 <a name="UPM支持"></a>
 
@@ -232,5 +237,40 @@ QuarkResources.LoadAssetAsync<Texture>("Assets/Textures/MyTexture.png",res=>
 });
 ```
 -----
+<a name="BuildPipeline"></a>
+
+## BuildPipeline
+
+* Quark支持自动化流水线部署，支持Jenkins等类型的命令行打包。
+
+<a name="打包配置"></a>
+
+### 打包配置
+
+* 选择一个项目中使用的QuarkAssetDataset类型文件，将文件名更改为QuarkAssetDataset后，放到Assets根目录下。放置完毕后路径应与如下相同。
+```
+Assets/QuarkAssetDataset.asset
+```
+<a name="命令行打包"></a>
+
+### 命令行打包
+
+* 命令行可调用的API如下：
+
+```csharp
+//对当前活跃平台的资源进行打包
+QuarkBuildPipeline.BuildActivePlatformAssetBundle();
+//打包指定平台的资源
+QuarkBuildPipeline.BuildAssetBundle(BuildTarget buildTarget);
+```
+<a name="注意事项"></a>
+
+## 注意事项
+
+* 若在编辑器环境下对AB进行构建，为使得构建的资源准确无误，建议每次都手动清理StreamingAssets下的文件夹。
+
+* 自动化部署构建资源请根据打包策略选择合适的清理方式。建议采用所有资源重新构建的策略。
+
+* 当前自动化版本未做加密支持。
 
 **[回到最上层](#标题导航)**
