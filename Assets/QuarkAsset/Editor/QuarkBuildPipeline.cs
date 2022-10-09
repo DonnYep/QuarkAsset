@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
+using System.Linq;
 
 namespace Quark.Editor
 {
@@ -41,7 +42,16 @@ namespace Quark.Editor
             tabData.StreamingRelativePath = buildTarget.ToString().ToLower();
             OnBuildAssetBundle(dataset);
         }
-
+        public static string[] GetBuildScenePath()
+        {
+            dataset = AssetDatabase.LoadAssetAtPath<QuarkAssetDataset>(QuarkDatasetPath);
+            if (dataset == null)
+            {
+                QuarkUtility.LogError($"Path: {QuarkDatasetPath} invalid !");
+                return new string[0] ;
+            }
+            return dataset.QuarkSceneList.Select(s => s.AssetPath).ToArray();
+        }
         static void OnBuildAssetBundle(QuarkAssetDataset dataset)
         {
             QuarkUtility.LogInfo("Quark build pipeline start");
@@ -72,7 +82,9 @@ namespace Quark.Editor
             var bundles = dataset.QuarkAssetBundleList;
             var extensions = dataset.QuarkAssetExts;
             List<QuarkObject> quarkAssetList = new List<QuarkObject>();
+            List<QuarkObject> quarkSceneList = new List<QuarkObject>();
             List<QuarkAssetBundle> validBundleList = new List<QuarkAssetBundle>();
+            var sceneAssetFullName = typeof(SceneAsset).FullName;
             int currentBundleIndex = 0;
             int bundleCount = bundles.Count;
             foreach (var bundle in bundles)
@@ -103,6 +115,10 @@ namespace Quark.Editor
                             AssetType = AssetDatabase.LoadAssetAtPath(filePath, typeof(UnityEngine.Object)).GetType().FullName
                         };
                         quarkAssetList.Add(assetObject);
+                        if (assetObject.AssetType == sceneAssetFullName)
+                        {
+                            quarkSceneList.Add(assetObject);
+                        }
                         bundle.QuarkObjects.Add(assetObject);
                     }
                 }
@@ -113,6 +129,8 @@ namespace Quark.Editor
             dataset.QuarkObjectList.AddRange(quarkAssetList);
             dataset.QuarkAssetBundleList.Clear();
             dataset.QuarkAssetBundleList.AddRange(validBundleList);
+            dataset.QuarkSceneList.Clear();
+            dataset.QuarkSceneList.AddRange(quarkSceneList);
 
             EditorUtility.SetDirty(dataset);
             AssetDatabase.SaveAssets();

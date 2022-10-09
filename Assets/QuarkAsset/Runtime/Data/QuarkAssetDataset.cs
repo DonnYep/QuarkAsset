@@ -16,6 +16,8 @@ namespace Quark.Asset
         List<QuarkAssetBundle> quarkAssetBundleList;
         [SerializeField]
         List<string> quarkAssetExts;
+        [SerializeField]
+        List<QuarkObject> quarkSceneList;
         public List<QuarkObject> QuarkObjectList
         {
             get
@@ -46,6 +48,18 @@ namespace Quark.Asset
                 return quarkAssetBundleList;
             }
             set { quarkAssetBundleList = value; }
+        }
+        /// <summary>
+        /// 场景资源文件；
+        /// </summary>
+        public List<QuarkObject> QuarkSceneList
+        {
+            get
+            {
+                if (quarkSceneList == null)
+                    quarkSceneList = new List<QuarkObject>();
+                return quarkSceneList;
+            }
         }
         public void Dispose()
         {
