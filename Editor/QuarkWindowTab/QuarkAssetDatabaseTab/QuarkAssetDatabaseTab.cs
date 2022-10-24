@@ -124,7 +124,9 @@ namespace Quark.Editor
             var bundles = dataset.QuarkAssetBundleList;
             var extensions = dataset.QuarkAssetExts;
             List<QuarkObject> quarkAssetList = new List<QuarkObject>();
+            List<QuarkObject> quarkSceneList = new List<QuarkObject>();
             List<QuarkAssetBundle> validBundleList = new List<QuarkAssetBundle>();
+            var sceneAssetFullName = typeof(SceneAsset).FullName;
             int currentBundleIndex = 0;
             int bundleCount = bundles.Count;
             foreach (var bundle in bundles)
@@ -155,6 +157,10 @@ namespace Quark.Editor
                             AssetType = AssetDatabase.LoadAssetAtPath(filePath, typeof(Object)).GetType().FullName
                         };
                         quarkAssetList.Add(assetObject);
+                        if (assetObject.AssetType == sceneAssetFullName)
+                        {
+                            quarkSceneList.Add(assetObject);
+                        }
                         bundle.QuarkObjects.Add(assetObject);
                     }
                 }
@@ -166,6 +172,8 @@ namespace Quark.Editor
             dataset.QuarkObjectList.AddRange(quarkAssetList);
             dataset.QuarkAssetBundleList.Clear();
             dataset.QuarkAssetBundleList.AddRange(validBundleList);
+            dataset.QuarkSceneList.Clear();
+            dataset.QuarkSceneList.AddRange(quarkSceneList);
 
             EditorUtility.SetDirty(dataset);
             QuarkEditorUtility.SaveData(QuarkAssetDatabaseTabDataFileName, tabData);
@@ -173,11 +181,7 @@ namespace Quark.Editor
                 CreateAssetPathScript();
             yield return null;
             yield return EnumOnAssignDataset(dataset);
-#if UNITY_2021_1_OR_NEWER
-            AssetDatabase.SaveAssetIfDirty(dataset);
-#elif UNITY_2019_1_OR_NEWER
             AssetDatabase.SaveAssets();
-#endif
             QuarkUtility.LogInfo("Quark asset  build done ");
         }
         void CreateAssetPathScript()

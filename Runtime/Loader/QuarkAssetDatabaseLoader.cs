@@ -290,9 +290,11 @@ namespace Quark.Loader
                 yield return null;
             }
             progress?.Invoke(1);
+            yield return null;
             if (condition != null)
                 yield return new WaitUntil(condition);
             operation.allowSceneActivation = true;
+            yield return null;
             callback?.Invoke();
         }
         IEnumerator EnumUnloadAllSceneAsync(Action<float> progress, Action callback)
@@ -318,6 +320,7 @@ namespace Quark.Loader
             }
             loadSceneList.Clear();
             progress?.Invoke(1);
+            yield return null;
             callback?.Invoke();
         }
         IEnumerator EnumLoadAssetBundleWithDependenciesAsync(string bundleName)
