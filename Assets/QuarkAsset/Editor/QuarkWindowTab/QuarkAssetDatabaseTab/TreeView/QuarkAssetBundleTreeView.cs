@@ -116,7 +116,12 @@ namespace Quark.Editor
             var assetIcon = EditorGUIUtility.FindTexture("PreMatCube");
             for (int i = 0; i < bundles.Count; i++)
             {
-                var item = new QuarkBundleTreeViewItem(i, 1, bundles[i].AssetBundleName, assetIcon) { ObjectCount = bundles[i].QuarkObjects.Count };
+                var bundleSize = QuarkEditorUtility.GetUnityDirectorySize(bundles[i].AssetBundlePath, QuarkEditorDataProxy.QuarkAssetDataset.QuarkAssetExts);
+                var item = new QuarkBundleTreeViewItem(i, 1, bundles[i].AssetBundleName, assetIcon)
+                {
+                    ObjectCount = bundles[i].QuarkObjects.Count,
+                    BundleSize = EditorUtility.FormatBytes(bundleSize)
+                };
                 allItems.Add(item);
             }
             SetupParentsAndChildrenFromDepths(root, allItems);
@@ -210,10 +215,15 @@ namespace Quark.Editor
                     break;
                 case 1:
                     {
-                        DefaultGUI.Label(cellRect, treeView.ObjectCount.ToString(), args.selected, args.focused);
+                        DefaultGUI.Label(cellRect, treeView.BundleSize, args.selected, args.focused);
                     }
                     break;
                 case 2:
+                    {
+                        DefaultGUI.Label(cellRect, treeView.ObjectCount.ToString(), args.selected, args.focused);
+                    }
+                    break;
+                case 3:
                     {
                         var iconRect = new Rect(cellRect.x + 4, cellRect.y, cellRect.height, cellRect.height);
                         if (treeView.icon != null)
