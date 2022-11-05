@@ -211,6 +211,17 @@ namespace Quark.Editor
                 },
                 new MultiColumnHeaderState.Column
                 {
+                    headerContent = new GUIContent("Size"),
+                    headerTextAlignment = TextAlignment.Left,
+                    sortingArrowAlignment = TextAlignment.Left,
+                    sortedAscending = false,
+                    minWidth=24,
+                    width=64,
+                    maxWidth=92,
+                    autoResize = true,
+                },
+                new MultiColumnHeaderState.Column
+                {
                     headerContent = new GUIContent("Count"),
                     headerTextAlignment = TextAlignment.Left,
                     sortingArrowAlignment = TextAlignment.Left,
@@ -300,6 +311,31 @@ namespace Quark.Editor
 
             var state = new MultiColumnHeaderState(columns);
             return state;
+        }
+        /// <summary>
+        /// 获取文件夹中文件的总体大小；
+        /// </summary>
+        /// <param name="path">路径</param>
+        /// <param name="availableExtes">可识别的后缀名</param>
+        /// <returns>size</returns>
+        public static long GetUnityDirectorySize(string path, List<string> availableExtes)
+        {
+            if (!path.StartsWith("Assets"))
+                return 0;
+            if (!AssetDatabase.IsValidFolder(path))
+                return 0;
+            var fullPath = Path.Combine(ApplicationPath, path);
+            if (!Directory.Exists(fullPath))
+                return 0;
+            DirectoryInfo directory = new DirectoryInfo(fullPath);
+            var allFiles = directory.GetFiles();
+            long totalSize = 0;
+            foreach (var file in allFiles)
+            {
+                if (availableExtes.Contains(file.Extension))
+                    totalSize += file.Length;
+            }
+            return totalSize;
         }
     }
 }
