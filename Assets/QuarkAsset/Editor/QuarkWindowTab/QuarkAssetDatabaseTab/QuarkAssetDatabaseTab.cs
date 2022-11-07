@@ -135,6 +135,7 @@ namespace Quark.Editor
                 var bundlePath = bundle.AssetBundlePath;
                 if (!AssetDatabase.IsValidFolder(bundlePath))
                     continue;
+                bundle.AssetBundleSize = QuarkEditorUtility.GetUnityDirectorySize(bundlePath, QuarkEditorDataProxy.QuarkAssetDataset.QuarkAssetExts);
                 validBundleList.Add(bundle);
                 bundle.QuarkObjects.Clear();
                 var filePaths = Directory.GetFiles(bundlePath, ".", SearchOption.AllDirectories);
@@ -181,7 +182,11 @@ namespace Quark.Editor
                 CreateAssetPathScript();
             yield return null;
             yield return EnumOnAssignDataset(dataset);
+#if UNITY_2021_1_OR_NEWER
+            AssetDatabase.SaveAssetIfDirty(dataset);
+#elif UNITY_2019_1_OR_NEWER
             AssetDatabase.SaveAssets();
+#endif
             QuarkUtility.LogInfo("Quark asset  build done ");
         }
         void CreateAssetPathScript()

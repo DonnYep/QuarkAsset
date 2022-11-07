@@ -219,6 +219,7 @@ namespace Quark.Editor
                     width=64,
                     maxWidth=92,
                     autoResize = true,
+                    canSort=true
                 },
                 new MultiColumnHeaderState.Column
                 {
@@ -308,7 +309,6 @@ namespace Quark.Editor
                     autoResize = true,
                 }
             };
-
             var state = new MultiColumnHeaderState(columns);
             return state;
         }
@@ -328,7 +328,7 @@ namespace Quark.Editor
             if (!Directory.Exists(fullPath))
                 return 0;
             DirectoryInfo directory = new DirectoryInfo(fullPath);
-            var allFiles = directory.GetFiles();
+            var allFiles = directory.GetFiles("*.*", SearchOption.AllDirectories);
             long totalSize = 0;
             foreach (var file in allFiles)
             {

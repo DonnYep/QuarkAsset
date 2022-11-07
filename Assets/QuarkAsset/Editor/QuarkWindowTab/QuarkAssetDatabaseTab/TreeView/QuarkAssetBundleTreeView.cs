@@ -11,6 +11,10 @@ namespace Quark.Editor
     {
         string originalName;
         /// <summary>
+        /// 正在重命名的itemId
+        /// </summary>
+        int renamingItemId = -1;
+        /// <summary>
         /// 上一行的cellRect
         /// </summary>
         Rect latestBundleCellRect;
@@ -20,6 +24,7 @@ namespace Quark.Editor
             Reload();
             showAlternatingRowBackgrounds = true;
             showBorder = true;
+            multiColumnHeader.sortingChanged += OnSortingChanged;
         }
         public void Clear()
         {
@@ -112,18 +117,7 @@ namespace Quark.Editor
                 SetupParentsAndChildrenFromDepths(root, allItems);
                 return root;
             }
-            var bundles = QuarkEditorDataProxy.QuarkAssetDataset.QuarkAssetBundleList;
-            var assetIcon = EditorGUIUtility.FindTexture("PreMatCube");
-            for (int i = 0; i < bundles.Count; i++)
-            {
-                var bundleSize = QuarkEditorUtility.GetUnityDirectorySize(bundles[i].AssetBundlePath, QuarkEditorDataProxy.QuarkAssetDataset.QuarkAssetExts);
-                var item = new QuarkBundleTreeViewItem(i, 1, bundles[i].AssetBundleName, assetIcon)
-                {
-                    ObjectCount = bundles[i].QuarkObjects.Count,
-                    BundleSize = EditorUtility.FormatBytes(bundleSize)
-                };
-                allItems.Add(item);
-            }
+            allItems = CreateTreeView();
             SetupParentsAndChildrenFromDepths(root, allItems);
             return root;
         }
@@ -164,12 +158,12 @@ namespace Quark.Editor
             }
             EditorUtility.SetDirty(QuarkEditorDataProxy.QuarkAssetDataset);
             base.RenameEnded(args);
+            renamingItemId = -1;
         }
         protected override bool CanRename(TreeViewItem item)
         {
             originalName = item.displayName;
-            item.displayName = null;
-            BeginRename(item);
+            renamingItemId = item.id;
             return item != null;
         }
         protected override void ContextClickedItem(int id)
@@ -204,6 +198,73 @@ namespace Quark.Editor
                 DrawCellGUI(args.GetCellRect(i), args.item as QuarkBundleTreeViewItem, args.GetColumn(i), ref args);
             }
         }
+        void OnSortingChanged(MultiColumnHeader multiColumnHeader)
+        {
+            var bundleList = QuarkEditorDataProxy.QuarkAssetDataset.QuarkAssetBundleList;
+            var sortedColumns = multiColumnHeader.state.sortedColumns;
+
+            if (sortedColumns.Length == 0)
+                return;
+            var sortedType = sortedColumns[0];
+            var ascending = multiColumnHeader.IsSortedAscending(sortedType);
+            switch (sortedType)
+            {
+                case 0://index
+                    break;
+                case 1://size
+                    {
+                        if (ascending)
+                            bundleList.Sort((lhs, rhs) => lhs.AssetBundleSize.CompareTo(rhs.AssetBundleSize));
+                        else
+                            bundleList.Sort((lhs, rhs) => rhs.AssetBundleSize.CompareTo(lhs.AssetBundleSize));
+                    }
+                    break;
+                case 2://count
+                    {
+                        if (ascending)
+                            bundleList.Sort((lhs, rhs) => lhs.QuarkObjects.Count.CompareTo(rhs.QuarkObjects.Count));
+                        else
+                            bundleList.Sort((lhs, rhs) => rhs.QuarkObjects.Count.CompareTo(lhs.QuarkObjects.Count));
+                    }
+                    break;
+                case 3://bundle
+                    {
+                        if (ascending)
+                            bundleList.Sort((lhs, rhs) => lhs.AssetBundleName.CompareTo(rhs.AssetBundleName));
+                        else
+                            bundleList.Sort((lhs, rhs) => rhs.AssetBundleName.CompareTo(lhs.AssetBundleName));
+                    }
+                    break;
+            }
+            var allItems = CreateTreeView();
+            rootItem.children = allItems;
+            SetupParentsAndChildrenFromDepths(rootItem, allItems);
+            EditorUtility.SetDirty(QuarkEditorDataProxy.QuarkAssetDataset);
+#if UNITY_2021_1_OR_NEWER
+            AssetDatabase.SaveAssetIfDirty(QuarkEditorDataProxy.QuarkAssetDataset);
+#elif UNITY_2019_1_OR_NEWER
+            AssetDatabase.SaveAssets();
+#endif
+            AssetDatabase.Refresh();
+            Reload();
+        }
+        List<TreeViewItem> CreateTreeView()
+        {
+            var bundleList = QuarkEditorDataProxy.QuarkAssetDataset.QuarkAssetBundleList;
+            var allItems = new List<TreeViewItem>();
+            var assetIcon = EditorGUIUtility.FindTexture("PreMatCube");
+            for (int i = 0; i < bundleList.Count; i++)
+            {
+                var bundleSize = bundleList[i].AssetBundleSize;
+                var item = new QuarkBundleTreeViewItem(i, 1, bundleList[i].AssetBundleName, assetIcon)
+                {
+                    ObjectCount = bundleList[i].QuarkObjects.Count,
+                    BundleSize = EditorUtility.FormatBytes(bundleSize)
+                };
+                allItems.Add(item);
+            }
+            return allItems;
+        }
         void DrawCellGUI(Rect cellRect, QuarkBundleTreeViewItem treeView, int column, ref RowGUIArgs args)
         {
             switch (column)
@@ -229,7 +290,8 @@ namespace Quark.Editor
                         if (treeView.icon != null)
                             GUI.DrawTexture(iconRect, treeView.icon, ScaleMode.ScaleToFit);
                         var labelCellRect = new Rect(cellRect.x + iconRect.width + 4, cellRect.y, cellRect.width - iconRect.width, cellRect.height);
-                        DefaultGUI.Label(labelCellRect, treeView.displayName, args.selected, args.focused);
+                        if (treeView.id != renamingItemId)
+                            DefaultGUI.Label(labelCellRect, treeView.displayName, args.selected, args.focused);
                         latestBundleCellRect = labelCellRect;
                     }
                     break;

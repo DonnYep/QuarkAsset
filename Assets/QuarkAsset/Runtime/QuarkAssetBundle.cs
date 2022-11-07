@@ -13,6 +13,8 @@ namespace Quark.Asset
         [SerializeField]
         List<string> dependentList;
         [SerializeField]
+        long assetBundleSize;
+        [SerializeField]
         List<QuarkObject> quarkObjects;
         /// <summary>
         /// AB包的名称；
@@ -42,6 +44,11 @@ namespace Quark.Asset
                 return dependentList;
             }
             set { dependentList = value; }
+        }
+        public long AssetBundleSize
+        {
+            get { return assetBundleSize; }
+            set { assetBundleSize = value; }
         }
         /// <summary>
         /// 包所含的资源列表；
