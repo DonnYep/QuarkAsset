@@ -160,9 +160,21 @@ namespace Quark
         {
             string streamingAssetPath = string.Empty;
             if (EnableRelativeBuildPath)
+            {
+#if UNITY_EDITOR||UNITY_ANDROID||UNITY_STANDALONE
                 streamingAssetPath = Path.Combine(Application.streamingAssetsPath, RelativeBuildPath);
+#elif UNITY_IPHONE && !UNITY_EDITOR
+                streamingAssetPath = @"file://" + Path.Combine(Application.streamingAssetsPath, RelativeBuildPath);
+#endif
+            }
             else
+            {
+#if UNITY_EDITOR||UNITY_ANDROID||UNITY_STANDALONE
                 streamingAssetPath = Application.streamingAssetsPath;
+#elif UNITY_IPHONE && !UNITY_EDITOR
+                streamingAssetPath = @"file://" + Application.streamingAssetsPath;
+#endif
+            }
             QuarkEngine.Instance.Initiate(streamingAssetPath, streamingAssetPath);
             QuarkEngine.Instance.RequestManifestFromStreamingAssetsAsync();
         }

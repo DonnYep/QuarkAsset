@@ -168,6 +168,11 @@ namespace Quark.Editor
             {
                 windowData.QuarkDatasetPath = AssetDatabase.GetAssetPath(QuarkEditorDataProxy.QuarkAssetDataset);
                 EditorUtility.SetDirty(QuarkEditorDataProxy.QuarkAssetDataset);
+#if UNITY_2021_1_OR_NEWER
+                AssetDatabase.SaveAssetIfDirty(QuarkEditorDataProxy.QuarkAssetDataset);
+#elif UNITY_2019_1_OR_NEWER
+                AssetDatabase.SaveAssets();
+#endif
                 AssetDatabase.Refresh();
             }
             QuarkEditorUtility.SaveData(QuarkAssetWindowDataName, windowData);
