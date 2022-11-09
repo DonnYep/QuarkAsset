@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -16,6 +15,7 @@ namespace Quark.Editor
             Reload();
             showAlternatingRowBackgrounds = true;
             showBorder = true;
+            multiColumnHeader.sortingChanged += OnMultiColumnHeaderSortingChanged; ;
         }
         public void AddPath(QuarkObjectItem item)
         {
@@ -96,6 +96,53 @@ namespace Quark.Editor
                 DrawCellGUI(args.GetCellRect(i), args.item as QuarkObjectTreeViewItem, args.GetColumn(i), ref args);
             }
         }
+        void OnMultiColumnHeaderSortingChanged(MultiColumnHeader multiColumnHeader)
+        {
+            var sortedColumns = multiColumnHeader.state.sortedColumns;
+            if (sortedColumns.Length == 0)
+                return;
+            var sortedType = sortedColumns[0];
+            var ascending = multiColumnHeader.IsSortedAscending(sortedType);
+            switch (sortedType)
+            {
+                case 0://index
+                    break;
+                case 1://ObjectName
+                    {
+                        if (ascending)
+                            objectItemList.Sort((lhs, rhs) => lhs.AssetName.CompareTo(rhs.AssetName));
+                        else
+                            objectItemList.Sort((lhs, rhs) => rhs.AssetName.CompareTo(lhs.AssetName));
+                    }
+                    break;
+                case 2://Extension
+                    {
+                        if (ascending)
+                            objectItemList.Sort((lhs, rhs) => lhs.AssetExtension.CompareTo(rhs.AssetExtension));
+                        else
+                            objectItemList.Sort((lhs, rhs) => rhs.AssetExtension.CompareTo(lhs.AssetExtension));
+                    }
+                    break;
+                case 3://BundleName
+                    {
+                        if (ascending)
+                            objectItemList.Sort((lhs, rhs) => rhs.AssetBundleName.CompareTo(lhs.AssetBundleName));
+                        else
+                            objectItemList.Sort((lhs, rhs) => lhs.AssetBundleName.CompareTo(rhs.AssetBundleName));
+                    }
+                    break;
+                case 4://AssetPath
+                    {
+                        if (ascending)
+                            objectItemList.Sort((lhs, rhs) => rhs.AssetPath.CompareTo(lhs.AssetPath));
+                        else
+                            objectItemList.Sort((lhs, rhs) => lhs.AssetPath.CompareTo(rhs.AssetPath));
+                    }
+                    break;
+            }
+            Reload();
+        }
+
         void DrawCellGUI(Rect cellRect, QuarkObjectTreeViewItem treeView, int column, ref RowGUIArgs args)
         {
             switch (column)

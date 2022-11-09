@@ -117,7 +117,18 @@ namespace Quark.Editor
                 SetupParentsAndChildrenFromDepths(root, allItems);
                 return root;
             }
-            allItems = CreateTreeView();
+            var bundleList = QuarkEditorDataProxy.QuarkAssetDataset.QuarkAssetBundleList;
+            var assetIcon = EditorGUIUtility.FindTexture("PreMatCube");
+            for (int i = 0; i < bundleList.Count; i++)
+            {
+                var bundleSize = bundleList[i].AssetBundleSize;
+                var item = new QuarkBundleTreeViewItem(i, 1, bundleList[i].AssetBundleName, assetIcon)
+                {
+                    ObjectCount = bundleList[i].QuarkObjects.Count,
+                    BundleSize = EditorUtility.FormatBytes(bundleSize)
+                };
+                allItems.Add(item);
+            }
             SetupParentsAndChildrenFromDepths(root, allItems);
             return root;
         }
@@ -200,9 +211,10 @@ namespace Quark.Editor
         }
         void OnSortingChanged(MultiColumnHeader multiColumnHeader)
         {
+            if (QuarkEditorDataProxy.QuarkAssetDataset == null)
+                return;
             var bundleList = QuarkEditorDataProxy.QuarkAssetDataset.QuarkAssetBundleList;
             var sortedColumns = multiColumnHeader.state.sortedColumns;
-
             if (sortedColumns.Length == 0)
                 return;
             var sortedType = sortedColumns[0];
@@ -230,15 +242,12 @@ namespace Quark.Editor
                 case 3://bundle
                     {
                         if (ascending)
-                            bundleList.Sort((lhs, rhs) => lhs.AssetBundleName.CompareTo(rhs.AssetBundleName));
-                        else
                             bundleList.Sort((lhs, rhs) => rhs.AssetBundleName.CompareTo(lhs.AssetBundleName));
+                        else
+                            bundleList.Sort((lhs, rhs) => lhs.AssetBundleName.CompareTo(rhs.AssetBundleName));
                     }
                     break;
             }
-            var allItems = CreateTreeView();
-            rootItem.children = allItems;
-            SetupParentsAndChildrenFromDepths(rootItem, allItems);
             EditorUtility.SetDirty(QuarkEditorDataProxy.QuarkAssetDataset);
 #if UNITY_2021_1_OR_NEWER
             AssetDatabase.SaveAssetIfDirty(QuarkEditorDataProxy.QuarkAssetDataset);
@@ -247,23 +256,6 @@ namespace Quark.Editor
 #endif
             AssetDatabase.Refresh();
             Reload();
-        }
-        List<TreeViewItem> CreateTreeView()
-        {
-            var bundleList = QuarkEditorDataProxy.QuarkAssetDataset.QuarkAssetBundleList;
-            var allItems = new List<TreeViewItem>();
-            var assetIcon = EditorGUIUtility.FindTexture("PreMatCube");
-            for (int i = 0; i < bundleList.Count; i++)
-            {
-                var bundleSize = bundleList[i].AssetBundleSize;
-                var item = new QuarkBundleTreeViewItem(i, 1, bundleList[i].AssetBundleName, assetIcon)
-                {
-                    ObjectCount = bundleList[i].QuarkObjects.Count,
-                    BundleSize = EditorUtility.FormatBytes(bundleSize)
-                };
-                allItems.Add(item);
-            }
-            return allItems;
         }
         void DrawCellGUI(Rect cellRect, QuarkBundleTreeViewItem treeView, int column, ref RowGUIArgs args)
         {

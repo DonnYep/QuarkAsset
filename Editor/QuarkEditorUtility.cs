@@ -208,6 +208,7 @@ namespace Quark.Editor
                     width=40,
                     maxWidth=92,
                     autoResize = true,
+                    canSort=false
                 },
                 new MultiColumnHeaderState.Column
                 {
