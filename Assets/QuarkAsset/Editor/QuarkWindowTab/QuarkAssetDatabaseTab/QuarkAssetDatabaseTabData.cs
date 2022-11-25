@@ -10,5 +10,9 @@
         ///  所选择界面的序号；
         /// </summary>
         public int SelectedBarIndex;
+        /// <summary>
+        /// 异步刷新；
+        /// </summary>
+        public bool AsynchronousRefresh;
     }
 }

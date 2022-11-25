@@ -18,6 +18,17 @@ namespace Quark.Editor
 
         QuarkAssetDataset dataset;
         EditorCoroutine coroutine;
+
+        int loadingObjectProgress;
+        /// <summary>
+        /// 加载的ab包数量；
+        /// </summary>
+        int loadingBundleLength;
+        /// <summary>
+        /// 当前加载的ab包序号；
+        /// </summary>
+        int currentLoadingBundleIndex;
+        bool loadingQuarkObject = false;
         public void OnEnable()
         {
             try
@@ -59,6 +70,7 @@ namespace Quark.Editor
             GUILayout.BeginVertical();
             {
                 tabData.GenerateAssetPathCode = EditorGUILayout.ToggleLeft("GenerateAssetPath", tabData.GenerateAssetPathCode);
+                tabData.AsynchronousRefresh = EditorGUILayout.ToggleLeft("AsynchronousRefresh", tabData.AsynchronousRefresh);
             }
             GUILayout.EndVertical();
             GUILayout.Space(16);
@@ -80,6 +92,18 @@ namespace Quark.Editor
                 GUILayout.BeginVertical(GUILayout.MinWidth(128));
                 {
                     tabData.SelectedBarIndex = GUILayout.SelectionGrid(tabData.SelectedBarIndex, selectBarArr, 1);
+                    if (loadingQuarkObject)
+                    {
+                        EditorGUILayout.Space(8);
+                        EditorGUILayout.LabelField($"Loading . . .  {currentLoadingBundleIndex}/{loadingBundleLength}", GUILayout.MaxWidth(128));
+                        EditorGUILayout.Space(16);
+                        EditorGUILayout.LabelField($"Progress . . .  {loadingObjectProgress}%", GUILayout.MaxWidth(128));
+                    }
+                    else
+                    {
+                        EditorGUILayout.Space(8);
+                        EditorGUILayout.LabelField("Quark Asset Editor", GUILayout.MaxWidth(128));
+                    }
                 }
                 GUILayout.EndVertical();
 
@@ -207,26 +231,46 @@ namespace Quark.Editor
         }
         IEnumerator EnumOnAssignDataset(QuarkAssetDataset dataset)
         {
+            loadingQuarkObject = true;
+            loadingObjectProgress = 0;
+            currentLoadingBundleIndex = 0;
             this.dataset = dataset;
             var bundles = dataset.QuarkAssetBundleList;
             var bundleLen = bundles.Count;
+            loadingBundleLength = bundleLen;
             assetBundleSearchLabel.TreeView.Clear();
             assetObjectSearchLabel.TreeView.Clear();
             for (int i = 0; i < bundleLen; i++)
             {
+                currentLoadingBundleIndex++;
+
                 var bundle = bundles[i];
                 assetBundleSearchLabel.TreeView.AddPath(bundle.AssetBundlePath);
                 var objects = bundle.QuarkObjects;
-                var length = objects.Count;
-                for (int j = 0; j < length; j++)
+                var objectLength = objects.Count;
+                for (int j = 0; j < objectLength; j++)
                 {
                     var obj = objects[j];
                     var item = new QuarkObjectItem(obj.AssetName, obj.AssetExtension, obj.AssetPath, obj.AssetBundleName);
                     assetObjectSearchLabel.TreeView.AddPath(item);
+
+                    var progress = Mathf.RoundToInt((float)j / (objectLength - 1) * 100);
+                    loadingObjectProgress = progress > 0 ? progress : 0;
+
+                    if (tabData.AsynchronousRefresh)
+                    {
+                        assetObjectSearchLabel.TreeView.Reload();
+                        yield return null;
+                    }
                 }
-                yield return null;
+                if (!tabData.AsynchronousRefresh)
+                {
+                    assetObjectSearchLabel.TreeView.Reload();
+                    yield return null;
+                }
             }
-            assetObjectSearchLabel.TreeView.Reload();
+            yield return null;
+            loadingQuarkObject = false;
         }
     }
 }
