@@ -8,12 +8,23 @@ namespace Quark.Editor
         SerializedObject targetObject;
         QuarkConfig quarkConfig;
         bool encryptionToggle;
-        SerializedProperty sp_QuarkAssetLoadMode, sp_QuarkAssetDataset, sp_Url, sp_PingUrl, sp_QuarkBuildPath,
-             sp_EnableRelativeLoadPath, sp_RelativeLoadPath, sp_CustomeAbsolutePath, sp_EnableRelativeBuildPath,
-            sp_RelativeBuildPath, sp_QuarkDownloadedPath, sp_EncryptionOffset, sp_BuildInfoAESEncryptionKey;
+        SerializedProperty sp_AutoStart;
+        SerializedProperty sp_QuarkAssetLoadMode;
+        SerializedProperty sp_QuarkAssetDataset;
+        SerializedProperty sp_Url;
+        SerializedProperty sp_PingUrl;
+        SerializedProperty sp_QuarkBuildPath;
+        SerializedProperty sp_EnableStreamingRelativeLoadPath;
+        SerializedProperty sp_StreamingRelativeLoadPath;
+
+        SerializedProperty sp_CustomeAbsolutePath;
+        SerializedProperty sp_QuarkDownloadedPath;
+        SerializedProperty sp_EncryptionOffset;
+        SerializedProperty sp_BuildInfoAESEncryptionKey;
         public override void OnInspectorGUI()
         {
             targetObject.Update();
+            sp_AutoStart.boolValue = EditorGUILayout.ToggleLeft("AutoStart", sp_AutoStart.boolValue);
             sp_QuarkAssetLoadMode.enumValueIndex = (byte)(QuarkLoadMode)EditorGUILayout.EnumPopup("QuarkAssetLoadMode", (QuarkLoadMode)sp_QuarkAssetLoadMode.enumValueIndex);
             switch ((QuarkLoadMode)sp_QuarkAssetLoadMode.enumValueIndex)
             {
@@ -41,19 +52,20 @@ namespace Quark.Editor
         {
             quarkConfig = target as QuarkConfig;
             targetObject = new SerializedObject(quarkConfig);
-            sp_QuarkAssetLoadMode = targetObject.FindProperty("QuarkAssetLoadMode");
-            sp_QuarkAssetDataset = targetObject.FindProperty("QuarkAssetDataset");
-            sp_Url = targetObject.FindProperty("Url");
-            sp_PingUrl = targetObject.FindProperty("PingUrl");
-            sp_QuarkDownloadedPath = targetObject.FindProperty("QuarkDownloadedPath");
-            sp_EncryptionOffset = targetObject.FindProperty("EncryptionOffset");
-            sp_EnableRelativeLoadPath = targetObject.FindProperty("EnableRelativeLoadPath");
-            sp_CustomeAbsolutePath = targetObject.FindProperty("CustomeAbsolutePath");
-            sp_RelativeLoadPath = targetObject.FindProperty("RelativeLoadPath");
-            sp_BuildInfoAESEncryptionKey = targetObject.FindProperty("BuildInfoAESEncryptionKey");
-            sp_QuarkBuildPath = targetObject.FindProperty("QuarkBuildPath");
-            sp_EnableRelativeBuildPath = targetObject.FindProperty("EnableRelativeBuildPath");
-            sp_RelativeBuildPath = targetObject.FindProperty("RelativeBuildPath");
+            sp_AutoStart = targetObject.FindProperty("autoStart");
+            sp_QuarkAssetLoadMode = targetObject.FindProperty("quarkAssetLoadMode");
+            sp_QuarkAssetDataset = targetObject.FindProperty("quarkAssetDataset");
+            sp_Url = targetObject.FindProperty("url");
+            sp_PingUrl = targetObject.FindProperty("pingUrl");
+            sp_QuarkDownloadedPath = targetObject.FindProperty("quarkDownloadedPath");
+            sp_EncryptionOffset = targetObject.FindProperty("encryptionOffset");
+
+            sp_EnableStreamingRelativeLoadPath = targetObject.FindProperty("enableStreamingRelativeBuildPath");
+            sp_StreamingRelativeLoadPath = targetObject.FindProperty("streamingRelativeBuildPath");
+
+            sp_CustomeAbsolutePath = targetObject.FindProperty("customeAbsolutePath");
+            sp_BuildInfoAESEncryptionKey = targetObject.FindProperty("buildInfoAESEncryptionKey");
+            sp_QuarkBuildPath = targetObject.FindProperty("quarkBuildPath");
         }
         void DrawBuildAssetBundleTab()
         {
@@ -66,15 +78,15 @@ namespace Quark.Editor
             {
                 case QuarkBuildPath.StreamingAssets:
                     {
-                        sp_EnableRelativeBuildPath.boolValue = EditorGUILayout.Toggle("EnableRelativeBuildPath", sp_EnableRelativeBuildPath.boolValue);
-                        var useRelativePath = sp_EnableRelativeBuildPath.boolValue;
+                        sp_EnableStreamingRelativeLoadPath.boolValue = EditorGUILayout.Toggle("EnableStreamingRelativeBuildPath", sp_EnableStreamingRelativeLoadPath.boolValue);
+                        var useRelativePath = sp_EnableStreamingRelativeLoadPath.boolValue;
                         if (useRelativePath)
                         {
-                            sp_RelativeBuildPath.stringValue = EditorGUILayout.TextField("RelativeBuildPath", sp_RelativeBuildPath.stringValue.Trim());
+                            sp_StreamingRelativeLoadPath.stringValue = EditorGUILayout.TextField("StreamingRelativeBuildPath", sp_StreamingRelativeLoadPath.stringValue.Trim());
                         }
                     }
                     break;
-                case QuarkBuildPath.URL:
+                case QuarkBuildPath.Remote:
                     {
                         sp_PingUrl.boolValue = EditorGUILayout.Toggle("PingUrl", sp_PingUrl.boolValue);
                         sp_Url.stringValue = EditorGUILayout.TextField("Url", sp_Url.stringValue.Trim());
@@ -83,11 +95,11 @@ namespace Quark.Editor
                         var pathType = (QuarkDownloadedPath)sp_QuarkDownloadedPath.enumValueIndex;
                         if (pathType != QuarkDownloadedPath.Custome)
                         {
-                            sp_EnableRelativeLoadPath.boolValue = EditorGUILayout.Toggle("UseRelativeLoadPath", sp_EnableRelativeLoadPath.boolValue);
-                            var useRelativePath = sp_EnableRelativeLoadPath.boolValue;
+                            sp_EnableStreamingRelativeLoadPath.boolValue = EditorGUILayout.Toggle("UseStreamingRelativeLoadPath", sp_EnableStreamingRelativeLoadPath.boolValue);
+                            var useRelativePath = sp_EnableStreamingRelativeLoadPath.boolValue;
                             if (useRelativePath)
                             {
-                                sp_RelativeLoadPath.stringValue = EditorGUILayout.TextField("RelativeLoadPath", sp_RelativeLoadPath.stringValue.Trim());
+                                sp_StreamingRelativeLoadPath.stringValue = EditorGUILayout.TextField("RelativeLoadPath", sp_StreamingRelativeLoadPath.stringValue.Trim());
                             }
                         }
                         else

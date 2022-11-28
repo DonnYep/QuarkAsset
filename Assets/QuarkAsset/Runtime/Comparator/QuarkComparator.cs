@@ -11,7 +11,7 @@ namespace Quark.Networking
     /// <summary>
     /// Quark Manifest比较器；
     /// </summary>
-    internal class QuarkComparator
+    public class QuarkComparator
     {
         /// <summary>
         /// 比较失败，传入ErrorMessage；
@@ -50,10 +50,10 @@ namespace Quark.Networking
             var uriManifestPath = Path.Combine(URL, QuarkConstant.ManifestName);
             return QuarkUtility.Unity.StartCoroutine(EnumRequestManifestFromURL(uriManifestPath));
         }
-        public Coroutine RequestManifestFromStreamingAssetsAsync()
+        public Coroutine RequestManifestFromStreamingAssetAsync()
         {
             var localManifestPath = Path.Combine(URL, QuarkConstant.ManifestName);
-            return QuarkUtility.Unity.StartCoroutine(EnumRequestManifestStreamingAsset(localManifestPath));
+            return QuarkUtility.Unity.StartCoroutine(EnumRequestManifestFromStreamingAsset(localManifestPath));
         }
         public void Clear()
         {
@@ -84,6 +84,44 @@ namespace Quark.Networking
                 }
             }
         }
+        IEnumerator EnumRequestManifestFromStreamingAsset(string manifestUri)
+        {
+            using (UnityWebRequest request = UnityWebRequest.Get(manifestUri))
+            {
+                yield return request.SendWebRequest();
+#if UNITY_2020_1_OR_NEWER
+                if (request.result != UnityWebRequest.Result.ConnectionError && request.result != UnityWebRequest.Result.ProtocolError)
+#elif UNITY_2018_1_OR_NEWER
+                if (!request.isNetworkError && !request.isHttpError)
+#endif
+                {
+                    if (request.isDone)
+                    {
+                        var context = request.downloadHandler.text;
+                        try
+                        {
+                            if (isEncrypted)
+                            {
+                                var unencryptedManifest = QuarkUtility.AESDecryptStringToString(context, QuarkDataProxy.QuarkAESEncryptionKey);
+                                localManifest = QuarkUtility.ToObject<QuarkAssetManifest>(unencryptedManifest);
+                            }
+                            else
+                            {
+                                localManifest = QuarkUtility.ToObject<QuarkAssetManifest>(context);
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            onCompareFailure(e.ToString());
+                            QuarkUtility.LogError(e);
+                            yield break;
+                        }
+                    }
+                }
+            }
+            QuarkEngine.Instance.SetBuiltAssetBundleModeData(localManifest);
+            onCompareSuccess(new string[0], new string[0], 0);
+        }
         void OnUriManifestSuccess(string remoteManifestContext)
         {
             latest.Clear();
@@ -98,6 +136,7 @@ namespace Quark.Networking
                 //解析加密的manifest
                 if (isEncrypted)
                 {
+                    //todo 这段必须改成webrequest 
                     var encryptedManifest = QuarkUtility.ReadTextFileContent(localManifestPath);
                     localManifestContext = QuarkUtility.AESDecryptStringToString(encryptedManifest, aesKey);
                 }
@@ -194,44 +233,6 @@ namespace Quark.Networking
             QuarkUtility.OverwriteTextFile(localManifestPath, remoteManifestContext);
             QuarkEngine.Instance.SetBuiltAssetBundleModeData(remoteManifest);
             onCompareSuccess?.Invoke(latesetArray, expiredArray, overallSize);
-        }
-        IEnumerator EnumRequestManifestStreamingAsset(string manifestUri)
-        {
-            using (UnityWebRequest request = UnityWebRequest.Get(manifestUri))
-            {
-                yield return request.SendWebRequest();
-#if UNITY_2020_1_OR_NEWER
-                if (request.result != UnityWebRequest.Result.ConnectionError && request.result != UnityWebRequest.Result.ProtocolError)
-#elif UNITY_2018_1_OR_NEWER
-                if (!request.isNetworkError && !request.isHttpError)
-#endif
-                {
-                    if (request.isDone)
-                    {
-                        var context = request.downloadHandler.text;
-                        try
-                        {
-                            if (isEncrypted)
-                            {
-                                var unencryptedManifest = QuarkUtility.AESDecryptStringToString(context, QuarkDataProxy.QuarkAESEncryptionKey);
-                                localManifest = QuarkUtility.ToObject<QuarkAssetManifest>(unencryptedManifest);
-                            }
-                            else
-                            {
-                                localManifest = QuarkUtility.ToObject<QuarkAssetManifest>(context);
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            onCompareFailure(e.ToString());
-                            QuarkUtility.LogError(e);
-                            yield break;
-                        }
-                    }
-                }
-            }
-            QuarkEngine.Instance.SetBuiltAssetBundleModeData(localManifest);
-            onCompareSuccess(new string[0], new string[0], 0);
         }
     }
 }

@@ -48,19 +48,26 @@ namespace Quark
             get { return QuarkDataProxy.QuarkEncryptionOffset; }
             set { QuarkDataProxy.QuarkEncryptionOffset = value; }
         }
-        QuarkComparator quarkComparator;
+        public QuarkComparator quarkComparator;
         Dictionary<QuarkLoadMode, QuarkAssetLoader> quarkLoaderDict;
         /// <summary>
         /// 当检测到最新的；
+        /// LatestURLS---Size
         /// </summary>
-        public Action<long> onCompareManifestSuccess;
+        public Action<string[], long> onCompareManifestSuccess;
         /// <summary>
         /// 当检测失败；
+        /// ErrorMessage
         /// </summary>
         public Action<string> onCompareManifestFailure;
+
+        #region quark downloader
+        public QuarkDownloader quarkDownloader;
+        #endregion
         public QuarkEngine()
         {
             quarkComparator = new QuarkComparator();
+            quarkDownloader = new QuarkDownloader();
             quarkComparator.Initiate(OnCompareSuccess, OnCompareFailure);
             quarkLoaderDict = new Dictionary<QuarkLoadMode, QuarkAssetLoader>();
             quarkLoaderDict[QuarkLoadMode.AssetDatabase] = new QuarkAssetDatabaseLoader();
@@ -76,9 +83,9 @@ namespace Quark
             QuarkDataProxy.PersistentPath = persistentPath;
             QuarkDataProxy.URL = url;
         }
-        public Coroutine RequestManifestFromStreamingAssetsAsync()
+        public Coroutine RequestManifestFromStreamingAssetAsync()
         {
-            return quarkComparator.RequestManifestFromStreamingAssetsAsync();
+            return quarkComparator.RequestManifestFromStreamingAssetAsync();
         }
         public Coroutine RequestMainifestFromURLAsync()
         {
@@ -114,13 +121,13 @@ where T : UnityEngine.Object
         internal Object LoadAsset(string assetName, Type type)
         {
             if (quarkLoaderDict.TryGetValue(QuarkAssetLoadMode, out var loader))
-                return loader.LoadAsset(assetName,  type);
+                return loader.LoadAsset(assetName, type);
             return null;
         }
         internal GameObject LoadPrefab(string assetName, bool instantiate = false)
         {
             if (quarkLoaderDict.TryGetValue(QuarkAssetLoadMode, out var loader))
-                return loader.LoadPrefab(assetName,  instantiate);
+                return loader.LoadPrefab(assetName, instantiate);
             return null;
         }
         internal T[] LoadMainAndSubAssets<T>(string assetName) where T : Object
@@ -141,29 +148,29 @@ where T : UnityEngine.Object
                 return loader.LoadAllAssets(assetBundleName);
             return null;
         }
-        internal Coroutine LoadAssetAsync<T>(string assetName,  Action<T> callback)
+        internal Coroutine LoadAssetAsync<T>(string assetName, Action<T> callback)
 where T : UnityEngine.Object
         {
             if (quarkLoaderDict.TryGetValue(QuarkAssetLoadMode, out var loader))
                 return loader.LoadAssetAsync(assetName, callback);
             return null;
         }
-        internal Coroutine LoadAssetAsync(string assetName,  Type type, Action<Object> callback)
+        internal Coroutine LoadAssetAsync(string assetName, Type type, Action<Object> callback)
         {
             if (quarkLoaderDict.TryGetValue(QuarkAssetLoadMode, out var loader))
                 return loader.LoadAssetAsync(assetName, type, callback);
             return null;
         }
-        internal Coroutine LoadPrefabAsync(string assetName,  Action<GameObject> callback, bool instantiate = false)
+        internal Coroutine LoadPrefabAsync(string assetName, Action<GameObject> callback, bool instantiate = false)
         {
             if (quarkLoaderDict.TryGetValue(QuarkAssetLoadMode, out var loader))
                 return loader.LoadPrefabAsync(assetName, callback, instantiate);
             return null;
         }
-        internal Coroutine LoadMainAndSubAssetsAsync<T>(string assetName,  Action<T[]> callback) where T : Object
+        internal Coroutine LoadMainAndSubAssetsAsync<T>(string assetName, Action<T[]> callback) where T : Object
         {
             if (quarkLoaderDict.TryGetValue(QuarkAssetLoadMode, out var loader))
-                return loader.LoadMainAndSubAssetsAsync(assetName,  callback);
+                return loader.LoadMainAndSubAssetsAsync(assetName, callback);
             return null;
         }
         internal Coroutine LoadMainAndSubAssetsAsync(string assetName, Type type, Action<Object[]> callback)
@@ -218,7 +225,7 @@ where T : UnityEngine.Object
                 return loader.GetInfo(assetName, type, out info);
             return false;
         }
-        internal bool GetInfo(string assetName,  out QuarkAssetObjectInfo info)
+        internal bool GetInfo(string assetName, out QuarkAssetObjectInfo info)
         {
             info = QuarkAssetObjectInfo.None;
             if (quarkLoaderDict.TryGetValue(QuarkAssetLoadMode, out var loader))
@@ -249,7 +256,7 @@ where T : UnityEngine.Object
                 }
                 catch { }
             }
-            onCompareManifestSuccess?.Invoke(size);
+            onCompareManifestSuccess?.Invoke(latest,size);
         }
         /// <summary>
         /// 当比较失败；

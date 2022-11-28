@@ -9,61 +9,61 @@ namespace Quark
     /// </summary>
     public class QuarkConfig : MonoBehaviour
     {
+        [SerializeField] bool autoStart;
         /// <summary>
         /// 资源存储地址；
         /// </summary>
-        public QuarkBuildPath QuarkBuildPath;
+        [SerializeField] QuarkBuildPath quarkBuildPath;
         /// <summary>
         ///启用 ab build 的相对路径；
         /// </summary>
-        public bool EnableRelativeBuildPath;
+        [SerializeField] bool enableStreamingRelativeBuildPath;
         /// <summary>
         /// ab Build 的相对地址；
         /// </summary>
-        public string RelativeBuildPath;
-
+        [SerializeField] string streamingRelativeBuildPath;
 
         /// <summary>
         /// 资源所在URI；
         /// </summary>
-        public string Url;
+        [SerializeField] string url;
         /// <summary>
         /// 是否去ping uri地址；
         /// </summary>
-        public bool PingUrl;
+        [SerializeField] bool pingUrl;
         /// <summary>
         /// 加载模式，分别为Editor与Build；
         /// </summary>
-        public QuarkLoadMode QuarkAssetLoadMode;
+        [SerializeField] QuarkLoadMode quarkAssetLoadMode;
         /// <summary>
         /// QuarkAssetLoadMode 下AssetDatabase模式所需的寻址数据；
         /// <see cref="Quark.QuarkLoadMode"/>
         /// </summary>
-        public QuarkAssetDataset QuarkAssetDataset;
+        [SerializeField] QuarkAssetDataset quarkAssetDataset;
         /// <summary>
         /// 资源下载到的地址；
         /// </summary>
-        public QuarkDownloadedPath QuarkDownloadedPath;
+        [SerializeField] QuarkDownloadedPath quarkDownloadedPath;
         /// <summary>
         /// 使用持久化的相对路径；
         /// </summary>
-        public bool EnableRelativeLoadPath;
+        [SerializeField] bool enableRelativeLoadPath;
         /// <summary>
         /// 持久化路径下的相对地址；
         /// </summary>
-        public string RelativeLoadPath;
+        [SerializeField] string relativeLoadPath;
         /// <summary>
         /// 对称加密密钥；
         /// </summary>
-        public string BuildInfoAESEncryptionKey;
+        [SerializeField] string buildInfoAESEncryptionKey;
         /// <summary>
         /// 加密偏移量；
         /// </summary>
-        public ulong EncryptionOffset;
+        [SerializeField] ulong encryptionOffset;
         /// <summary>
         /// QuarkPersistentPathType 枚举下的自定义持久化路径；
         /// </summary>
-        public string CustomeAbsolutePath;
+        [SerializeField] string customeAbsolutePath;
 
         /// <summary>
         /// 配置的路径都整合到此字段；
@@ -87,22 +87,19 @@ namespace Quark
                 return instance;
             }
         }
-        void Awake()
+        public void InitQuark()
         {
-            instance = this;
-            QuarkResources.QuarkEncryptionOffset = EncryptionOffset;
-            QuarkResources.QuarkAssetLoadMode = QuarkAssetLoadMode;
-            var keyStr = BuildInfoAESEncryptionKey;
+            var keyStr = buildInfoAESEncryptionKey;
             var aesKey = QuarkUtility.GenerateBytesAESKey(keyStr);
             QuarkResources.QuarkAESEncryptionKey = aesKey;
-            switch (QuarkAssetLoadMode)
+            switch (quarkAssetLoadMode)
             {
                 case QuarkLoadMode.AssetDatabase:
                     {
-                        if (QuarkAssetDataset != null)
+                        if (quarkAssetDataset != null)
                         {
-                            QuarkEngine.Instance.SetAssetDatabaseModeData(QuarkAssetDataset);
-                            QuarkEngine.Instance.onCompareManifestSuccess?.Invoke(0);
+                            QuarkEngine.Instance.SetAssetDatabaseModeData(quarkAssetDataset);
+                            QuarkEngine.Instance.onCompareManifestSuccess?.Invoke(null, 0);
                         }
                         else
                         {
@@ -112,12 +109,12 @@ namespace Quark
                     break;
                 case QuarkLoadMode.AssetBundle:
                     {
-                        switch (QuarkBuildPath)
+                        switch (quarkBuildPath)
                         {
                             case QuarkBuildPath.StreamingAssets:
                                 LoadStreamingManifest();
                                 break;
-                            case QuarkBuildPath.URL:
+                            case QuarkBuildPath.Remote:
                                 LoadURLManifest();
                                 break;
                         }
@@ -125,44 +122,52 @@ namespace Quark
                     break;
             }
         }
+        void Awake()
+        {
+            instance = this;
+            QuarkResources.QuarkEncryptionOffset = encryptionOffset;
+            QuarkResources.QuarkAssetLoadMode = quarkAssetLoadMode;
+            if (autoStart)
+                InitQuark();
+        }
         void LoadURLManifest()
         {
-            QuarkUtility.IsStringValid(Url, "URI is invalid !");
-            if (PingUrl)
+            QuarkUtility.IsStringValid(url, "URI is invalid !");
+            if (pingUrl)
             {
-                if (!QuarkUtility.PingURI(Url))
+                if (!QuarkUtility.PingURI(url))
                     return;
             }
-            if (QuarkDownloadedPath != QuarkDownloadedPath.Custome)
+            if (quarkDownloadedPath != QuarkDownloadedPath.Custome)
             {
-                switch (QuarkDownloadedPath)
+                switch (quarkDownloadedPath)
                 {
                     case QuarkDownloadedPath.PersistentDataPath:
                         downloadPath = Application.persistentDataPath;
                         break;
                 }
-                if (EnableRelativeLoadPath)
+                if (enableRelativeLoadPath)
                 {
-                    downloadPath = Path.Combine(downloadPath, RelativeLoadPath);
+                    downloadPath = Path.Combine(downloadPath, relativeLoadPath);
                 }
             }
             else
             {
-                downloadPath = CustomeAbsolutePath;
+                downloadPath = customeAbsolutePath;
             }
             QuarkUtility.IsStringValid(downloadPath, "DownloadPath is invalid !");
             if (!Directory.Exists(downloadPath))
                 Directory.CreateDirectory(downloadPath);
-            QuarkEngine.Instance.Initiate(Url, downloadPath);
+            QuarkEngine.Instance.Initiate(url, downloadPath);
             QuarkEngine.Instance.RequestMainifestFromURLAsync();
         }
         void LoadStreamingManifest()
         {
             string streamingAssetPath = string.Empty;
-            if (EnableRelativeBuildPath)
+            if (enableStreamingRelativeBuildPath)
             {
 #if UNITY_EDITOR||UNITY_ANDROID||UNITY_STANDALONE
-                streamingAssetPath = Path.Combine(Application.streamingAssetsPath, RelativeBuildPath);
+                streamingAssetPath = Path.Combine(Application.streamingAssetsPath, streamingRelativeBuildPath);
 #elif UNITY_IPHONE && !UNITY_EDITOR
                 streamingAssetPath = @"file://" + Path.Combine(Application.streamingAssetsPath, RelativeBuildPath);
 #endif
@@ -176,7 +181,7 @@ namespace Quark
 #endif
             }
             QuarkEngine.Instance.Initiate(streamingAssetPath, streamingAssetPath);
-            QuarkEngine.Instance.RequestManifestFromStreamingAssetsAsync();
+            QuarkEngine.Instance.RequestManifestFromStreamingAssetAsync();
         }
     }
 }

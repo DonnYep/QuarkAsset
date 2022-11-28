@@ -209,6 +209,18 @@ namespace Quark.Editor
                 DrawCellGUI(args.GetCellRect(i), args.item as QuarkBundleTreeViewItem, args.GetColumn(i), ref args);
             }
         }
+        //public override void OnGUI(Rect rect)
+        //{
+            //var tRect = this.treeViewRect;
+            //var newRect = tRect;
+            //EditorGUIUtility.AddCursorRect(tRect, MouseCursor.ResizeVertical);
+            //if (Event.current.type == EventType.MouseDown && tRect.Contains(Event.current.mousePosition))
+            //{
+            //   var m_VerticalSplitterPercentRight = Mathf.Clamp(Event.current.mousePosition.y / tRect.height, 0.2f, 0.98f);
+            //    newRect.x = newRect.height* m_VerticalSplitterPercentRight;
+            //}
+            //base.OnGUI(newRect);
+        //}
         void OnSortingChanged(MultiColumnHeader multiColumnHeader)
         {
             if (QuarkEditorDataProxy.QuarkAssetDataset == null)

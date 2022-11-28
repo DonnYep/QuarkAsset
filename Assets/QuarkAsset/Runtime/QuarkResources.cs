@@ -1,10 +1,11 @@
 ﻿using Quark.Asset;
+using Quark.Networking;
 using System;
 using UnityEngine;
 using Object = UnityEngine.Object;
 namespace Quark
 {
-    public sealed class QuarkResources
+    public static class QuarkResources
     {
         public static ulong QuarkEncryptionOffset
         {
@@ -23,19 +24,29 @@ namespace Quark
         }
         /// <summary>
         /// 当检测到最新的；
+        /// LatestURLS---Size
         /// </summary>
-        public static event Action<long> OnCompareManifestSuccess
+        public static event Action<string[], long> OnCompareManifestSuccess
         {
             add { QuarkEngine.Instance.onCompareManifestSuccess += value; }
             remove { QuarkEngine.Instance.onCompareManifestSuccess -= value; }
         }
         /// <summary>
         /// 当检测失败；
+        /// ErrorMessage
         /// </summary>
         public static event Action<string> OnCompareManifestFailure
         {
             add { QuarkEngine.Instance.onCompareManifestFailure += value; }
             remove { QuarkEngine.Instance.onCompareManifestFailure -= value; }
+        }
+        public static QuarkDownloader QuarkDownloader
+        {
+            get { return QuarkEngine.Instance.quarkDownloader; }
+        }
+        public static QuarkComparator QuarkComparator
+        {
+            get { return QuarkEngine.Instance.quarkComparator; }
         }
         public static T LoadAsset<T>(string assetName)
 where T : Object
