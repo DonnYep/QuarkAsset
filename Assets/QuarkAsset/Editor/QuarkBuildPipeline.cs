@@ -23,10 +23,10 @@ namespace Quark.Editor
             }
             tabData = new QuarkAssetBundleTabData();
             var buildTarget = EditorUserBuildSettings.activeBuildTarget;
-            tabData.AssetBundleBuildPath = Path.Combine(tabData.OutputPath, tabData.BuildTarget.ToString()).Replace("\\", "/");
             tabData.BuildTarget = buildTarget;
+            tabData.AssetBundleBuildPath = Path.Combine(tabData.OutputPath, tabData.BuildTarget.ToString()).Replace("\\", "/");
             tabData.StreamingRelativePath = buildTarget.ToString().ToLower();
-            OnBuildAssetBundle(dataset);
+            OnBuildAssetBundle(dataset,tabData);
         }
         public static void BuildAssetBundle(BuildTarget buildTarget)
         {
@@ -37,10 +37,10 @@ namespace Quark.Editor
                 return;
             }
             tabData = new QuarkAssetBundleTabData();
-            tabData.AssetBundleBuildPath = Path.Combine(tabData.OutputPath, tabData.BuildTarget.ToString()).Replace("\\", "/");
             tabData.BuildTarget = buildTarget;
+            tabData.AssetBundleBuildPath = Path.Combine(tabData.OutputPath, tabData.BuildTarget.ToString()).Replace("\\", "/");
             tabData.StreamingRelativePath = buildTarget.ToString().ToLower();
-            OnBuildAssetBundle(dataset);
+            OnBuildAssetBundle(dataset,tabData);
         }
         public static string[] GetBuildScenePath()
         {
@@ -52,7 +52,7 @@ namespace Quark.Editor
             }
             return dataset.QuarkSceneList.Select(s => s.AssetPath).ToArray();
         }
-        static void OnBuildAssetBundle(QuarkAssetDataset dataset)
+        static void OnBuildAssetBundle(QuarkAssetDataset dataset, QuarkAssetBundleTabData tabData)
         {
             QuarkUtility.LogInfo("Quark build pipeline start");
             var assetBundleBuildPath = tabData.AssetBundleBuildPath;
