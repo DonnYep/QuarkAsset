@@ -67,12 +67,6 @@ namespace Quark.Editor
         }
         public void OnGUI()
         {
-            GUILayout.BeginVertical();
-            {
-                tabData.GenerateAssetPathCode = EditorGUILayout.ToggleLeft("GenerateAssetPath", tabData.GenerateAssetPathCode);
-                tabData.AsynchronousRefresh = EditorGUILayout.ToggleLeft("AsynchronousRefresh", tabData.AsynchronousRefresh);
-            }
-            GUILayout.EndVertical();
             GUILayout.Space(16);
             GUILayout.BeginHorizontal();
             {
@@ -202,8 +196,6 @@ namespace Quark.Editor
 
             EditorUtility.SetDirty(dataset);
             QuarkEditorUtility.SaveData(QuarkAssetDatabaseTabDataFileName, tabData);
-            if (tabData.GenerateAssetPathCode)
-                CreateAssetPathScript();
             yield return null;
             yield return EnumOnAssignDataset(dataset);
 #if UNITY_2021_1_OR_NEWER
@@ -212,22 +204,6 @@ namespace Quark.Editor
             AssetDatabase.SaveAssets();
 #endif
             QuarkUtility.LogInfo("Quark asset  build done ");
-        }
-        void CreateAssetPathScript()
-        {
-            var str = "public static class QuarkAssetDefine\n{\n";
-            var con = "    public static string ";
-            for (int i = 0; i < dataset.QuarkObjectList.Count; i++)
-            {
-                var srcName = dataset.QuarkObjectList[i].AssetName;
-                srcName = srcName.Trim();
-                var fnlName = srcName.Contains(".") == true ? srcName.Replace(".", "_") : srcName;
-                fnlName = srcName.Contains(" ") == true ? srcName.Replace(" ", "_") : srcName;
-                str = QuarkUtility.Append(str, con, fnlName, "= \"", srcName, "\"", " ;\n");
-            }
-            str += "\n}";
-            QuarkUtility.OverwriteTextFile(Application.dataPath, "QuarkAssetDefine.cs", str);
-            AssetDatabase.Refresh();
         }
         IEnumerator EnumOnAssignDataset(QuarkAssetDataset dataset)
         {
@@ -256,18 +232,9 @@ namespace Quark.Editor
 
                     var progress = Mathf.RoundToInt((float)j / (objectLength - 1) * 100);
                     loadingObjectProgress = progress > 0 ? progress : 0;
-
-                    if (tabData.AsynchronousRefresh)
-                    {
-                        assetObjectSearchLabel.TreeView.Reload();
-                        yield return null;
-                    }
                 }
-                if (!tabData.AsynchronousRefresh)
-                {
-                    assetObjectSearchLabel.TreeView.Reload();
-                    yield return null;
-                }
+                yield return null;
+                assetObjectSearchLabel.TreeView.Reload();
             }
             yield return null;
             loadingQuarkObject = false;

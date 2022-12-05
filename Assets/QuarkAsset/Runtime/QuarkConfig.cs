@@ -9,7 +9,7 @@ namespace Quark
     /// </summary>
     public class QuarkConfig : MonoBehaviour
     {
-        [SerializeField] bool autoStart;
+        [SerializeField] bool autoStart=true;
         /// <summary>
         /// 资源存储地址；
         /// </summary>

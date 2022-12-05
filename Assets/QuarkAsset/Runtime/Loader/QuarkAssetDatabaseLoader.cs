@@ -329,7 +329,7 @@ namespace Quark.Loader
             if (!hasBundle)
                 yield break; //若bundle信息为空，则终止；
             bundleWarpper.ReferenceCount++; //AB包引用计数增加
-            var dependList = bundleWarpper.QuarkAssetBundle.DependentList;
+            var dependList = bundleWarpper.QuarkAssetBundle.DependentBundleKeyList;
             var length = dependList.Count;
             for (int i = 0; i < length; i++)
             {
@@ -348,7 +348,7 @@ namespace Quark.Loader
         void UnloadAssetBundleWithDependencies(QuarkBundleWarpper bundleWarpper, int count = 1, bool unloadAllLoadedObjects = false)
         {
             bundleWarpper.ReferenceCount -= count;
-            var dependBundleNames = bundleWarpper.QuarkAssetBundle.DependentList;
+            var dependBundleNames = bundleWarpper.QuarkAssetBundle.DependentBundleKeyList;
             var dependBundleNameLength = dependBundleNames.Count;
             //遍历查询依赖包
             for (int i = 0; i < dependBundleNameLength; i++)
@@ -393,7 +393,7 @@ namespace Quark.Loader
             if (!hasBundle)
                 return; //若bundle信息为空，则终止；
             bundleWarpper.ReferenceCount++; //AB包引用计数增加
-            var dependList = bundleWarpper.QuarkAssetBundle.DependentList;
+            var dependList = bundleWarpper.QuarkAssetBundle.DependentBundleKeyList;
             var length = dependList.Count;
             for (int i = 0; i < length; i++)
             {
