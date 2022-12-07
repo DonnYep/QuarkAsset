@@ -24,10 +24,27 @@ namespace Quark.Editor
         /// <summary>
         /// 默认不拷贝到StreamingAssets文件夹；
         /// </summary>
+        [MenuItem("Window/QuarkAsset/Build/ActivePlatformNameByHash")]
+        public static void BuildActivePlatformAssetBundleNameByHash()
+        {
+            var buildTarget = EditorUserBuildSettings.activeBuildTarget;
+            BuildAssetBundle(buildTarget, true);
+        }
+        /// <summary>
+        /// 默认不拷贝到StreamingAssets文件夹；
+        /// </summary>
         [MenuItem("Window/QuarkAsset/Build/Android")]
         public static void BuildAndroidAssetBundle()
         {
             BuildAssetBundle(BuildTarget.Android);
+        }
+        /// <summary>
+        /// 默认不拷贝到StreamingAssets文件夹；
+        /// </summary>
+        [MenuItem("Window/QuarkAsset/Build/AndroidNameByHash")]
+        public static void BuildAndroidAssetBundleNameByHash()
+        {
+            BuildAssetBundle(BuildTarget.Android, true);
         }
         /// <summary>
         /// 默认不拷贝到StreamingAssets文件夹；
@@ -40,10 +57,26 @@ namespace Quark.Editor
         /// <summary>
         /// 默认不拷贝到StreamingAssets文件夹；
         /// </summary>
+        [MenuItem("Window/QuarkAsset/Build/iOSNameByHash")]
+        public static void BuildiOSAssetBundleNameByHash()
+        {
+            BuildAssetBundle(BuildTarget.iOS, true);
+        }
+        /// <summary>
+        /// 默认不拷贝到StreamingAssets文件夹；
+        /// </summary>
         [MenuItem("Window/QuarkAsset/Build/StandaloneWindows")]
         public static void BuildStandaloneWindowsAssetBundle()
         {
             BuildAssetBundle(BuildTarget.StandaloneWindows);
+        }
+        /// <summary>
+        /// 默认不拷贝到StreamingAssets文件夹；
+        /// </summary>
+        [MenuItem("Window/QuarkAsset/Build/StandaloneWindowsNameByHash")]
+        public static void BuildStandaloneWindowsAssetBundleNameByHash()
+        {
+            BuildAssetBundle(BuildTarget.StandaloneWindows, true);
         }
         /// <summary>
         /// 构建assetbundle

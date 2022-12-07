@@ -14,8 +14,7 @@ namespace Quark
             QuarkAssetManifest quarkAssetManifest = null;
             try
             {
-                var aesKey = QuarkDataProxy.QuarkAESEncryptionKey;
-                var aesKeyBytes = QuarkUtility.GenerateBytesAESKey(aesKey);
+                var aesKeyBytes = QuarkDataProxy.QuarkAESEncryptionKeyBytes;
                 var encrypted = aesKeyBytes.Length > 0 ? true : false;
                 var unencryptedManifest = manifestContext;
                 if (encrypted)

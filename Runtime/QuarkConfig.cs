@@ -75,15 +75,6 @@ namespace Quark
         /// </summary>
         string downloadPath;
 
-        /// <summary>
-        /// 资源所在URI；
-        /// </summary>
-        public string Url
-        {
-            get { return url; }
-            set { url = value; }
-        }
-
         static QuarkConfig instance;
         public static QuarkConfig Instance
         {
@@ -101,11 +92,114 @@ namespace Quark
                 return instance;
             }
         }
-        public void LaunchAssetBundleMode()
+        public void LaunchAssetDatabaseMode(QuarkAssetDataset dataset)
         {
-
+            QuarkResources.QuarkAssetLoadMode = QuarkLoadMode.AssetDatabase;
+            QuarkDataProxy.QuarkAssetDataset = dataset;
+            if (QuarkDataProxy.QuarkAssetDataset != null)
+            {
+                QuarkResources.SetAssetDatabaseModeDataset(QuarkDataProxy.QuarkAssetDataset);
+                QuarkEngine.Instance.onCompareManifestSuccess?.Invoke(null, 0);
+            }
+            else
+            {
+                QuarkEngine.Instance.onCompareManifestFailure?.Invoke(null);
+            }
         }
-        public void Initialize()
+        /// <summary>
+        /// 启动从url加载ab资源的模式；
+        /// </summary>
+        /// <param name="url">url</param>
+        /// <param name="manifestAesKey">manifest密钥</param>
+        /// <param name="bundleOffset">bundle偏移量</param>
+        /// <param name="persisitentRelativePath">Application.persistentDataPath下的相对路径</param>
+        public void LaunchAssetBundleModeWithUrlToPersisitent(string url, string manifestAesKey="",int bundleOffset=0,string persisitentRelativePath = "")
+        {
+            QuarkDataProxy.QuarkEncryptionOffset = (ulong)bundleOffset;
+            QuarkDataProxy.QuarkAESEncryptionKey = manifestAesKey;
+            QuarkResources.QuarkAssetLoadMode = QuarkLoadMode.AssetBundle;
+            QuarkUtility.IsStringValid(url, "URI is invalid !");
+            string persistentPath = string.Empty;
+            var hasRelativePath = !string.IsNullOrEmpty(persisitentRelativePath);
+            persistentPath = Application.persistentDataPath;
+            if (hasRelativePath)
+            {
+                persistentPath = Path.Combine(persistentPath, persisitentRelativePath);
+            }
+            if (!Directory.Exists(persistentPath))
+                Directory.CreateDirectory(persistentPath);
+            QuarkDataProxy.PersistentPath = persistentPath;
+            QuarkDataProxy.URL= url;
+            QuarkEngine.Instance.RequestMainifestFromURLAsync();
+        }
+        /// <summary>
+        /// 启动从url加载ab资源的模式；
+        /// </summary>
+        /// <param name="manifestAesKey">manifest密钥</param>
+        /// <param name="bundleOffset">bundle偏移量</param>
+        /// <param name="persisitentRelativePath">Application.persistentDataPath下的相对路径</param>
+        public void LaunchAssetBundleModeWithPersisitentDataPath(string manifestAesKey = "", int bundleOffset = 0, string persisitentRelativePath = "")
+        {
+            QuarkResources.QuarkAssetLoadMode = QuarkLoadMode.AssetBundle;
+            QuarkDataProxy.QuarkEncryptionOffset = (ulong)bundleOffset;
+            QuarkDataProxy.QuarkAESEncryptionKey = manifestAesKey;
+            string persistentPath = string.Empty;
+            var hasRelativePath = !string.IsNullOrEmpty(persisitentRelativePath);
+            if (hasRelativePath)
+            {
+#if UNITY_EDITOR||UNITY_ANDROID||UNITY_STANDALONE
+                persistentPath = Path.Combine(Application.persistentDataPath, persisitentRelativePath);
+#elif UNITY_IPHONE && !UNITY_EDITOR
+                persistentPath = @"file://" + Path.Combine(Application.persistentDataPath, persisitentRelativePath);
+#endif
+            }
+            else
+            {
+#if UNITY_EDITOR||UNITY_ANDROID||UNITY_STANDALONE
+                persistentPath = Application.persistentDataPath;
+#elif UNITY_IPHONE && !UNITY_EDITOR
+                persistentPath = @"file://" + Application.persistentDataPath;
+#endif
+            }
+            QuarkDataProxy.PersistentPath = persistentPath;
+            QuarkEngine.Instance.RequestManifestFromPersistentDataPathAsync();
+        }
+        /// <summary>
+        ///  启动从streamingAssetsPath加载ab资源的模式；
+        /// </summary>
+        /// <param name="manifestAesKey">manifest密钥</param>
+        /// <param name="bundleOffset">bundle偏移量</param>
+        /// <param name="streamingRelativePath">Application.streamingAssetsPath下的相对路径</param>
+        public void LaunchAssetBundleModeWithStreamingAsset(string manifestAesKey = "", int bundleOffset = 0, string streamingRelativePath = "")
+        {
+            QuarkResources.QuarkAssetLoadMode = QuarkLoadMode.AssetBundle;
+            QuarkDataProxy.QuarkEncryptionOffset = (ulong)bundleOffset;
+            QuarkDataProxy.QuarkAESEncryptionKey = manifestAesKey;
+            string streamingAssetPath = string.Empty;
+            var hasRelativePath = !string.IsNullOrEmpty(streamingRelativePath);
+            if (hasRelativePath)
+            {
+#if UNITY_EDITOR||UNITY_ANDROID||UNITY_STANDALONE
+                streamingAssetPath = Path.Combine(Application.streamingAssetsPath, streamingRelativePath);
+#elif UNITY_IPHONE && !UNITY_EDITOR
+                streamingAssetPath = @"file://" + Path.Combine(Application.streamingAssetsPath, streamingRelativePath);
+#endif
+            }
+            else
+            {
+#if UNITY_EDITOR||UNITY_ANDROID||UNITY_STANDALONE
+                streamingAssetPath = Application.streamingAssetsPath;
+#elif UNITY_IPHONE && !UNITY_EDITOR
+                streamingAssetPath = @"file://" + Application.streamingAssetsPath;
+#endif
+            }
+            QuarkDataProxy.StreamingAssetPath = streamingAssetPath;
+            QuarkEngine.Instance.RequestManifestFromStreamingAssetAsync();
+        }
+        /// <summary>
+        /// 启动默认模式；
+        /// </summary>
+        public void LaunchWithConfig()
         {
             switch (loadMode)
             {
@@ -137,6 +231,7 @@ namespace Quark
                                     QuarkUtility.IsStringValid(downloadPath, "DownloadPath is invalid !");
                                     if (!Directory.Exists(downloadPath))
                                         Directory.CreateDirectory(downloadPath);
+                                    QuarkEngine.Instance.RequestMainifestFromURLAsync();
                                 }
                                 break;
                         }
@@ -146,6 +241,10 @@ namespace Quark
         }
         public void SaveConfig()
         {
+            QuarkDataProxy.QuarkEncryptionOffset = encryptionOffset;
+            QuarkResources.QuarkAssetLoadMode = loadMode;
+            QuarkDataProxy.QuarkAESEncryptionKey = manifestAesEncryptKey;
+
             #region persistentPath
             string persistentPath = string.Empty;
             if (enablePersistentRelativeBundlePath)
@@ -216,12 +315,9 @@ namespace Quark
         void Awake()
         {
             instance = this;
-            QuarkDataProxy.QuarkEncryptionOffset = encryptionOffset;
-            QuarkResources.QuarkAssetLoadMode = loadMode;
-            QuarkDataProxy.QuarkAESEncryptionKey = manifestAesEncryptKey;
             SaveConfig();
             if (autoStart)
-                Initialize();
+                LaunchWithConfig();
         }
     }
 }

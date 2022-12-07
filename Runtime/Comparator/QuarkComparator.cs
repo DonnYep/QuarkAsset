@@ -167,10 +167,10 @@ namespace Quark.Networking
             if (localManifest == null)
             {
                 //若本地的Manifest为空，远端的Manifest不为空，则将需要下载的资源url缓存到latest;
-                latest.AddRange(remoteManifest.BundleInfoDict.Keys.ToList());
                 foreach (var bundleInfo in remoteManifest.BundleInfoDict.Values)
                 {
                     overallSize += bundleInfo.BundleSize;
+                    latest.Add(bundleInfo.QuarkAssetBundle.AssetBundleKey);
                 }
             }
             else
@@ -180,6 +180,7 @@ namespace Quark.Networking
                 //远端没有本地有，则缓存至expired；
                 foreach (var remoteBuildInfo in remoteManifest.BundleInfoDict)
                 {
+                    var remoteBundleKey = remoteBuildInfo.Value.QuarkAssetBundle.AssetBundleKey;
                     var remoteBundleName = remoteBuildInfo.Key;
                     var remoteBundleBuildInfo = remoteBuildInfo.Value;
                     if (localManifest.BundleInfoDict.TryGetValue(remoteBundleName, out var localBuildInfo))
@@ -187,24 +188,25 @@ namespace Quark.Networking
                         if (localBuildInfo.Hash != remoteBundleBuildInfo.Hash)
                         {
                             overallSize += remoteBundleBuildInfo.BundleSize;
-                            latest.Add(remoteBundleName);
-                            expired.Add(remoteBundleName);
+                            latest.Add(remoteBundleKey);
+                            expired.Add(remoteBundleKey);
                         }
                         else
                         {
                             //检测远端包体与本地包体的大小是否相同。
                             //在Hash相同的情况下，若包体不同，则可能是本地的包不完整，因此需要重新加入下载队列。
-                            var localBundlePath = Path.Combine(QuarkDataProxy.PersistentPath, localBuildInfo.BundleName);
+                            var localBundleKey = localBuildInfo.QuarkAssetBundle.AssetBundleKey;
+                            var localBundlePath = Path.Combine(QuarkDataProxy.PersistentPath, localBundleKey);
                             var localBundleSize = QuarkUtility.GetFileSize(localBundlePath);
                             var remoteBundleSize = remoteBundleBuildInfo.BundleSize;
                             if (remoteBundleSize != localBundleSize)
                             {
                                 var remainBundleSize = remoteBundleSize - localBundleSize;
                                 overallSize += remainBundleSize;
-                                latest.Add(remoteBundleName);
+                                latest.Add(remoteBundleKey);
                                 if (remoteBundleSize < localBundleSize)//若本地包体大于远端包体，则表示为本地包为过期包
                                 {
-                                    expired.Add(localBuildInfo.BundleName);
+                                    expired.Add(localBundleKey);
                                 }
                             }
                         }
@@ -214,11 +216,11 @@ namespace Quark.Networking
                         overallSize += remoteBundleBuildInfo.BundleSize;
                         latest.Add(remoteBundleName);
                     }
-                    foreach (var localMF in localManifest.BundleInfoDict)
+                    foreach (var _buildInfo in localManifest.BundleInfoDict)
                     {
-                        if (!remoteManifest.BundleInfoDict.ContainsKey(localMF.Key))
+                        if (!remoteManifest.BundleInfoDict.ContainsKey(_buildInfo.Key))
                         {
-                            expired.Add(localMF.Key);
+                            expired.Add(_buildInfo.Value.QuarkAssetBundle.AssetBundleKey);
                         }
                     }
                 }

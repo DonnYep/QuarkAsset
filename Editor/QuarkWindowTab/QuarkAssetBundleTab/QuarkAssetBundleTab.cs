@@ -231,7 +231,7 @@ namespace Quark.Editor
                     QuarkAssetBundle = bundle,
                     BundleName = bundle.AssetBundleName
                 };
-                quarkManifest.BundleInfoDict.Add(bundle.AssetBundleName, bundleInfo);
+                quarkManifest.BundleInfoDict.Add(bundleName, bundleInfo);
                 yield return null;
             }
             for (int i = 0; i < bundles.Count; i++)

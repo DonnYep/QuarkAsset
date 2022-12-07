@@ -12,11 +12,11 @@ namespace Quark
         /// <summary>
         /// 远端存储的地址；
         /// </summary>
-        public static string URL { get; set; }
+        public static string URL { get; internal set; }
         /// <summary>
         /// 本地持久化路径；
         /// </summary>
-        public static string PersistentPath { get; set; }
+        public static string PersistentPath { get; internal set; }
         /// <summary>
         /// StreamingAsset地址；
         /// </summary>
@@ -24,7 +24,7 @@ namespace Quark
         /// <summary>
         /// editor模式下加载寻址依据；
         /// </summary>
-        public static QuarkAssetDataset QuarkAssetDataset { get; set; }
+        public static QuarkAssetDataset QuarkAssetDataset { get; internal set; }
         /// <summary>
         /// 存储ab包中包含的资源信息；
         /// </summary>
@@ -32,7 +32,7 @@ namespace Quark
         /// <summary>
         /// AssetBundle加密偏移量；
         /// </summary>
-        public static ulong QuarkEncryptionOffset { get; set; }
+        public static ulong QuarkEncryptionOffset { get; internal set; }
         /// <summary>
         /// manifest对称加密密钥bytes；
         /// </summary>
