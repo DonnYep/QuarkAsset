@@ -9,29 +9,24 @@ namespace Quark.Editor
         TreeViewState treeViewState;
         SearchField searchField;
         public QuarkAssetBundleTreeView TreeView { get { return treeView; } }
+        Rect lableRect;
         public void OnEnable()
         {
             searchField = new SearchField();
             treeViewState = new TreeViewState();
             var multiColumnHeaderState = new MultiColumnHeader(QuarkEditorUtility.CreateBundleMultiColumnHeader());
-            treeView = new QuarkAssetBundleTreeView(treeViewState,multiColumnHeaderState);
+            treeView = new QuarkAssetBundleTreeView(treeViewState, multiColumnHeaderState);
             searchField.downOrUpArrowKeyPressed += treeView.SetFocusAndEnsureSelectedItem;
         }
-        public void OnGUI()
+        public void OnGUI(Rect rect)
         {
+            lableRect = rect;
             GUILayout.BeginVertical();
-            DrawDragRect();
-            DrawToolbar();
-            DrawTreeView();
-
-            GUILayout.BeginHorizontal();
-            GUILayout.FlexibleSpace();
-            if (GUILayout.Button("ClearAllAssetBundle"))
             {
-                QuarkEditorDataProxy.QuarkAssetDataset.QuarkAssetBundleList?.Clear();
-                treeView.Clear();
+                DrawDragRect();
+                DrawToolbar();
+                DrawTreeView(rect);
             }
-            GUILayout.EndHorizontal();
             GUILayout.EndVertical();
         }
         void DrawDragRect()
@@ -64,7 +59,7 @@ namespace Quark.Editor
                     {
                         Object obj = DragAndDrop.objectReferences[i];
                         string path = DragAndDrop.paths[i];
-                        if (!(obj is MonoScript))
+                        if (!(obj is MonoScript)&&(obj is DefaultAsset))
                         {
                             var isInSameBundle = QuarkUtility.CheckAssetsAndScenesInOneAssetBundle(path);
                             if (isInSameBundle)
@@ -98,11 +93,11 @@ namespace Quark.Editor
             treeView.searchString = searchField.OnToolbarGUI(treeView.searchString);
             GUILayout.EndHorizontal();
         }
-        void DrawTreeView()
+        void DrawTreeView(Rect rect)
         {
-            GUILayout.BeginVertical("box");
-            Rect rect = GUILayoutUtility.GetRect(32, 8192, 32, 8192);
-            treeView.OnGUI(rect);
+            GUILayout.BeginVertical(GUILayout.MaxWidth(rect.width * 0.4f));
+            Rect viewRect = GUILayoutUtility.GetRect(32, 8192, 32, 8192);
+            treeView.OnGUI(viewRect);
             GUILayout.EndVertical();
         }
     }

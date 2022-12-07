@@ -3,6 +3,7 @@
     public enum QuarkBuildPath:byte
     {
         StreamingAssets=0x0,
-        URL= 0x1
+        PersistentDataPath= 0x1,
+        URL= 0x2,
     }
 }

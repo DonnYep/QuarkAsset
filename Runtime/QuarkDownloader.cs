@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine.Networking;
-using Quark.Asset;
 
 namespace Quark.Networking
 {
@@ -11,31 +10,55 @@ namespace Quark.Networking
     /// Quark资源下载器；
     /// 资源被下载到本地持久化路径后，再由Qurk加载器进行资源加载；
     /// </summary>
-    internal class QuarkDownloader
+    public class QuarkDownloader
     {
         #region events
+        Action<string, string> onDownloadStart;
+        Action<string, string> onDownloadSuccess;
+        Action<string, string, string> onDownloadFailure;
+        Action<string, string, float, float> onDownloadOverall;
+        Action<string[], string[], TimeSpan> onDownloadFinish;
         /// <summary>
         /// URL---DownloadPath
         /// </summary>
-        public Action<string, string> onDownloadStart;
+        public event Action<string, string> OnDownloadStart
+        {
+            add { onDownloadStart += value; }
+            remove { onDownloadStart -= value; }
+        }
         /// <summary>
-        /// URL---DownloadPath---Data
+        /// URL---DownloadPath
         /// </summary>
-        public Action<string, string> onDownloadSuccess;
+        public event Action<string, string> OnDownloadSuccess
+        {
+            add { onDownloadSuccess += value; }
+            remove { onDownloadSuccess -= value; }
+        }
         /// <summary>
         /// URL---DownloadPath---ErrorMessage
         /// </summary>
-        public Action<string, string, string> onDownloadFailure;
+        public event Action<string, string, string> OnDownloadFailure
+        {
+            add { onDownloadFailure += value; }
+            remove { onDownloadFailure -= value; }
+        }
         /// <summary>
         /// URL---DownloadPath---OverallProgress(0~100%)---IndividualProgress(0~100%)
         /// </summary>
-        public Action<string, string, float, float> onDownloadOverall;
+        public event Action<string, string, float, float> OnDownloadOverall
+        {
+            add { onDownloadOverall += value; }
+            remove { onDownloadOverall -= value; }
+        }
         /// <summary>
         /// SuccessURIs---FailureURIs---TimeSpan
         /// </summary>
-        public Action<string[], string[], TimeSpan> onDownloadFinish;
+        public event Action<string[], string[], TimeSpan> OnDownloadFinish
+        {
+            add { onDownloadFinish += value; }
+            remove { onDownloadFinish -= value; }
+        }
         #endregion
-        public string PersistentPath { get { return QuarkDataProxy.PersistentPath; } }
         public string URL { get { return QuarkDataProxy.URL; } }
         public int DownloadTimeout { get; private set; }
         public bool DeleteFailureFile { get; set; }
@@ -146,7 +169,7 @@ namespace Quark.Networking
                 var uri = pendingURIs[0];
                 pendingURIs.RemoveAt(0);
                 currentDownloadIndex = downloadCount - pendingURIs.Count - 1;
-                var fileDownloadPath = Path.Combine(PersistentPath, uri);
+                var fileDownloadPath = Path.Combine(QuarkDataProxy.PersistentPath, uri);
                 var remoteUri = Path.Combine(URL, uri);
                 yield return EnumDownloadSingleFile(remoteUri, fileDownloadPath);
             }
@@ -175,7 +198,7 @@ namespace Quark.Networking
                 var operation = request.SendWebRequest();
                 while (!operation.isDone && canDownload)
                 {
-                    OnFileDownloading(uri, PersistentPath, request.downloadProgress);
+                    OnFileDownloading(uri, QuarkDataProxy.PersistentPath, request.downloadProgress);
                     yield return null;
                 }
 #if UNITY_2020_1_OR_NEWER
@@ -188,7 +211,7 @@ namespace Quark.Networking
                     {
                         Downloading = false;
                         onDownloadSuccess?.Invoke(uri, downloadPath);
-                        OnFileDownloading(uri, PersistentPath, 1);
+                        OnFileDownloading(uri, QuarkDataProxy.PersistentPath, 1);
                         successURIs.Add(uri);
                     }
                 }
@@ -197,7 +220,7 @@ namespace Quark.Networking
                     Downloading = false;
                     onDownloadFailure?.Invoke(request.url, downloadPath, request.error);
                     failureURIs.Add(uri);
-                    OnFileDownloading(uri, PersistentPath, 1);
+                    OnFileDownloading(uri, QuarkDataProxy.PersistentPath, 1);
                     if (DeleteFailureFile)
                     {
                         QuarkUtility.DeleteFile(downloadPath);

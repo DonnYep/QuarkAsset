@@ -3,7 +3,7 @@ using System.IO;
 using UnityEditor;
 namespace Quark.Editor
 {
-    internal enum AssetBundleHashType : byte
+    internal enum AssetBundleNameType : byte
     {
         DefaultName = 0,
         HashInstead = 2
@@ -12,14 +12,13 @@ namespace Quark.Editor
     internal class QuarkAssetBundleTabData
     {
         public BuildTarget BuildTarget;
-        public string OutputPath;
+        public string BuildVersion;
+        public string BuildPath;
         public string AssetBundleBuildPath;
-        public bool UseDefaultPath;
         public bool ClearOutputFolders;
         public bool CopyToStreamingAssets;
         public string StreamingRelativePath;
-        public bool RetainUnityManifest;
-        public AssetBundleHashType NameHashType;
+        public AssetBundleNameType AssetBundleNameType;
         /// <summary>
         /// 使用偏移加密；
         /// </summary>
@@ -32,28 +31,28 @@ namespace Quark.Editor
         /// <summary>
         /// 使用对称加密对build信息进行加密;
         /// </summary>
-        public bool UseAesEncryptionForBuildInfo;
+        public bool UseAesEncryptionForManifest;
         /// <summary>
         /// 对称加密的密钥；
         /// </summary>
-        public string AesEncryptionKeyForBuildInfo;
+        public string AesEncryptionKeyForManifest;
 
         public BuildAssetBundleOptions BuildAssetBundleOptions;
 
         public QuarkAssetBundleTabData()
         {
             BuildTarget = BuildTarget.StandaloneWindows;
-            OutputPath = Path.Combine(Path.GetFullPath("."), "AssetBundles", "QuarkAsset").Replace("\\", "/");
+            BuildPath = Path.Combine(Path.GetFullPath("."), "AssetBundles", "QuarkAsset").Replace("\\", "/");
             ClearOutputFolders = true;
-            CopyToStreamingAssets = true;
-            StreamingRelativePath = string.Empty;
-            RetainUnityManifest = false;
-            NameHashType = AssetBundleHashType.DefaultName;
+            CopyToStreamingAssets = false;
+            AssetBundleNameType = AssetBundleNameType.DefaultName;
             UseOffsetEncryptionForAssetBundle = false;
             EncryptionOffsetForAssetBundle = 32;
-            UseAesEncryptionForBuildInfo = false;
-            AesEncryptionKeyForBuildInfo = "QuarkAssetAesKey";
+            UseAesEncryptionForManifest = false;
+            AesEncryptionKeyForManifest = "QuarkAssetAesKey";
             BuildAssetBundleOptions = BuildAssetBundleOptions.ChunkBasedCompression;
+            BuildVersion = "0_0_1";
+            StreamingRelativePath = BuildVersion;
         }
     }
 }

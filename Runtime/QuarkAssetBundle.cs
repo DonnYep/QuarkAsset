@@ -11,7 +11,9 @@ namespace Quark.Asset
         [SerializeField]
         string assetBundlePath;
         [SerializeField]
-        List<string> dependentList;
+        string assetBundleKey;
+        [SerializeField]
+        List<string> dependentBundlekKeyList;
         [SerializeField]
         long assetBundleSize;
         [SerializeField]
@@ -33,17 +35,25 @@ namespace Quark.Asset
             set { assetBundlePath = value; }
         }
         /// <summary>
+        /// AB加载时候使用的名称；
+        /// </summary>
+        public string AssetBundleKey
+        {
+            get { return assetBundleKey; }
+            set { assetBundleKey = value; }
+        }
+        /// <summary>
         /// 资源的依赖项；
         /// </summary>
-        public List<string> DependentList
+        public List<string> DependentBundleKeyList
         {
             get
             {
-                if (dependentList == null)
-                    dependentList = new List<string>();
-                return dependentList;
+                if (dependentBundlekKeyList == null)
+                    dependentBundlekKeyList = new List<string>();
+                return dependentBundlekKeyList;
             }
-            set { dependentList = value; }
+            set { dependentBundlekKeyList = value; }
         }
         public long AssetBundleSize
         {

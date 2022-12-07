@@ -58,6 +58,7 @@ namespace Quark.Loader
         public abstract void UnloadAllAssetBundle(bool unloadAllLoadedObjects = false);
         public abstract Coroutine UnloadSceneAsync(string sceneName, Action<float> progress, Action callback);
         public abstract Coroutine UnloadAllSceneAsync(Action<float> progress, Action callback);
+        public abstract void ClearLoader();
         public bool GetInfo(string assetName, Type type, out QuarkAssetObjectInfo info)
         {
             info = QuarkAssetObjectInfo.None;

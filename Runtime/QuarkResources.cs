@@ -1,20 +1,19 @@
 ﻿using Quark.Asset;
+using Quark.Networking;
+using Quark.Verifiy;
 using System;
 using UnityEngine;
 using Object = UnityEngine.Object;
 namespace Quark
 {
-    public sealed class QuarkResources
+    public static class QuarkResources
     {
-        public static ulong QuarkEncryptionOffset
+        public static string ManifestBuildVersion
         {
-            get { return QuarkDataProxy.QuarkEncryptionOffset; }
-            set { QuarkDataProxy.QuarkEncryptionOffset = value; }
-        }
-        public static byte[] QuarkAESEncryptionKey
-        {
-            get { return QuarkDataProxy.QuarkAESEncryptionKey; }
-            set { QuarkDataProxy.QuarkAESEncryptionKey = value; }
+            get
+            {
+                return QuarkDataProxy.QuarkManifest != null ? QuarkDataProxy.QuarkManifest.BuildVersion : "<NONE>";
+            }
         }
         public static QuarkLoadMode QuarkAssetLoadMode
         {
@@ -23,19 +22,60 @@ namespace Quark
         }
         /// <summary>
         /// 当检测到最新的；
+        /// LatestURLS---Size
         /// </summary>
-        public static event Action<long> OnCompareManifestSuccess
+        public static event Action<string[], long> OnCompareManifestSuccess
         {
             add { QuarkEngine.Instance.onCompareManifestSuccess += value; }
             remove { QuarkEngine.Instance.onCompareManifestSuccess -= value; }
         }
         /// <summary>
         /// 当检测失败；
+        /// ErrorMessage
         /// </summary>
         public static event Action<string> OnCompareManifestFailure
         {
             add { QuarkEngine.Instance.onCompareManifestFailure += value; }
             remove { QuarkEngine.Instance.onCompareManifestFailure -= value; }
+        }
+        /// <summary>
+        /// 文件下载器；
+        /// </summary>
+        public static QuarkDownloader QuarkDownloader
+        {
+            get { return QuarkEngine.Instance.quarkDownloader; }
+        }
+        /// <summary>
+        /// 文件校验器；
+        /// </summary>
+        public static QuarkManifestVerifier QuarkManifestVerifier
+        {
+            get { return QuarkEngine.Instance.quarkManifestVerifier; }
+        }
+        /// <summary>
+        /// 文件比较器；
+        /// </summary>
+        public static QuarkComparator QuarkComparator
+        {
+            get { return QuarkEngine.Instance.quarkComparator; }
+        }
+        /// <summary>
+        /// 设置Manifest；
+        /// 用于assetbundle模式；
+        /// </summary>
+        /// <param name="manifest">Manifest文件</param>
+        public static void SetAssetBundleModeManifest(QuarkAssetManifest manifest)
+        {
+            QuarkEngine.Instance.SetAssetBundleModeManifest(manifest);
+        }
+        /// <summary>
+        /// 用于Editor开发模式；
+        /// 对QuarkAssetDataset进行编码
+        /// </summary>
+        /// <param name="dataset">QuarkAssetDataset对象</param>
+        public static void SetAssetDatabaseModeDataset(QuarkAssetDataset dataset)
+        {
+            QuarkEngine.Instance.SetAssetDatabaseModeDataset(dataset);
         }
         public static T LoadAsset<T>(string assetName)
 where T : Object
@@ -118,6 +158,13 @@ where T : Object
         public static Coroutine UnloadAllSceneAsync(Action<float> progress, Action callback)
         {
             return QuarkEngine.Instance.UnloadAllSceneAsync(progress, callback);
+        }
+        /// <summary>
+        /// 谨慎使用，清理加载器；
+        /// </summary>
+        public static void ClearLoader()
+        {
+            QuarkEngine.Instance.ClearLoader();
         }
         public static bool GetInfo<T>(string assetName, out QuarkAssetObjectInfo info) where T : Object
         {

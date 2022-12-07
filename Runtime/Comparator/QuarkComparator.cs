@@ -11,7 +11,7 @@ namespace Quark.Networking
     /// <summary>
     /// Quark Manifest比较器；
     /// </summary>
-    internal class QuarkComparator
+    public class QuarkComparator
     {
         /// <summary>
         /// 比较失败，传入ErrorMessage；
@@ -25,15 +25,7 @@ namespace Quark.Networking
         List<string> latest = new List<string>();
         //本地有但是远程没有，则标记为可过期文件；
         List<string> expired = new List<string>();
-        /// <summary>
-        /// 本地持久化路径；
-        /// </summary>
-        public string PersistentPath { get { return QuarkDataProxy.PersistentPath; } }
-        /// <summary>
-        /// 远程资源地址；
-        /// </summary>
-        public string URL { get { return QuarkDataProxy.URL; } }
-        bool isEncrypted { get { return QuarkDataProxy.QuarkAESEncryptionKey.Length > 0; } }
+        bool isEncrypted { get { return QuarkDataProxy.QuarkAESEncryptionKeyBytes.Length > 0; } }
         QuarkAssetManifest localManifest = null;
         QuarkAssetManifest remoteManifest = null;
         public void Initiate(Action<string[], string[], long> onCompareSuccess, Action<string> onCompareFailure)
@@ -47,13 +39,18 @@ namespace Quark.Networking
         /// </summary>
         public Coroutine RequestMainifestFromURLAsync()
         {
-            var uriManifestPath = Path.Combine(URL, QuarkConstant.ManifestName);
+            var uriManifestPath = Path.Combine(QuarkDataProxy.URL, QuarkConstant.ManifestName);
             return QuarkUtility.Unity.StartCoroutine(EnumRequestManifestFromURL(uriManifestPath));
         }
-        public Coroutine RequestManifestFromStreamingAssetsAsync()
+        public Coroutine RequestManifestFromStreamingAssetAsync()
         {
-            var localManifestPath = Path.Combine(URL, QuarkConstant.ManifestName);
-            return QuarkUtility.Unity.StartCoroutine(EnumRequestManifestStreamingAsset(localManifestPath));
+            var localManifestPath = Path.Combine(QuarkDataProxy.StreamingAssetPath, QuarkConstant.ManifestName);
+            return QuarkUtility.Unity.StartCoroutine(EnumRequestManifestFromLocal(localManifestPath));
+        }
+        public Coroutine RequestManifestFromPersistentDataPathAsync()
+        {
+            var localManifestPath = Path.Combine(QuarkDataProxy.PersistentPath, QuarkConstant.ManifestName);
+            return QuarkUtility.Unity.StartCoroutine(EnumRequestManifestFromLocal(localManifestPath));
         }
         public void Clear()
         {
@@ -84,20 +81,59 @@ namespace Quark.Networking
                 }
             }
         }
+        IEnumerator EnumRequestManifestFromLocal(string manifestUri)
+        {
+            using (UnityWebRequest request = UnityWebRequest.Get(manifestUri))
+            {
+                yield return request.SendWebRequest();
+#if UNITY_2020_1_OR_NEWER
+                if (request.result != UnityWebRequest.Result.ConnectionError && request.result != UnityWebRequest.Result.ProtocolError)
+#elif UNITY_2018_1_OR_NEWER
+                if (!request.isNetworkError && !request.isHttpError)
+#endif
+                {
+                    if (request.isDone)
+                    {
+                        var context = request.downloadHandler.text;
+                        try
+                        {
+                            if (isEncrypted)
+                            {
+                                var unencryptedManifest = QuarkUtility.AESDecryptStringToString(context, QuarkDataProxy.QuarkAESEncryptionKeyBytes);
+                                localManifest = QuarkUtility.ToObject<QuarkAssetManifest>(unencryptedManifest);
+                            }
+                            else
+                            {
+                                localManifest = QuarkUtility.ToObject<QuarkAssetManifest>(context);
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            onCompareFailure(e.ToString());
+                            QuarkUtility.LogError(e);
+                            yield break;
+                        }
+                    }
+                }
+            }
+            QuarkEngine.Instance.SetAssetBundleModeManifest(localManifest);
+            onCompareSuccess(new string[0], new string[0], 0);
+        }
         void OnUriManifestSuccess(string remoteManifestContext)
         {
             latest.Clear();
             expired.Clear();
             //获取本地manifest
-            var localManifestPath = Path.Combine(PersistentPath, QuarkConstant.ManifestName);
+            var localManifestPath = Path.Combine(QuarkDataProxy.PersistentPath, QuarkConstant.ManifestName);
             string localManifestContext = string.Empty;
             long overallSize = 0;
-            var aesKey = QuarkDataProxy.QuarkAESEncryptionKey;
+            var aesKey = QuarkDataProxy.QuarkAESEncryptionKeyBytes;
             try
             {
                 //解析加密的manifest
                 if (isEncrypted)
                 {
+                    //todo 这段必须改成webrequest 
                     var encryptedManifest = QuarkUtility.ReadTextFileContent(localManifestPath);
                     localManifestContext = QuarkUtility.AESDecryptStringToString(encryptedManifest, aesKey);
                 }
@@ -158,7 +194,7 @@ namespace Quark.Networking
                         {
                             //检测远端包体与本地包体的大小是否相同。
                             //在Hash相同的情况下，若包体不同，则可能是本地的包不完整，因此需要重新加入下载队列。
-                            var localBundlePath = Path.Combine(PersistentPath, localBuildInfo.BundleName);
+                            var localBundlePath = Path.Combine(QuarkDataProxy.PersistentPath, localBuildInfo.BundleName);
                             var localBundleSize = QuarkUtility.GetFileSize(localBundlePath);
                             var remoteBundleSize = remoteBundleBuildInfo.BundleSize;
                             if (remoteBundleSize != localBundleSize)
@@ -192,46 +228,8 @@ namespace Quark.Networking
             latest.Clear();
             expired.Clear();
             QuarkUtility.OverwriteTextFile(localManifestPath, remoteManifestContext);
-            QuarkEngine.Instance.SetBuiltAssetBundleModeData(remoteManifest);
+            QuarkEngine.Instance.SetAssetBundleModeManifest(remoteManifest);
             onCompareSuccess?.Invoke(latesetArray, expiredArray, overallSize);
-        }
-        IEnumerator EnumRequestManifestStreamingAsset(string manifestUri)
-        {
-            using (UnityWebRequest request = UnityWebRequest.Get(manifestUri))
-            {
-                yield return request.SendWebRequest();
-#if UNITY_2020_1_OR_NEWER
-                if (request.result != UnityWebRequest.Result.ConnectionError && request.result != UnityWebRequest.Result.ProtocolError)
-#elif UNITY_2018_1_OR_NEWER
-                if (!request.isNetworkError && !request.isHttpError)
-#endif
-                {
-                    if (request.isDone)
-                    {
-                        var context = request.downloadHandler.text;
-                        try
-                        {
-                            if (isEncrypted)
-                            {
-                                var unencryptedManifest = QuarkUtility.AESDecryptStringToString(context, QuarkDataProxy.QuarkAESEncryptionKey);
-                                localManifest = QuarkUtility.ToObject<QuarkAssetManifest>(unencryptedManifest);
-                            }
-                            else
-                            {
-                                localManifest = QuarkUtility.ToObject<QuarkAssetManifest>(context);
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            onCompareFailure(e.ToString());
-                            QuarkUtility.LogError(e);
-                            yield break;
-                        }
-                    }
-                }
-            }
-            QuarkEngine.Instance.SetBuiltAssetBundleModeData(localManifest);
-            onCompareSuccess(new string[0], new string[0], 0);
         }
     }
 }
