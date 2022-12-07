@@ -228,6 +228,7 @@ namespace Quark
                                 break;
                             case QuarkBuildPath.URL:
                                 {
+                                    QuarkUtility.IsStringValid(url, "URI is invalid !");
                                     QuarkUtility.IsStringValid(downloadPath, "DownloadPath is invalid !");
                                     if (!Directory.Exists(downloadPath))
                                         Directory.CreateDirectory(downloadPath);
@@ -291,7 +292,6 @@ namespace Quark
             QuarkDataProxy.URL = url;
 
             #region downloadedPath
-            QuarkUtility.IsStringValid(url, "URI is invalid !");
             if (downloadedPath != QuarkDownloadedPath.CustomePath)
             {
                 switch (downloadedPath)
