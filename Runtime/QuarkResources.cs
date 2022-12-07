@@ -143,11 +143,11 @@ where T : Object
         {
             QuarkEngine.Instance.UnloadAsset(assetName);
         }
-        public static void UnloadAllAssetBundle(bool unloadAllLoadedObjects = false)
+        public static void UnloadAllAssetBundle(bool unloadAllLoadedObjects = true)
         {
             QuarkEngine.Instance.UnloadAllAssetBundle(unloadAllLoadedObjects);
         }
-        public static void UnloadAssetBundle(string assetBundleName, bool unloadAllLoadedObjects = false)
+        public static void UnloadAssetBundle(string assetBundleName, bool unloadAllLoadedObjects = true)
         {
             QuarkEngine.Instance.UnloadAssetBundle(assetBundleName, unloadAllLoadedObjects);
         }

@@ -189,7 +189,7 @@ namespace Quark.Loader
             if (hasObject)
                 OnResourceObjectUnload(quarkObject);
         }
-        public override void UnloadAllAssetBundle(bool unloadAllLoadedObjects = false)
+        public override void UnloadAllAssetBundle(bool unloadAllLoadedObjects = true)
         {
             //这里是卸载，保留寻址信息，清空引用计数
             foreach (var objectWarpper in objectWarpperDict.Values)
@@ -201,7 +201,7 @@ namespace Quark.Loader
                 bundleWarpper.ReferenceCount = 0;
             }
         }
-        public override void UnloadAssetBundle(string assetBundleName, bool unloadAllLoadedObjects = false)
+        public override void UnloadAssetBundle(string assetBundleName, bool unloadAllLoadedObjects = true)
         {
             if (bundleWarpperDict.TryGetValue(assetBundleName, out var bundleWarpper))
             {
@@ -359,18 +359,20 @@ namespace Quark.Loader
         /// </summary>
         /// <param name="bundleWarpper">资源包的壳</param>
         /// <param name="count">减少的数量</param>
-        void UnloadAssetBundleWithDependencies(QuarkBundleWarpper bundleWarpper, int count = 1, bool unloadAllLoadedObjects = false)
+        void UnloadAssetBundleWithDependencies(QuarkBundleWarpper bundleWarpper, int count = 1, bool unloadAllLoadedObjects = true)
         {
             bundleWarpper.ReferenceCount -= count;
-            var dependBundleNames = bundleWarpper.QuarkAssetBundle.DependentBundleKeyList;
-            var dependBundleNameLength = dependBundleNames.Count;
+            var dependentList = bundleWarpper.QuarkAssetBundle.DependentBundleKeyList;
+            var dependentLength = dependentList.Count;
             //遍历查询依赖包
-            for (int i = 0; i < dependBundleNameLength; i++)
+            for (int i = 0; i < dependentLength; i++)
             {
-                var dependBundleName = dependBundleNames[i];
-                if (!bundleWarpperDict.TryGetValue(dependBundleName, out var dependBundleWarpper))
-                    continue;
-                dependBundleWarpper.ReferenceCount -= count;
+                var dependBundleKey = dependentList[i];
+                nameBundleKeyDict.TryGetValue(dependBundleKey, out var dependentBundleName);
+                if (bundleWarpperDict.TryGetValue(dependentBundleName, out var dependentBundleWarpper))
+                {
+                    dependentBundleWarpper.ReferenceCount -= count;
+                }
             }
         }
         void InitDataset(QuarkAssetDataset assetDataset)

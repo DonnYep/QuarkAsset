@@ -196,12 +196,12 @@ where T : UnityEngine.Object
             if (quarkLoaderDict.TryGetValue(QuarkAssetLoadMode, out var loader))
                 loader.UnloadAsset(assetName);
         }
-        internal void UnloadAllAssetBundle(bool unloadAllLoadedObjects = false)
+        internal void UnloadAllAssetBundle(bool unloadAllLoadedObjects = true)
         {
             if (quarkLoaderDict.TryGetValue(QuarkAssetLoadMode, out var loader))
                 loader.UnloadAllAssetBundle(unloadAllLoadedObjects);
         }
-        internal void UnloadAssetBundle(string assetBundleName, bool unloadAllLoadedObjects = false)
+        internal void UnloadAssetBundle(string assetBundleName, bool unloadAllLoadedObjects = true)
         {
             if (quarkLoaderDict.TryGetValue(QuarkAssetLoadMode, out var loader))
                 loader.UnloadAssetBundle(assetBundleName, unloadAllLoadedObjects);

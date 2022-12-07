@@ -54,8 +54,8 @@ namespace Quark.Loader
         public abstract Coroutine LoadSceneAsync(string sceneName, Func<float> progressProvider, Action<float> progress, Func<bool> condition, Action callback, bool additive = false);
         public abstract void ReleaseAsset(string assetName);
         public abstract void UnloadAsset(string assetName);
-        public abstract void UnloadAssetBundle(string assetBundleName, bool unloadAllLoadedObjects = false);
-        public abstract void UnloadAllAssetBundle(bool unloadAllLoadedObjects = false);
+        public abstract void UnloadAssetBundle(string assetBundleName, bool unloadAllLoadedObjects = true);
+        public abstract void UnloadAllAssetBundle(bool unloadAllLoadedObjects = true);
         public abstract Coroutine UnloadSceneAsync(string sceneName, Action<float> progress, Action callback);
         public abstract Coroutine UnloadAllSceneAsync(Action<float> progress, Action callback);
         public abstract void ClearLoader();

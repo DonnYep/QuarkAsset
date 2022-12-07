@@ -221,17 +221,86 @@ namespace Quark
                         switch (quarkBuildPath)
                         {
                             case QuarkBuildPath.StreamingAssets:
-                                QuarkEngine.Instance.RequestManifestFromStreamingAssetAsync();
+                                {
+                                    #region streamingAssetPath
+                                    string streamingAssetPath = string.Empty;
+                                    if (enableStreamingRelativeBuildPath)
+                                    {
+#if UNITY_EDITOR || UNITY_ANDROID || UNITY_STANDALONE
+                                        streamingAssetPath = Path.Combine(Application.streamingAssetsPath, streamingRelativeBuildPath);
+#elif UNITY_IPHONE && !UNITY_EDITOR
+                streamingAssetPath = @"file://" + Path.Combine(Application.streamingAssetsPath, RelativeBuildPath);
+#endif
+                                    }
+                                    else
+                                    {
+#if UNITY_EDITOR || UNITY_ANDROID || UNITY_STANDALONE
+                                        streamingAssetPath = Application.streamingAssetsPath;
+#elif UNITY_IPHONE && !UNITY_EDITOR
+                streamingAssetPath = @"file://" + Application.streamingAssetsPath;
+#endif
+                                    }
+                                    QuarkDataProxy.StreamingAssetPath = streamingAssetPath;
+                                    QuarkDataProxy.PersistentPath= streamingAssetPath;
+
+                                    #endregion;
+                                    QuarkEngine.Instance.RequestManifestFromStreamingAssetAsync();
+                                }
                                 break;
                             case QuarkBuildPath.PersistentDataPath:
-                                QuarkEngine.Instance.RequestManifestFromPersistentDataPathAsync();
+                                {
+                                    #region persistentPath
+                                    string persistentPath = string.Empty;
+                                    if (enablePersistentRelativeBundlePath)
+                                    {
+#if UNITY_EDITOR || UNITY_ANDROID || UNITY_STANDALONE
+                                        persistentPath = Path.Combine(Application.persistentDataPath, persistentRelativeBundlePath);
+#elif UNITY_IPHONE && !UNITY_EDITOR
+                persistentPath = @"file://" + Path.Combine(Application.persistentDataPath, persistentRelativeBundlePath);
+#endif
+                                    }
+                                    else
+                                    {
+#if UNITY_EDITOR || UNITY_ANDROID || UNITY_STANDALONE
+                                        persistentPath = Application.persistentDataPath;
+#elif UNITY_IPHONE && !UNITY_EDITOR
+                persistentPath = @"file://" + Application.persistentDataPath;
+#endif
+                                    }
+                                    QuarkDataProxy.PersistentPath = persistentPath;
+                                    #endregion;
+                                    QuarkEngine.Instance.RequestManifestFromPersistentDataPathAsync();
+                                }
                                 break;
                             case QuarkBuildPath.URL:
                                 {
                                     QuarkUtility.IsStringValid(url, "URI is invalid !");
                                     QuarkUtility.IsStringValid(downloadPath, "DownloadPath is invalid !");
+                                    QuarkDataProxy.URL = url;
+
+                                    #region downloadedPath
+                                    if (downloadedPath != QuarkDownloadedPath.CustomePath)
+                                    {
+                                        switch (downloadedPath)
+                                        {
+                                            case QuarkDownloadedPath.PersistentDataPath:
+                                                downloadPath = Application.persistentDataPath;
+                                                break;
+                                        }
+                                        if (enableDownloadRelativePath)
+                                        {
+                                            downloadPath = Path.Combine(downloadPath, downloadRelativePath);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        downloadPath = customeAbsolutePath;
+                                    }
+                                    QuarkDataProxy.PersistentPath = downloadPath;
                                     if (!Directory.Exists(downloadPath))
                                         Directory.CreateDirectory(downloadPath);
+                                    #endregion;
+
                                     QuarkEngine.Instance.RequestMainifestFromURLAsync();
                                 }
                                 break;
@@ -240,82 +309,12 @@ namespace Quark
                     break;
             }
         }
-        public void SaveConfig()
-        {
-            QuarkDataProxy.QuarkEncryptionOffset = encryptionOffset;
-            QuarkResources.QuarkAssetLoadMode = loadMode;
-            QuarkDataProxy.QuarkAESEncryptionKey = manifestAesEncryptKey;
-
-            #region persistentPath
-            string persistentPath = string.Empty;
-            if (enablePersistentRelativeBundlePath)
-            {
-#if UNITY_EDITOR||UNITY_ANDROID||UNITY_STANDALONE
-                persistentPath = Path.Combine(Application.persistentDataPath, persistentRelativeBundlePath);
-#elif UNITY_IPHONE && !UNITY_EDITOR
-                persistentPath = @"file://" + Path.Combine(Application.persistentDataPath, persistentRelativeBundlePath);
-#endif
-            }
-            else
-            {
-#if UNITY_EDITOR||UNITY_ANDROID||UNITY_STANDALONE
-                persistentPath = Application.persistentDataPath;
-#elif UNITY_IPHONE && !UNITY_EDITOR
-                persistentPath = @"file://" + Application.persistentDataPath;
-#endif
-            }
-            QuarkDataProxy.PersistentPath = persistentPath;
-            #endregion;
-
-
-            #region streamingAssetPath
-            string streamingAssetPath = string.Empty;
-            if (enableStreamingRelativeBuildPath)
-            {
-#if UNITY_EDITOR||UNITY_ANDROID||UNITY_STANDALONE
-                streamingAssetPath = Path.Combine(Application.streamingAssetsPath, streamingRelativeBuildPath);
-#elif UNITY_IPHONE && !UNITY_EDITOR
-                streamingAssetPath = @"file://" + Path.Combine(Application.streamingAssetsPath, RelativeBuildPath);
-#endif
-            }
-            else
-            {
-#if UNITY_EDITOR||UNITY_ANDROID||UNITY_STANDALONE
-                streamingAssetPath = Application.streamingAssetsPath;
-#elif UNITY_IPHONE && !UNITY_EDITOR
-                streamingAssetPath = @"file://" + Application.streamingAssetsPath;
-#endif
-            }
-            QuarkDataProxy.StreamingAssetPath = streamingAssetPath;
-            #endregion;
-
-            QuarkDataProxy.URL = url;
-
-            #region downloadedPath
-            if (downloadedPath != QuarkDownloadedPath.CustomePath)
-            {
-                switch (downloadedPath)
-                {
-                    case QuarkDownloadedPath.PersistentDataPath:
-                        downloadPath = Application.persistentDataPath;
-                        break;
-                }
-                if (enableDownloadRelativePath)
-                {
-                    downloadPath = Path.Combine(downloadPath, downloadRelativePath);
-                }
-            }
-            else
-            {
-                downloadPath = customeAbsolutePath;
-            }
-            QuarkDataProxy.PersistentPath = downloadPath;
-            #endregion;
-        }
         void Awake()
         {
             instance = this;
-            SaveConfig();
+            QuarkDataProxy.QuarkEncryptionOffset = encryptionOffset;
+            QuarkResources.QuarkAssetLoadMode = loadMode;
+            QuarkDataProxy.QuarkAESEncryptionKey = manifestAesEncryptKey;
             if (autoStart)
                 LaunchWithConfig();
         }
