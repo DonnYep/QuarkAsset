@@ -205,7 +205,7 @@ namespace Quark.Loader
             if (hasObject)
                 OnResourceObjectUnload(quarkObject);
         }
-        public override void UnloadAllAssetBundle(bool unloadAllLoadedObjects = false)
+        public override void UnloadAllAssetBundle(bool unloadAllLoadedObjects = true)
         {
             //这里是卸载，保留寻址信息，清空引用计数
             foreach (var objectWarpper in objectWarpperDict.Values)
@@ -218,7 +218,7 @@ namespace Quark.Loader
                 bundleWarpper.AssetBundle?.Unload(unloadAllLoadedObjects);
             }
         }
-        public override void UnloadAssetBundle(string assetBundleName, bool unloadAllLoadedObjects = false)
+        public override void UnloadAssetBundle(string assetBundleName, bool unloadAllLoadedObjects = true)
         {
             if (bundleWarpperDict.TryGetValue(assetBundleName, out var bundleWarpper))
             {
@@ -232,6 +232,19 @@ namespace Quark.Loader
         public override Coroutine UnloadAllSceneAsync(Action<float> progress, Action callback)
         {
             return QuarkUtility.Unity.StartCoroutine(EnumUnloadAllSceneAsync(progress, callback));
+        }
+        public override void ClearLoader()
+        {
+            foreach (var bundleWarpper in bundleWarpperDict.Values)
+            {
+                bundleWarpper.AssetBundle?.Unload(true);
+            }
+            loadedSceneDict.Clear();
+            loadSceneList.Clear();
+            bundleWarpperDict.Clear();
+            objectWarpperDict.Clear();
+            objectLnkDict.Clear();
+            nameBundleKeyDict.Clear();
         }
         IEnumerator EnumLoadAssetWithSubAssetsAsync(string assetName, Type type, Action<Object[]> callback)
         {
@@ -421,7 +434,7 @@ namespace Quark.Loader
                 var dependentLength = dependentList.Count;
                 for (int i = 0; i < dependentLength; i++)
                 {
-                    var dependentBundleKey= dependentList[i];
+                    var dependentBundleKey = dependentList[i];
                     nameBundleKeyDict.TryGetValue(dependentBundleKey, out var dependentBundleName);
                     if (bundleWarpperDict.TryGetValue(dependentBundleName, out var dependentBundleWarpper))
                     {
@@ -445,24 +458,32 @@ namespace Quark.Loader
         /// <summary>
         /// 递归减少包体引用计数；
         /// </summary>
-        void UnloadAssetBundleWithDependencies(QuarkBundleWarpper bundleWarpper, int count = 1, bool unloadAllLoadedObjects = false)
+        void UnloadAssetBundleWithDependencies(QuarkBundleWarpper bundleWarpper, int count = 1, bool unloadAllLoadedObjects = true)
         {
             bundleWarpper.ReferenceCount -= count;
             if (bundleWarpper.ReferenceCount <= 0)
             {
                 //当包体的引用计数小于等于0时，则表示该包已经未被依赖。
                 //卸载AssetBundle；
-                bundleWarpper.AssetBundle?.Unload(unloadAllLoadedObjects);
+                if (bundleWarpper.AssetBundle != null)
+                    bundleWarpper.AssetBundle.Unload(unloadAllLoadedObjects);
             }
             var dependentList = bundleWarpper.QuarkAssetBundle.DependentBundleKeyList;
             var dependentLength = dependentList.Count;
             //遍历查询依赖包
             for (int i = 0; i < dependentLength; i++)
             {
-                var dependentBundleName = dependentList[i];
-                if (!bundleWarpperDict.TryGetValue(dependentBundleName, out var dependentBundleWarpper))
-                    continue;
-                UnloadAssetBundleWithDependencies(dependentBundleWarpper, count, unloadAllLoadedObjects);
+                var dependBundleKey = dependentList[i];
+                nameBundleKeyDict.TryGetValue(dependBundleKey, out var dependentBundleName);
+                if (bundleWarpperDict.TryGetValue(dependentBundleName, out var dependentBundleWarpper))
+                {
+                    dependentBundleWarpper.ReferenceCount -= count;
+                    if (dependentBundleWarpper.ReferenceCount <= 0)
+                    {
+                        if (dependentBundleWarpper.AssetBundle != null)
+                            dependentBundleWarpper.AssetBundle.Unload(unloadAllLoadedObjects);
+                    }
+                }
             }
         }
         void InitManifest(QuarkAssetManifest manifest)
@@ -495,6 +516,7 @@ namespace Quark.Loader
                     nameBundleKeyDict.Add(bundle.QuarkAssetBundle.AssetBundleKey, bundleName);
                 }
             }
+            QuarkDataProxy.QuarkManifest = manifest;
         }
         void LoadAssetBundleWithDependencies(string assetBundleName)
         {
@@ -527,7 +549,7 @@ namespace Quark.Loader
                         var dependAssetBundle = dependBundleWarpper.AssetBundle;
                         if (dependAssetBundle == null)
                         {
-                            var abPath = Path.Combine(PersistentPath, dependentBundleName);
+                            var abPath = Path.Combine(PersistentPath, dependBundleKey);
                             dependAssetBundle = AssetBundle.LoadFromFile(abPath, 0, QuarkDataProxy.QuarkEncryptionOffset);
                             if (dependAssetBundle != null)
                             {

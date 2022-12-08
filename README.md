@@ -12,13 +12,11 @@ QuarkAsset是一套轻量级的插件化Unity资源加载方案。 内置AssetDa
 
 # 标题导航
 - [QuarkAsset](#quarkasset)
-  - [* QuarkAsset Wiki<br/>](#-quarkasset-wiki)
 - [标题导航](#标题导航)
   - [UPM支持](#upm支持)
   - [QuarkEditor编辑器](#quarkeditor编辑器)
-    - [AssetDatabaseTab-BundleLabel](#assetdatabasetab-bundlelabel)
+    - [AssetDatabaseTab](#assetdatabasetab)
       - [设置AssetBundle](#设置assetbundle)
-    - [AssetDatabaseTab-ObjectLabel](#assetdatabasetab-objectlabel)
     - [AssetBundleTab](#assetbundletab)
     - [AssetDatasetTab](#assetdatasettab)
   - [QuarkRuntime入口-QuarkConfig](#quarkruntime入口-quarkconfig)
@@ -45,11 +43,7 @@ QuarkAsset是一套轻量级的插件化Unity资源加载方案。 内置AssetDa
 
 * UPM本地导入。选择Assets/QuarkAsset文件夹，拷贝到工程目录的Packages目录下，完成导入。
 
-* UPM从git导入。url链接
- 
-```
-https://github.com/DonnYep/QuarkAsset.git#upm 
-```
+* UPM从git导入。url链接: https://github.com/DonnYep/QuarkAsset.git#upm 
 
 <a name="QuarkEditor编辑器"></a>
 
@@ -71,32 +65,22 @@ https://github.com/DonnYep/QuarkAsset.git#upm
 
 * `AssetDatasetTab`用于为`dataset`设置可识别的文件后缀名。
 
-<a name="QuarkEditor-AssetDatabaseTab-BundleLabel"></a>
+<a name="QuarkEditor-AssetDatabaseTab"></a>
 
-### AssetDatabaseTab-BundleLabel
-![Quark_AssetDatabaseTab_BundleLabel](Docs/Images/Quark_AssetDatabaseTab_BundleLabel.png)
+### AssetDatabaseTab
+![Quark_AssetDatabaseTab](Docs/Images/Quark_AssetDatabaseTab.png)
 
 * 此页面显示dataset中包含的AssetBundle信息。
 
+* 每一条bundle信息都可通过点击右键生成的菜单进行操作。
+
+* 每一条object信息都可通过点击右键生成的菜单进行操作。
 
 <a name="设置AssetBundle"></a>
 
 #### 设置AssetBundle
 
 * 将需要被打包为ab的文件夹或资源拖拽入bundle label窗口，被拖入的资源会自动生成ab名称。点击上方Build按钮，完成dataset资源识别。
-
-* 每一条bundle信息都可通过点击右键生成的菜单进行操作。
-
-
-<a name="QuarkEditor-AssetDatabaseTab-ObjectLabel"></a>
-
-### AssetDatabaseTab-ObjectLabel
-![Quark_AssetDatabaseTab_ObjectLabel](Docs/Images/Quark_AssetDatabaseTab_ObjectLabel.png)
-
-* 此页面显示dataset中包含的AssetObject信息。
-
-* 每一条object信息都可通过点击右键生成的菜单进行操作。
-
 
 <a name="QuarkEditor-AssetBundleTab"></a>
 

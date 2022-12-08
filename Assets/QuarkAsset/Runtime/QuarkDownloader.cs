@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine.Networking;
-using Quark.Asset;
 
 namespace Quark.Networking
 {
@@ -60,7 +59,6 @@ namespace Quark.Networking
             remove { onDownloadFinish -= value; }
         }
         #endregion
-        public string PersistentPath { get { return QuarkDataProxy.PersistentPath; } }
         public string URL { get { return QuarkDataProxy.URL; } }
         public int DownloadTimeout { get; private set; }
         public bool DeleteFailureFile { get; set; }
@@ -171,7 +169,7 @@ namespace Quark.Networking
                 var uri = pendingURIs[0];
                 pendingURIs.RemoveAt(0);
                 currentDownloadIndex = downloadCount - pendingURIs.Count - 1;
-                var fileDownloadPath = Path.Combine(PersistentPath, uri);
+                var fileDownloadPath = Path.Combine(QuarkDataProxy.PersistentPath, uri);
                 var remoteUri = Path.Combine(URL, uri);
                 yield return EnumDownloadSingleFile(remoteUri, fileDownloadPath);
             }
@@ -200,7 +198,7 @@ namespace Quark.Networking
                 var operation = request.SendWebRequest();
                 while (!operation.isDone && canDownload)
                 {
-                    OnFileDownloading(uri, PersistentPath, request.downloadProgress);
+                    OnFileDownloading(uri, QuarkDataProxy.PersistentPath, request.downloadProgress);
                     yield return null;
                 }
 #if UNITY_2020_1_OR_NEWER
@@ -213,7 +211,7 @@ namespace Quark.Networking
                     {
                         Downloading = false;
                         onDownloadSuccess?.Invoke(uri, downloadPath);
-                        OnFileDownloading(uri, PersistentPath, 1);
+                        OnFileDownloading(uri, QuarkDataProxy.PersistentPath, 1);
                         successURIs.Add(uri);
                     }
                 }
@@ -222,7 +220,7 @@ namespace Quark.Networking
                     Downloading = false;
                     onDownloadFailure?.Invoke(request.url, downloadPath, request.error);
                     failureURIs.Add(uri);
-                    OnFileDownloading(uri, PersistentPath, 1);
+                    OnFileDownloading(uri, QuarkDataProxy.PersistentPath, 1);
                     if (DeleteFailureFile)
                     {
                         QuarkUtility.DeleteFile(downloadPath);

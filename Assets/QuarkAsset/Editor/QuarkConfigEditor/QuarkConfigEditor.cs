@@ -9,24 +9,29 @@ namespace Quark.Editor
         QuarkConfig quarkConfig;
         bool encryptionToggle;
         SerializedProperty sp_AutoStart;
-        SerializedProperty sp_QuarkAssetLoadMode;
+        SerializedProperty sp_LoadMode;
         SerializedProperty sp_QuarkAssetDataset;
         SerializedProperty sp_Url;
-        SerializedProperty sp_PingUrl;
         SerializedProperty sp_QuarkBuildPath;
-        SerializedProperty sp_EnableStreamingRelativeLoadPath;
-        SerializedProperty sp_StreamingRelativeLoadPath;
+        SerializedProperty sp_EnableStreamingRelativeBundlePath;
+        SerializedProperty sp_StreamingRelativeBundlePath;
+
+        SerializedProperty sp_EnablePersistentRelativeBundlePath;
+        SerializedProperty sp_PersistentRelativeBundlePath;
+
+        SerializedProperty sp_EnableDownloadRelativePath;
+        SerializedProperty sp_DownloadRelativePath;
 
         SerializedProperty sp_CustomeAbsolutePath;
-        SerializedProperty sp_QuarkDownloadedPath;
+        SerializedProperty sp_DownloadedPath;
         SerializedProperty sp_EncryptionOffset;
-        SerializedProperty sp_BuildInfoAESEncryptionKey;
+        SerializedProperty sp_ManifestAesEncryptKey;
         public override void OnInspectorGUI()
         {
             targetObject.Update();
             sp_AutoStart.boolValue = EditorGUILayout.ToggleLeft("AutoStart", sp_AutoStart.boolValue);
-            sp_QuarkAssetLoadMode.enumValueIndex = (byte)(QuarkLoadMode)EditorGUILayout.EnumPopup("QuarkAssetLoadMode", (QuarkLoadMode)sp_QuarkAssetLoadMode.enumValueIndex);
-            switch ((QuarkLoadMode)sp_QuarkAssetLoadMode.enumValueIndex)
+            sp_LoadMode.enumValueIndex = (byte)(QuarkLoadMode)EditorGUILayout.EnumPopup("LoadMode", (QuarkLoadMode)sp_LoadMode.enumValueIndex);
+            switch ((QuarkLoadMode)sp_LoadMode.enumValueIndex)
             {
                 case QuarkLoadMode.AssetDatabase:
                     {
@@ -53,18 +58,23 @@ namespace Quark.Editor
             quarkConfig = target as QuarkConfig;
             targetObject = new SerializedObject(quarkConfig);
             sp_AutoStart = targetObject.FindProperty("autoStart");
-            sp_QuarkAssetLoadMode = targetObject.FindProperty("quarkAssetLoadMode");
+            sp_LoadMode = targetObject.FindProperty("loadMode");
             sp_QuarkAssetDataset = targetObject.FindProperty("quarkAssetDataset");
             sp_Url = targetObject.FindProperty("url");
-            sp_PingUrl = targetObject.FindProperty("pingUrl");
-            sp_QuarkDownloadedPath = targetObject.FindProperty("quarkDownloadedPath");
+            sp_DownloadedPath = targetObject.FindProperty("downloadedPath");
             sp_EncryptionOffset = targetObject.FindProperty("encryptionOffset");
 
-            sp_EnableStreamingRelativeLoadPath = targetObject.FindProperty("enableStreamingRelativeBuildPath");
-            sp_StreamingRelativeLoadPath = targetObject.FindProperty("streamingRelativeBuildPath");
+            sp_EnableStreamingRelativeBundlePath = targetObject.FindProperty("enableStreamingRelativeBuildPath");
+            sp_StreamingRelativeBundlePath = targetObject.FindProperty("streamingRelativeBuildPath");
+
+            sp_EnablePersistentRelativeBundlePath = targetObject.FindProperty("enablePersistentRelativeBundlePath");
+            sp_PersistentRelativeBundlePath = targetObject.FindProperty("persistentRelativeBundlePath");
+
+            sp_EnableDownloadRelativePath=targetObject.FindProperty("enableDownloadRelativePath");
+            sp_DownloadRelativePath=targetObject.FindProperty("downloadRelativePath");
 
             sp_CustomeAbsolutePath = targetObject.FindProperty("customeAbsolutePath");
-            sp_BuildInfoAESEncryptionKey = targetObject.FindProperty("buildInfoAESEncryptionKey");
+            sp_ManifestAesEncryptKey = targetObject.FindProperty("manifestAesEncryptKey");
             sp_QuarkBuildPath = targetObject.FindProperty("quarkBuildPath");
         }
         void DrawBuildAssetBundleTab()
@@ -72,34 +82,43 @@ namespace Quark.Editor
             EditorGUILayout.HelpBox("Asset bundle build path", MessageType.Info);
 
             EditorGUILayout.BeginVertical();
-            sp_QuarkBuildPath.enumValueIndex = (byte)(QuarkBuildPath)EditorGUILayout.EnumPopup("QuarkBuildPath", (QuarkBuildPath)sp_QuarkBuildPath.enumValueIndex);
+            sp_QuarkBuildPath.enumValueIndex = (byte)(QuarkBuildPath)EditorGUILayout.EnumPopup("BundlePath", (QuarkBuildPath)sp_QuarkBuildPath.enumValueIndex);
             var buildType = (QuarkBuildPath)sp_QuarkBuildPath.enumValueIndex;
             switch (buildType)
             {
                 case QuarkBuildPath.StreamingAssets:
                     {
-                        sp_EnableStreamingRelativeLoadPath.boolValue = EditorGUILayout.Toggle("EnableStreamingRelativeBuildPath", sp_EnableStreamingRelativeLoadPath.boolValue);
-                        var useRelativePath = sp_EnableStreamingRelativeLoadPath.boolValue;
+                        sp_EnableStreamingRelativeBundlePath.boolValue = EditorGUILayout.ToggleLeft("EnableRelativeBundlePath", sp_EnableStreamingRelativeBundlePath.boolValue);
+                        var useRelativePath = sp_EnableStreamingRelativeBundlePath.boolValue;
                         if (useRelativePath)
                         {
-                            sp_StreamingRelativeLoadPath.stringValue = EditorGUILayout.TextField("StreamingRelativeBuildPath", sp_StreamingRelativeLoadPath.stringValue.Trim());
+                            sp_StreamingRelativeBundlePath.stringValue = EditorGUILayout.TextField("RelativeBundlePath", sp_StreamingRelativeBundlePath.stringValue.Trim());
                         }
                     }
                     break;
-                case QuarkBuildPath.Remote:
+                case QuarkBuildPath.PersistentDataPath:
                     {
-                        sp_PingUrl.boolValue = EditorGUILayout.Toggle("PingUrl", sp_PingUrl.boolValue);
+                        sp_EnablePersistentRelativeBundlePath.boolValue = EditorGUILayout.ToggleLeft("EnableRelativeBundlePath", sp_EnablePersistentRelativeBundlePath.boolValue);
+                        var useRelativePath = sp_EnablePersistentRelativeBundlePath.boolValue;
+                        if (useRelativePath)
+                        {
+                            sp_PersistentRelativeBundlePath.stringValue = EditorGUILayout.TextField("RelativeBundlePath", sp_PersistentRelativeBundlePath.stringValue.Trim());
+                        }
+                    }
+                    break;
+                case QuarkBuildPath.URL:
+                    {
                         sp_Url.stringValue = EditorGUILayout.TextField("Url", sp_Url.stringValue.Trim());
                         EditorGUILayout.BeginVertical();
-                        sp_QuarkDownloadedPath.enumValueIndex = (byte)(QuarkDownloadedPath)EditorGUILayout.EnumPopup("QuarkDownloadPath", (QuarkDownloadedPath)sp_QuarkDownloadedPath.enumValueIndex);
-                        var pathType = (QuarkDownloadedPath)sp_QuarkDownloadedPath.enumValueIndex;
-                        if (pathType != QuarkDownloadedPath.Custome)
+                        sp_DownloadedPath.enumValueIndex = (byte)(QuarkDownloadedPath)EditorGUILayout.EnumPopup("DownloadPath", (QuarkDownloadedPath)sp_DownloadedPath.enumValueIndex);
+                        var pathType = (QuarkDownloadedPath)sp_DownloadedPath.enumValueIndex;
+                        if (pathType != QuarkDownloadedPath.CustomePath)
                         {
-                            sp_EnableStreamingRelativeLoadPath.boolValue = EditorGUILayout.Toggle("UseStreamingRelativeLoadPath", sp_EnableStreamingRelativeLoadPath.boolValue);
-                            var useRelativePath = sp_EnableStreamingRelativeLoadPath.boolValue;
+                            sp_EnableDownloadRelativePath.boolValue = EditorGUILayout.ToggleLeft("EnableDownloadRelativePath", sp_EnableDownloadRelativePath.boolValue);
+                            var useRelativePath = sp_EnableDownloadRelativePath.boolValue;
                             if (useRelativePath)
                             {
-                                sp_StreamingRelativeLoadPath.stringValue = EditorGUILayout.TextField("RelativeLoadPath", sp_StreamingRelativeLoadPath.stringValue.Trim());
+                                sp_DownloadRelativePath.stringValue = EditorGUILayout.TextField("DownloadRelativePath", sp_DownloadRelativePath.stringValue.Trim());
                             }
                         }
                         else
@@ -115,7 +134,7 @@ namespace Quark.Editor
         }
         void DrawOffstEncryption()
         {
-            sp_EncryptionOffset.longValue = EditorGUILayout.LongField("QuarkEncryptOffset", sp_EncryptionOffset.longValue);
+            sp_EncryptionOffset.longValue = EditorGUILayout.LongField("EncryptOffset", sp_EncryptionOffset.longValue);
             var offsetVar = sp_EncryptionOffset.longValue;
             if (offsetVar < 0)
                 sp_EncryptionOffset.longValue = 0;
@@ -123,8 +142,8 @@ namespace Quark.Editor
         void DrawAESEncryption()
         {
             EditorGUILayout.Space(8);
-            sp_BuildInfoAESEncryptionKey.stringValue = EditorGUILayout.TextField("QuarkAesKey", sp_BuildInfoAESEncryptionKey.stringValue);
-            var keyStr = sp_BuildInfoAESEncryptionKey.stringValue;
+            sp_ManifestAesEncryptKey.stringValue = EditorGUILayout.TextField("ManifestAesKey", sp_ManifestAesEncryptKey.stringValue);
+            var keyStr = sp_ManifestAesEncryptKey.stringValue;
             var keyLength = System.Text.Encoding.UTF8.GetBytes(keyStr).Length;
             EditorGUILayout.LabelField($"Current key length is:{keyLength }");
             if (keyLength != 16 && keyLength != 24 && keyLength != 32 && keyLength != 0)

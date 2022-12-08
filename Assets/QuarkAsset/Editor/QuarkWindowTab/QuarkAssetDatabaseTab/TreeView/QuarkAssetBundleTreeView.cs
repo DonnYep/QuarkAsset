@@ -175,6 +175,7 @@ namespace Quark.Editor
         {
             originalName = item.displayName;
             renamingItemId = item.id;
+            BeginRename(item);
             return item != null;
         }
         protected override void ContextClickedItem(int id)

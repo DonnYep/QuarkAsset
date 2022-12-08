@@ -27,6 +27,7 @@ namespace Quark.Editor
         public static void OpenWindow()
         {
             var window = GetWindow<QuarkAssetWindow>();
+            window.minSize = new Vector2(960f, 540f);
         }
         void OnEnable()
         {
@@ -116,7 +117,7 @@ namespace Quark.Editor
                 switch (windowData.SelectedTabIndex)
                 {
                     case 0:
-                        assetDatabaseTab.OnGUI();
+                        assetDatabaseTab.OnGUI(position);
                         break;
                     case 1:
                         assetBundleTab.OnGUI();

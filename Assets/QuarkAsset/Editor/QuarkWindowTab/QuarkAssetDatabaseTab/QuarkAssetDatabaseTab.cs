@@ -11,8 +11,6 @@ namespace Quark.Editor
         QuarkAssetDatabaseTabData tabData;
         internal const string QuarkAssetDatabaseTabDataFileName = "QuarkAsset_DatabaseTabData.json";
 
-        readonly string[] selectBarArr = new string[] { "Asset bundle lable", "Asset object lable" };
-
         QuarkAssetBundleSearchLabel assetBundleSearchLabel = new QuarkAssetBundleSearchLabel();
         QuarkAssetObjectSearchLabel assetObjectSearchLabel = new QuarkAssetObjectSearchLabel();
 
@@ -65,7 +63,7 @@ namespace Quark.Editor
             assetObjectSearchLabel.TreeView.Clear();
             assetBundleSearchLabel.TreeView.Clear();
         }
-        public void OnGUI()
+        public void OnGUI(Rect rect)
         {
             GUILayout.Space(16);
             GUILayout.BeginHorizontal();
@@ -81,11 +79,20 @@ namespace Quark.Editor
             }
             GUILayout.EndHorizontal();
             GUILayout.Space(16);
+
             GUILayout.BeginHorizontal();
             {
-                GUILayout.BeginVertical(GUILayout.MinWidth(128));
+                assetBundleSearchLabel.OnGUI(rect);
+                assetObjectSearchLabel.OnGUI(rect);
+            }
+            GUILayout.EndHorizontal();
+
+            GUILayout.Space(16);
+            GUILayout.BeginHorizontal();
+            {
+
+                GUILayout.BeginHorizontal(GUILayout.MinWidth(128));
                 {
-                    tabData.SelectedBarIndex = GUILayout.SelectionGrid(tabData.SelectedBarIndex, selectBarArr, 1);
                     if (loadingQuarkObject)
                     {
                         EditorGUILayout.Space(8);
@@ -99,24 +106,21 @@ namespace Quark.Editor
                         EditorGUILayout.LabelField("Quark Asset Editor", GUILayout.MaxWidth(128));
                     }
                 }
-                GUILayout.EndVertical();
+                GUILayout.EndHorizontal();
 
-                GUILayout.BeginVertical();
+                GUILayout.BeginHorizontal();
                 {
-
-                    switch (tabData.SelectedBarIndex)
+                    GUILayout.FlexibleSpace();
+                    if (GUILayout.Button("ClearAllAssetBundle"))
                     {
-                        case 0:
-                            assetBundleSearchLabel.OnGUI();
-                            break;
-                        case 1:
-                            assetObjectSearchLabel.OnGUI();
-                            break;
+                        QuarkEditorDataProxy.QuarkAssetDataset.QuarkAssetBundleList?.Clear();
+                        assetBundleSearchLabel.TreeView.Clear();
                     }
                 }
-                GUILayout.EndVertical();
+                GUILayout.EndHorizontal();
             }
             GUILayout.EndHorizontal();
+            GUILayout.Space(16);
         }
         public EditorCoroutine BuildDataset()
         {

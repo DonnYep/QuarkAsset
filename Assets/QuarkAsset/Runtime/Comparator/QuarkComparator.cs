@@ -25,15 +25,7 @@ namespace Quark.Networking
         List<string> latest = new List<string>();
         //本地有但是远程没有，则标记为可过期文件；
         List<string> expired = new List<string>();
-        /// <summary>
-        /// 本地持久化路径；
-        /// </summary>
-        public string PersistentPath { get { return QuarkDataProxy.PersistentPath; } }
-        /// <summary>
-        /// 远程资源地址；
-        /// </summary>
-        public string URL { get { return QuarkDataProxy.URL; } }
-        bool isEncrypted { get { return QuarkDataProxy.QuarkAESEncryptionKey.Length > 0; } }
+        bool isEncrypted { get { return QuarkDataProxy.QuarkAESEncryptionKeyBytes.Length > 0; } }
         QuarkAssetManifest localManifest = null;
         QuarkAssetManifest remoteManifest = null;
         public void Initiate(Action<string[], string[], long> onCompareSuccess, Action<string> onCompareFailure)
@@ -47,13 +39,18 @@ namespace Quark.Networking
         /// </summary>
         public Coroutine RequestMainifestFromURLAsync()
         {
-            var uriManifestPath = Path.Combine(URL, QuarkConstant.ManifestName);
+            var uriManifestPath = Path.Combine(QuarkDataProxy.URL, QuarkConstant.ManifestName);
             return QuarkUtility.Unity.StartCoroutine(EnumRequestManifestFromURL(uriManifestPath));
         }
         public Coroutine RequestManifestFromStreamingAssetAsync()
         {
-            var localManifestPath = Path.Combine(URL, QuarkConstant.ManifestName);
-            return QuarkUtility.Unity.StartCoroutine(EnumRequestManifestFromStreamingAsset(localManifestPath));
+            var localManifestPath = Path.Combine(QuarkDataProxy.StreamingAssetPath, QuarkConstant.ManifestName);
+            return QuarkUtility.Unity.StartCoroutine(EnumRequestManifestFromLocal(localManifestPath));
+        }
+        public Coroutine RequestManifestFromPersistentDataPathAsync()
+        {
+            var localManifestPath = Path.Combine(QuarkDataProxy.PersistentPath, QuarkConstant.ManifestName);
+            return QuarkUtility.Unity.StartCoroutine(EnumRequestManifestFromLocal(localManifestPath));
         }
         public void Clear()
         {
@@ -84,7 +81,7 @@ namespace Quark.Networking
                 }
             }
         }
-        IEnumerator EnumRequestManifestFromStreamingAsset(string manifestUri)
+        IEnumerator EnumRequestManifestFromLocal(string manifestUri)
         {
             using (UnityWebRequest request = UnityWebRequest.Get(manifestUri))
             {
@@ -102,7 +99,7 @@ namespace Quark.Networking
                         {
                             if (isEncrypted)
                             {
-                                var unencryptedManifest = QuarkUtility.AESDecryptStringToString(context, QuarkDataProxy.QuarkAESEncryptionKey);
+                                var unencryptedManifest = QuarkUtility.AESDecryptStringToString(context, QuarkDataProxy.QuarkAESEncryptionKeyBytes);
                                 localManifest = QuarkUtility.ToObject<QuarkAssetManifest>(unencryptedManifest);
                             }
                             else
@@ -119,7 +116,7 @@ namespace Quark.Networking
                     }
                 }
             }
-            QuarkEngine.Instance.SetBuiltAssetBundleModeData(localManifest);
+            QuarkEngine.Instance.SetAssetBundleModeManifest(localManifest);
             onCompareSuccess(new string[0], new string[0], 0);
         }
         void OnUriManifestSuccess(string remoteManifestContext)
@@ -127,10 +124,10 @@ namespace Quark.Networking
             latest.Clear();
             expired.Clear();
             //获取本地manifest
-            var localManifestPath = Path.Combine(PersistentPath, QuarkConstant.ManifestName);
+            var localManifestPath = Path.Combine(QuarkDataProxy.PersistentPath, QuarkConstant.ManifestName);
             string localManifestContext = string.Empty;
             long overallSize = 0;
-            var aesKey = QuarkDataProxy.QuarkAESEncryptionKey;
+            var aesKey = QuarkDataProxy.QuarkAESEncryptionKeyBytes;
             try
             {
                 //解析加密的manifest
@@ -170,10 +167,10 @@ namespace Quark.Networking
             if (localManifest == null)
             {
                 //若本地的Manifest为空，远端的Manifest不为空，则将需要下载的资源url缓存到latest;
-                latest.AddRange(remoteManifest.BundleInfoDict.Keys.ToList());
                 foreach (var bundleInfo in remoteManifest.BundleInfoDict.Values)
                 {
                     overallSize += bundleInfo.BundleSize;
+                    latest.Add(bundleInfo.QuarkAssetBundle.AssetBundleKey);
                 }
             }
             else
@@ -183,6 +180,7 @@ namespace Quark.Networking
                 //远端没有本地有，则缓存至expired；
                 foreach (var remoteBuildInfo in remoteManifest.BundleInfoDict)
                 {
+                    var remoteBundleKey = remoteBuildInfo.Value.QuarkAssetBundle.AssetBundleKey;
                     var remoteBundleName = remoteBuildInfo.Key;
                     var remoteBundleBuildInfo = remoteBuildInfo.Value;
                     if (localManifest.BundleInfoDict.TryGetValue(remoteBundleName, out var localBuildInfo))
@@ -190,24 +188,25 @@ namespace Quark.Networking
                         if (localBuildInfo.Hash != remoteBundleBuildInfo.Hash)
                         {
                             overallSize += remoteBundleBuildInfo.BundleSize;
-                            latest.Add(remoteBundleName);
-                            expired.Add(remoteBundleName);
+                            latest.Add(remoteBundleKey);
+                            expired.Add(remoteBundleKey);
                         }
                         else
                         {
                             //检测远端包体与本地包体的大小是否相同。
                             //在Hash相同的情况下，若包体不同，则可能是本地的包不完整，因此需要重新加入下载队列。
-                            var localBundlePath = Path.Combine(PersistentPath, localBuildInfo.BundleName);
+                            var localBundleKey = localBuildInfo.QuarkAssetBundle.AssetBundleKey;
+                            var localBundlePath = Path.Combine(QuarkDataProxy.PersistentPath, localBundleKey);
                             var localBundleSize = QuarkUtility.GetFileSize(localBundlePath);
                             var remoteBundleSize = remoteBundleBuildInfo.BundleSize;
                             if (remoteBundleSize != localBundleSize)
                             {
                                 var remainBundleSize = remoteBundleSize - localBundleSize;
                                 overallSize += remainBundleSize;
-                                latest.Add(remoteBundleName);
+                                latest.Add(remoteBundleKey);
                                 if (remoteBundleSize < localBundleSize)//若本地包体大于远端包体，则表示为本地包为过期包
                                 {
-                                    expired.Add(localBuildInfo.BundleName);
+                                    expired.Add(localBundleKey);
                                 }
                             }
                         }
@@ -217,11 +216,11 @@ namespace Quark.Networking
                         overallSize += remoteBundleBuildInfo.BundleSize;
                         latest.Add(remoteBundleName);
                     }
-                    foreach (var localMF in localManifest.BundleInfoDict)
+                    foreach (var _buildInfo in localManifest.BundleInfoDict)
                     {
-                        if (!remoteManifest.BundleInfoDict.ContainsKey(localMF.Key))
+                        if (!remoteManifest.BundleInfoDict.ContainsKey(_buildInfo.Key))
                         {
-                            expired.Add(localMF.Key);
+                            expired.Add(_buildInfo.Value.QuarkAssetBundle.AssetBundleKey);
                         }
                     }
                 }
@@ -231,7 +230,7 @@ namespace Quark.Networking
             latest.Clear();
             expired.Clear();
             QuarkUtility.OverwriteTextFile(localManifestPath, remoteManifestContext);
-            QuarkEngine.Instance.SetBuiltAssetBundleModeData(remoteManifest);
+            QuarkEngine.Instance.SetAssetBundleModeManifest(remoteManifest);
             onCompareSuccess?.Invoke(latesetArray, expiredArray, overallSize);
         }
     }

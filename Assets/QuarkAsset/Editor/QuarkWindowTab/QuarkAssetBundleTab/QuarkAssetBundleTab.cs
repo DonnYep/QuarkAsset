@@ -68,20 +68,23 @@ namespace Quark.Editor
             GUILayout.BeginHorizontal();
             {
                 GUILayout.FlexibleSpace();
-                if (GUILayout.Button("OpenBuildFullPath", GUILayout.MaxWidth(128f)))
+                if (GUILayout.Button("Open build Path", GUILayout.MaxWidth(128f)))
                 {
                     var path = tabData.AssetBundleBuildPath;
                     if (!Directory.Exists(path))
                     {
-                        Directory.CreateDirectory(path);
+                        EditorUtility.RevealInFinder(Application.dataPath);
                     }
-                    EditorUtility.RevealInFinder(path);
+                    else
+                    {
+                        EditorUtility.RevealInFinder(path);
+                    }
                 }
             }
             GUILayout.EndHorizontal();
             GUILayout.Space(32);
 
-            tabData.NameHashType = (AssetBundleNameType)EditorGUILayout.EnumPopup("Bundle name type", tabData.NameHashType);
+            tabData.AssetBundleNameType = (AssetBundleNameType)EditorGUILayout.EnumPopup("Bundle name type", tabData.AssetBundleNameType);
             tabData.ClearOutputFolders = EditorGUILayout.ToggleLeft("ClearOutputFolders", tabData.ClearOutputFolders);
 
 
@@ -111,9 +114,9 @@ namespace Quark.Editor
                 {
                     if (dataset != null)
                     {
-                        if (tabData.UseAesEncryptionForBuildInfo)
+                        if (tabData.UseAesEncryptionForManifest)
                         {
-                            var aesKeyStr = tabData.AesEncryptionKeyForBuildInfo;
+                            var aesKeyStr = tabData.AesEncryptionKeyForManifest;
                             var aesKeyLength = System.Text.Encoding.UTF8.GetBytes(aesKeyStr).Length;
                             if (aesKeyLength != 16 && aesKeyLength != 24 && aesKeyLength != 32)
                             {
@@ -142,13 +145,13 @@ namespace Quark.Editor
         }
         void DrawAESEncryptionForBuildInfoLable()
         {
-            tabData.UseAesEncryptionForBuildInfo = EditorGUILayout.ToggleLeft("Aes encryption for buildInfo and manifest", tabData.UseAesEncryptionForBuildInfo);
-            if (tabData.UseAesEncryptionForBuildInfo)
+            tabData.UseAesEncryptionForManifest = EditorGUILayout.ToggleLeft("Aes encryption for buildInfo and manifest", tabData.UseAesEncryptionForManifest);
+            if (tabData.UseAesEncryptionForManifest)
             {
                 EditorGUILayout.LabelField("BuildInfo AES encryption key, key should be 16,24 or 32 bytes long");
-                tabData.AesEncryptionKeyForBuildInfo = EditorGUILayout.TextField("AESKey", tabData.AesEncryptionKeyForBuildInfo);
+                tabData.AesEncryptionKeyForManifest = EditorGUILayout.TextField("AESKey", tabData.AesEncryptionKeyForManifest);
 
-                var aesKeyStr = tabData.AesEncryptionKeyForBuildInfo;
+                var aesKeyStr = tabData.AesEncryptionKeyForManifest;
                 var aesKeyLength = System.Text.Encoding.UTF8.GetBytes(aesKeyStr).Length;
                 EditorGUILayout.LabelField($"Current key length is:{aesKeyLength}");
                 if (aesKeyLength != 16 && aesKeyLength != 24 && aesKeyLength != 32 && aesKeyLength != 0)
@@ -205,19 +208,19 @@ namespace Quark.Editor
             {
                 var bundlePath = bundle.AssetBundlePath;
                 var importer = AssetImporter.GetAtPath(bundlePath);
-                var nameType = tabData.NameHashType;
+                var nameType = tabData.AssetBundleNameType;
                 var bundleName = bundle.AssetBundleName;
                 var path = Path.Combine(QuarkEditorUtility.ApplicationPath, bundlePath);
                 var hash = QuarkEditorUtility.CreateDirectoryMd5(path);
                 switch (nameType)
                 {
                     case AssetBundleNameType.DefaultName:
-                        bundle.AssetBundleKey= bundle.AssetBundleName;
+                        bundle.AssetBundleKey = bundle.AssetBundleName;
                         break;
                     case AssetBundleNameType.HashInstead:
                         {
                             bundleName = hash;
-                            bundle.AssetBundleKey= hash;
+                            bundle.AssetBundleKey = hash;
                         }
                         break;
                 }
@@ -228,7 +231,7 @@ namespace Quark.Editor
                     QuarkAssetBundle = bundle,
                     BundleName = bundle.AssetBundleName
                 };
-                quarkManifest.BundleInfoDict.Add(bundle.AssetBundleName, bundleInfo);
+                quarkManifest.BundleInfoDict.Add(bundleName, bundleInfo);
                 yield return null;
             }
             for (int i = 0; i < bundles.Count; i++)
@@ -244,8 +247,8 @@ namespace Quark.Editor
             var assetBundleBuildPath = tabData.AssetBundleBuildPath;
             if (manifest == null)
                 yield break;
-            Dictionary<string, QuarkAssetBundle> bundleKeyDict=null;
-            if (tabData.NameHashType == AssetBundleNameType.HashInstead)
+            Dictionary<string, QuarkAssetBundle> bundleKeyDict = null;
+            if (tabData.AssetBundleNameType == AssetBundleNameType.HashInstead)
                 bundleKeyDict = dataset.QuarkAssetBundleList.ToDictionary(b => b.AssetBundleKey);
             var bundleKeys = manifest.GetAllAssetBundles();
             var bundleKeyLength = bundleKeys.Length;
@@ -269,7 +272,7 @@ namespace Quark.Editor
                 }
 
                 var bundleName = string.Empty;
-                switch (tabData.NameHashType)
+                switch (tabData.AssetBundleNameType)
                 {
                     case AssetBundleNameType.DefaultName:
                         {
@@ -279,7 +282,7 @@ namespace Quark.Editor
                     case AssetBundleNameType.HashInstead:
                         {
                             if (bundleKeyDict.TryGetValue(bundleKey, out var bundle))
-                                bundleName = bundle.AssetBundleName;
+                                bundleName = bundle.AssetBundleKey;
                         }
                         break;
                 }
@@ -294,9 +297,9 @@ namespace Quark.Editor
             var manifestJson = QuarkUtility.ToJson(quarkManifest);
             var manifestContext = manifestJson;
             var manifestWritePath = Path.Combine(tabData.AssetBundleBuildPath, QuarkConstant.ManifestName);
-            if (tabData.UseAesEncryptionForBuildInfo)
+            if (tabData.UseAesEncryptionForManifest)
             {
-                var key = QuarkUtility.GenerateBytesAESKey(tabData.AesEncryptionKeyForBuildInfo);
+                var key = QuarkUtility.GenerateBytesAESKey(tabData.AesEncryptionKeyForManifest);
                 manifestContext = QuarkUtility.AESEncryptStringToString(manifestJson, key);
             }
             QuarkUtility.WriteTextFile(manifestWritePath, manifestContext);
@@ -321,7 +324,7 @@ namespace Quark.Editor
                 if (Directory.Exists(buildPath))
                 {
                     var streamingAssetPath = Path.Combine(Application.streamingAssetsPath, tabData.StreamingRelativePath);
-                    QuarkUtility.Copy(buildPath, streamingAssetPath);
+                    QuarkUtility.CopyDirectory(buildPath, streamingAssetPath);
                 }
             }
             AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);

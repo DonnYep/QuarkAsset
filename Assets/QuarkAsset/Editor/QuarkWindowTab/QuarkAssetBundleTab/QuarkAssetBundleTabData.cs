@@ -18,7 +18,7 @@ namespace Quark.Editor
         public bool ClearOutputFolders;
         public bool CopyToStreamingAssets;
         public string StreamingRelativePath;
-        public AssetBundleNameType NameHashType;
+        public AssetBundleNameType AssetBundleNameType;
         /// <summary>
         /// 使用偏移加密；
         /// </summary>
@@ -31,11 +31,11 @@ namespace Quark.Editor
         /// <summary>
         /// 使用对称加密对build信息进行加密;
         /// </summary>
-        public bool UseAesEncryptionForBuildInfo;
+        public bool UseAesEncryptionForManifest;
         /// <summary>
         /// 对称加密的密钥；
         /// </summary>
-        public string AesEncryptionKeyForBuildInfo;
+        public string AesEncryptionKeyForManifest;
 
         public BuildAssetBundleOptions BuildAssetBundleOptions;
 
@@ -44,12 +44,12 @@ namespace Quark.Editor
             BuildTarget = BuildTarget.StandaloneWindows;
             BuildPath = Path.Combine(Path.GetFullPath("."), "AssetBundles", "QuarkAsset").Replace("\\", "/");
             ClearOutputFolders = true;
-            CopyToStreamingAssets = true;
-            NameHashType = AssetBundleNameType.DefaultName;
+            CopyToStreamingAssets = false;
+            AssetBundleNameType = AssetBundleNameType.DefaultName;
             UseOffsetEncryptionForAssetBundle = false;
             EncryptionOffsetForAssetBundle = 32;
-            UseAesEncryptionForBuildInfo = false;
-            AesEncryptionKeyForBuildInfo = "QuarkAssetAesKey";
+            UseAesEncryptionForManifest = false;
+            AesEncryptionKeyForManifest = "QuarkAssetAesKey";
             BuildAssetBundleOptions = BuildAssetBundleOptions.ChunkBasedCompression;
             BuildVersion = "0_0_1";
             StreamingRelativePath = BuildVersion;

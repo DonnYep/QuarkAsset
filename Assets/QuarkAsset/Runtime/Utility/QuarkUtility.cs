@@ -89,7 +89,7 @@ namespace Quark
         }
         /// <summary>
         /// Ping URL是否存在；
-        /// Ping的过程本身是阻塞的，谨慎使用！；
+        /// Ping的过程本身是阻塞的，谨慎使用！
         /// </summary>
         /// <param name="url">资源地址</param>
         /// <returns>是否存在</returns>
@@ -413,18 +413,18 @@ namespace Quark
         /// </summary>
         /// <param name="sourceDirectory">原始地址</param>
         /// <param name="targetDirectory">目标地址</param>
-        public static void Copy(string sourceDirectory, string targetDirectory)
+        public static void CopyDirectory(string sourceDirectory, string targetDirectory)
         {
             DirectoryInfo diSource = new DirectoryInfo(sourceDirectory);
             DirectoryInfo diTarget = new DirectoryInfo(targetDirectory);
-            CopyAll(diSource, diTarget);
+            CopyDirectoryRecursively(diSource, diTarget);
         }
         /// <summary>
         /// 拷贝文件夹的内容到另一个文件夹；
         /// </summary>
         /// <param name="source">原始地址</param>
         /// <param name="target">目标地址</param>
-        public static void CopyAll(DirectoryInfo source, DirectoryInfo target)
+        public static void CopyDirectoryRecursively(DirectoryInfo source, DirectoryInfo target)
         {
             Directory.CreateDirectory(target.FullName);
             //复制所有文件到新地址
@@ -437,7 +437,7 @@ namespace Quark
             {
                 DirectoryInfo nextTargetSubDir =
                     target.CreateSubdirectory(diSourceSubDir.Name);
-                CopyAll(diSourceSubDir, nextTargetSubDir);
+                CopyDirectoryRecursively(diSourceSubDir, nextTargetSubDir);
             }
         }
         /// <summary>

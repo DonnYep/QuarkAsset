@@ -15,14 +15,14 @@ namespace Quark.Editor
             searchField = new SearchField();
             treeViewState = new TreeViewState();
             var multiColumnHeaderState = new MultiColumnHeader(QuarkEditorUtility.CreateObjectMultiColumnHeader());
-            treeView = new QuarkAssetObjectTreeView(treeViewState,multiColumnHeaderState);
+            treeView = new QuarkAssetObjectTreeView(treeViewState, multiColumnHeaderState);
             searchField.downOrUpArrowKeyPressed += treeView.SetFocusAndEnsureSelectedItem;
         }
-        public void OnGUI()
+        public void OnGUI(Rect rect)
         {
             GUILayout.BeginVertical();
             DrawToolbar();
-            DrawTreeView();
+            DrawTreeView(rect);
             GUILayout.EndVertical();
         }
         void DrawToolbar()
@@ -31,11 +31,11 @@ namespace Quark.Editor
             treeView.searchString = searchField.OnToolbarGUI(treeView.searchString);
             GUILayout.EndHorizontal();
         }
-        void DrawTreeView()
+        void DrawTreeView(Rect rect)
         {
-            GUILayout.BeginVertical("box");
-            Rect rect = GUILayoutUtility.GetRect(32, 8192, 32, 8192);
-            treeView.OnGUI(rect);
+            GUILayout.BeginVertical(GUILayout.MaxWidth(rect.width * 0.6f));
+            Rect viewRect = GUILayoutUtility.GetRect(32, 8192, 32, 8192);
+            treeView.OnGUI(viewRect);
             GUILayout.EndVertical();
         }
     }
