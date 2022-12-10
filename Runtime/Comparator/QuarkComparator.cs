@@ -42,12 +42,7 @@ namespace Quark.Networking
             var uriManifestPath = Path.Combine(QuarkDataProxy.URL, QuarkConstant.ManifestName);
             return QuarkUtility.Unity.StartCoroutine(EnumRequestManifestFromURL(uriManifestPath));
         }
-        public Coroutine RequestManifestFromStreamingAssetAsync()
-        {
-            var localManifestPath = Path.Combine(QuarkDataProxy.StreamingAssetPath, QuarkConstant.ManifestName);
-            return QuarkUtility.Unity.StartCoroutine(EnumRequestManifestFromLocal(localManifestPath));
-        }
-        public Coroutine RequestManifestFromPersistentDataPathAsync()
+        public Coroutine RequestManifestFromLocalAssetAsync()
         {
             var localManifestPath = Path.Combine(QuarkDataProxy.PersistentPath, QuarkConstant.ManifestName);
             return QuarkUtility.Unity.StartCoroutine(EnumRequestManifestFromLocal(localManifestPath));

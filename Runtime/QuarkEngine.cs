@@ -79,13 +79,9 @@ namespace Quark
             quarkLoaderDict[QuarkLoadMode.AssetDatabase] = new QuarkAssetDatabaseLoader();
             quarkLoaderDict[QuarkLoadMode.AssetBundle] = new QuarkAssetBundleLoader();
         }
-        public Coroutine RequestManifestFromPersistentDataPathAsync()
+        public Coroutine RequestManifestFromLocalAssetAsync()
         {
-            return quarkComparator.RequestManifestFromPersistentDataPathAsync();
-        }
-        public Coroutine RequestManifestFromStreamingAssetAsync()
-        {
-            return quarkComparator.RequestManifestFromStreamingAssetAsync();
+            return quarkComparator.RequestManifestFromLocalAssetAsync();
         }
         public Coroutine RequestMainifestFromURLAsync()
         {
