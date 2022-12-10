@@ -338,6 +338,7 @@ namespace Quark.Editor
                 QuarkUtility.DeleteFile(bundleManifestPath);
             }
             quarkManifest.BuildTime = System.DateTime.Now.ToString();
+            quarkManifest.BuildVersion = tabData.BuildVersion;
             var manifestJson = QuarkUtility.ToJson(quarkManifest);
             var manifestContext = manifestJson;
             var manifestWritePath = Path.Combine(tabData.AssetBundleBuildPath, QuarkConstant.ManifestName);

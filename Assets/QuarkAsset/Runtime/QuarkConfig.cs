@@ -113,7 +113,7 @@ namespace Quark
         /// <param name="manifestAesKey">manifest密钥</param>
         /// <param name="bundleOffset">bundle偏移量</param>
         /// <param name="persisitentRelativePath">Application.persistentDataPath下的相对路径</param>
-        public void LaunchAssetBundleModeWithUrlToPersisitent(string url, string manifestAesKey="",int bundleOffset=0,string persisitentRelativePath = "")
+        public void LaunchAssetBundleModeWithUrlToPersisitent(string url, string manifestAesKey = "", int bundleOffset = 0, string persisitentRelativePath = "")
         {
             QuarkDataProxy.QuarkEncryptionOffset = (ulong)bundleOffset;
             QuarkDataProxy.QuarkAESEncryptionKey = manifestAesKey;
@@ -124,12 +124,24 @@ namespace Quark
             persistentPath = Application.persistentDataPath;
             if (hasRelativePath)
             {
-                persistentPath = Path.Combine(persistentPath, persisitentRelativePath);
+#if UNITY_EDITOR || UNITY_ANDROID || UNITY_STANDALONE
+                persistentPath = Path.Combine(Application.persistentDataPath, persisitentRelativePath);
+#elif UNITY_IPHONE && !UNITY_EDITOR
+                persistentPath = @"file://" + Path.Combine(Application.persistentDataPath, persisitentRelativePath);
+#endif
+            }
+            else
+            {
+#if UNITY_EDITOR || UNITY_ANDROID || UNITY_STANDALONE
+                persistentPath = Application.persistentDataPath;
+#elif UNITY_IPHONE && !UNITY_EDITOR
+                persistentPath = @"file://" + Application.persistentDataPath;
+#endif
             }
             if (!Directory.Exists(persistentPath))
                 Directory.CreateDirectory(persistentPath);
             QuarkDataProxy.PersistentPath = persistentPath;
-            QuarkDataProxy.URL= url;
+            QuarkDataProxy.URL = url;
             QuarkEngine.Instance.RequestMainifestFromURLAsync();
         }
         /// <summary>
@@ -162,7 +174,7 @@ namespace Quark
 #endif
             }
             QuarkDataProxy.PersistentPath = persistentPath;
-            QuarkEngine.Instance.RequestManifestFromPersistentDataPathAsync();
+            QuarkEngine.Instance.RequestManifestFromLocalAssetAsync();
         }
         /// <summary>
         ///  启动从streamingAssetsPath加载ab资源的模式；
@@ -193,8 +205,8 @@ namespace Quark
                 streamingAssetPath = @"file://" + Application.streamingAssetsPath;
 #endif
             }
-            QuarkDataProxy.StreamingAssetPath = streamingAssetPath;
-            QuarkEngine.Instance.RequestManifestFromStreamingAssetAsync();
+            QuarkDataProxy.PersistentPath = streamingAssetPath;
+            QuarkEngine.Instance.RequestManifestFromLocalAssetAsync();
         }
         /// <summary>
         /// 启动默认模式；
@@ -240,11 +252,10 @@ namespace Quark
                 streamingAssetPath = @"file://" + Application.streamingAssetsPath;
 #endif
                                     }
-                                    QuarkDataProxy.StreamingAssetPath = streamingAssetPath;
-                                    QuarkDataProxy.PersistentPath= streamingAssetPath;
+                                    QuarkDataProxy.PersistentPath = streamingAssetPath;
 
                                     #endregion;
-                                    QuarkEngine.Instance.RequestManifestFromStreamingAssetAsync();
+                                    QuarkEngine.Instance.RequestManifestFromLocalAssetAsync();
                                 }
                                 break;
                             case QuarkBuildPath.PersistentDataPath:
@@ -269,7 +280,7 @@ namespace Quark
                                     }
                                     QuarkDataProxy.PersistentPath = persistentPath;
                                     #endregion;
-                                    QuarkEngine.Instance.RequestManifestFromPersistentDataPathAsync();
+                                    QuarkEngine.Instance.RequestManifestFromLocalAssetAsync();
                                 }
                                 break;
                             case QuarkBuildPath.URL:
