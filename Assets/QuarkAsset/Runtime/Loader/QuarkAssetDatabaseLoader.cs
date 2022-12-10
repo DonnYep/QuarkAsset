@@ -281,6 +281,12 @@ namespace Quark.Loader
 #else
             operation = UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(sceneName, loadSceneMode);
 #endif
+            if (operation == null)
+            {
+                progress?.Invoke(1);
+                callback?.Invoke();
+                yield break;
+            }
             loadSceneList.Add(sceneName);
             operation.allowSceneActivation = false;
             var hasProviderProgress = progressProvider != null;
@@ -307,6 +313,7 @@ namespace Quark.Loader
             if (condition != null)
                 yield return new WaitUntil(condition);
             operation.allowSceneActivation = true;
+            yield return operation.isDone;
             yield return null;
             callback?.Invoke();
         }
@@ -317,16 +324,20 @@ namespace Quark.Loader
             var unitResRatio = 100f / sceneCount;
             int currentSceneIndex = 0;
             float overallProgress = 0;
-            foreach (var sceneName in loadSceneList)
+            var loadSceneArray = loadSceneList.ToArray();
+            foreach (var sceneName in loadSceneArray)
             {
                 var overallIndexPercent = 100 * ((float)currentSceneIndex / sceneCount);
                 currentSceneIndex++;
-                var ao = SceneManager.UnloadSceneAsync(sceneName);
-                while (!ao.isDone)
+                var operation = SceneManager.UnloadSceneAsync(sceneName);
+                if (operation != null)
                 {
-                    overallProgress = overallIndexPercent + (unitResRatio * ao.progress);
-                    progress?.Invoke(overallProgress / 100);
-                    yield return null;
+                    while (!operation.isDone)
+                    {
+                        overallProgress = overallIndexPercent + (unitResRatio * operation.progress);
+                        progress?.Invoke(overallProgress / 100);
+                        yield return null;
+                    }
                 }
                 overallProgress = overallIndexPercent + (unitResRatio * 1);
                 progress?.Invoke(overallProgress / 100);
@@ -359,7 +370,7 @@ namespace Quark.Loader
         /// </summary>
         /// <param name="bundleWarpper">资源包的壳</param>
         /// <param name="count">减少的数量</param>
-        void UnloadAssetBundleWithDependencies(QuarkBundleWarpper bundleWarpper, int count = 1, bool unloadAllLoadedObjects = true)
+        protected override void UnloadAssetBundleWithDependencies(QuarkBundleWarpper bundleWarpper, int count = 1, bool unloadAllLoadedObjects = true)
         {
             bundleWarpper.ReferenceCount -= count;
             var dependentList = bundleWarpper.QuarkAssetBundle.DependentBundleKeyList;
@@ -435,45 +446,6 @@ namespace Quark.Loader
             }
         }
         /// <summary>
-        /// 当场景被加载；
-        /// </summary>
-        void OnSceneLoaded(Scene scene, LoadSceneMode loadSceneMode)
-        {
-            var sceneName = scene.name;
-            if (loadSceneList.Contains(sceneName))
-            {
-                var hasObject = GetSceneObject(sceneName, out var quarkObject);
-                if (hasObject)
-                    OnResourceObjectLoad(quarkObject);
-                loadedSceneDict[sceneName] = scene;
-            }
-        }
-        /// <summary>
-        /// 当场景被卸载；
-        /// </summary>
-        void OnSceneUnloaded(Scene scene)
-        {
-            var sceneName = scene.name;
-            if (loadSceneList.Remove(sceneName))
-            {
-                var hasObject = GetSceneObject(sceneName, out var quarkObject);
-                if (hasObject)
-                    OnResourceObjectUnload(quarkObject);
-            }
-            loadedSceneDict.Remove(sceneName);
-        }
-        /// <summary>
-        /// 只负责计算引用计数
-        /// </summary>ram>
-        void OnResourceObjectLoad(QuarkObject quarkObject)
-        {
-            if (!objectWarpperDict.TryGetValue(quarkObject.AssetPath, out var resourceObjectWarpper))
-                return;
-            if (!bundleWarpperDict.TryGetValue(quarkObject.AssetBundleName, out var resourceBundleWarpper))
-                return;
-            resourceObjectWarpper.ReferenceCount++;
-        }
-        /// <summary>
         /// 当资源包中的所有对象被加载；
         /// </summary>
         void OnResourceBundleAllAssetLoad(string bundleName)
@@ -485,18 +457,6 @@ namespace Quark.Loader
             {
                 OnResourceObjectLoad(resourceObject);
             }
-        }
-        /// <summary>
-        /// 当资源对象被卸载；
-        /// </summary>
-        void OnResourceObjectUnload(QuarkObject quarkObject)
-        {
-            if (!objectWarpperDict.TryGetValue(quarkObject.AssetPath, out var resourceObjectWarpper))
-                return;
-            if (!bundleWarpperDict.TryGetValue(resourceObjectWarpper.QuarkObject.AssetBundleName, out var resourceBundleWarpper))
-                return;
-            resourceObjectWarpper.ReferenceCount--;
-            UnloadAssetBundleWithDependencies(resourceBundleWarpper);
         }
     }
 }

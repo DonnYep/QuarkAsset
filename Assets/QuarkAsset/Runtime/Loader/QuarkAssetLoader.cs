@@ -205,18 +205,73 @@ namespace Quark.Loader
                 callback?.Invoke();
                 yield break;
             }
-            var ao = SceneManager.UnloadSceneAsync(scene);
-            if (ao != null)
+            var operation = SceneManager.UnloadSceneAsync(scene);
+            if (operation == null)
             {
-                while (!ao.isDone)
-                {
-                    progress?.Invoke(ao.progress);
-                    yield return null;
-                }
+                OnSceneUnloaded(scene);
+                progress?.Invoke(1);
+                yield return null;
+                callback?.Invoke();
+                yield break;
             }
-            loadedSceneDict.Remove(sceneName);
+            while (!operation.isDone)
+            {
+                progress?.Invoke(operation.progress);
+                yield return null;
+            }
             progress?.Invoke(1);
+            yield return null;
             callback?.Invoke();
         }
+        /// <summary>
+        /// 当场景被加载；
+        /// </summary>
+        protected virtual void OnSceneLoaded(Scene scene, LoadSceneMode loadSceneMode)
+        {
+            var sceneName = scene.name;
+            if (loadSceneList.Contains(sceneName))
+            {
+                var hasObject = GetSceneObject(sceneName, out var quarkObject);
+                if (hasObject)
+                    OnResourceObjectLoad(quarkObject);
+                loadedSceneDict[sceneName] = scene;
+            }
+        }
+        /// <summary>
+        /// 当场景被卸载；
+        /// </summary>
+        protected virtual void OnSceneUnloaded(Scene scene)
+        {
+            var sceneName = scene.name;
+            if (loadSceneList.Remove(sceneName))
+            {
+                var hasObject = GetSceneObject(sceneName, out var quarkObject);
+                if (hasObject)
+                    OnResourceObjectUnload(quarkObject);
+            }
+            loadedSceneDict.Remove(sceneName);
+        }
+        /// <summary>
+        /// 只负责计算引用计数
+        /// </summary>
+        protected virtual void OnResourceObjectLoad(QuarkObject quarkObject)
+        {
+            if (!objectWarpperDict.TryGetValue(quarkObject.AssetPath, out var resourceObjectWarpper))
+                return;
+            resourceObjectWarpper.ReferenceCount++;
+        }
+        /// <summary>
+        /// 当资源对象被卸载；
+        /// </summary>
+        protected virtual void OnResourceObjectUnload(QuarkObject quarkObject)
+        {
+            if (!objectWarpperDict.TryGetValue(quarkObject.AssetPath, out var resourceObjectWarpper))
+                return;
+            if (!bundleWarpperDict.TryGetValue(resourceObjectWarpper.QuarkObject.AssetBundleName, out var resourceBundleWarpper))
+                return;
+            resourceObjectWarpper.ReferenceCount--;
+            UnloadAssetBundleWithDependencies(resourceBundleWarpper);
+        }
+        protected abstract void UnloadAssetBundleWithDependencies(QuarkBundleWarpper bundleWarpper, int count = 1, bool unloadAllLoadedObjects = true);
     }
 }
