@@ -4,43 +4,41 @@ using UnityEngine;
 namespace Quark.Asset
 {
     [Serializable]
-    public class QuarkAssetBundle : IEquatable<QuarkAssetBundle>
+    public class QuarkBundle : IEquatable<QuarkBundle>
     {
         [SerializeField]
-        string assetBundleName;
+        string bundleName;
         [SerializeField]
-        string assetBundlePath;
+        string bundlePath;
         [SerializeField]
-        string assetBundleKey;
+        string bundleKey;
         [SerializeField]
         List<string> dependentBundlekKeyList;
         [SerializeField]
-        long assetBundleSize;
-        [SerializeField]
-        List<QuarkObject> quarkObjects;
+        List<QuarkObject> objectList;
         /// <summary>
         /// AB包的名称；
         /// </summary>
-        public string AssetBundleName
+        public string BundleName
         {
-            get { return assetBundleName; }
-            set { assetBundleName = value; }
+            get { return bundleName; }
+            set { bundleName = value; }
         }
         /// <summary>
         /// AB在Assets目录下的地址；
         /// </summary>
-        public string AssetBundlePath
+        public string BundlePath
         {
-            get { return assetBundlePath; }
-            set { assetBundlePath = value; }
+            get { return bundlePath; }
+            set { bundlePath = value; }
         }
         /// <summary>
         /// AB加载时候使用的名称；
         /// </summary>
-        public string AssetBundleKey
+        public string BundleKey
         {
-            get { return assetBundleKey; }
-            set { assetBundleKey = value; }
+            get { return bundleKey; }
+            set { bundleKey = value; }
         }
         /// <summary>
         /// 资源的依赖项；
@@ -55,27 +53,22 @@ namespace Quark.Asset
             }
             set { dependentBundlekKeyList = value; }
         }
-        public long AssetBundleSize
-        {
-            get { return assetBundleSize; }
-            set { assetBundleSize = value; }
-        }
         /// <summary>
         /// 包所含的资源列表；
         /// </summary>
-        public List<QuarkObject> QuarkObjects
+        public List<QuarkObject> ObjectList
         {
             get
             {
-                if (quarkObjects == null)
-                    quarkObjects = new List<QuarkObject>();
-                return quarkObjects;
+                if (objectList == null)
+                    objectList = new List<QuarkObject>();
+                return objectList;
             }
-            set { quarkObjects = value; }
+            set { objectList = value; }
         }
-        public bool Equals(QuarkAssetBundle other)
+        public bool Equals(QuarkBundle other)
         {
-            return other.AssetBundleName == this.AssetBundleName;
+            return other.BundleName == this.BundleName;
         }
     }
 }

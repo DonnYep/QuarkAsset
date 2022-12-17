@@ -9,8 +9,8 @@ namespace Quark
     public class QuarkBundleWarpper
     {
         int referenceCount;
-        QuarkAssetBundle quarkAssetBundle;
-        public QuarkAssetBundle QuarkAssetBundle { get { return quarkAssetBundle; } }
+        QuarkBundle quarkAssetBundle;
+        public QuarkBundle QuarkAssetBundle { get { return quarkAssetBundle; } }
         public int ReferenceCount
         {
             get { return referenceCount; }
@@ -25,7 +25,7 @@ namespace Quark
         /// AssetBundle 包体对象；
         /// </summary>
         public AssetBundle AssetBundle { get; set; }
-        public QuarkBundleWarpper(QuarkAssetBundle quarkAssetBundle)
+        public QuarkBundleWarpper(QuarkBundle quarkAssetBundle)
         {
             this.quarkAssetBundle = quarkAssetBundle;
         }

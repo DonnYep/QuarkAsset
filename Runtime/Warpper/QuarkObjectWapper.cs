@@ -26,15 +26,15 @@ namespace Quark.Asset
             return other.QuarkObject == this.QuarkObject &&
                 other.ReferenceCount == this.ReferenceCount;
         }
-        public QuarkAssetObjectInfo GetQuarkAssetObjectInfo()
+        public QuarkObjectState GetQuarkAssetObjectInfo()
         {
-            var assetBundleName = QuarkObject.AssetBundleName;
-            var assetPath = QuarkObject.AssetPath;
+            var assetBundleName = QuarkObject.BundleName;
+            var assetPath = QuarkObject.ObjectPath;
             var referenceCount = ReferenceCount;
-            var assetName = QuarkObject.AssetName;
-            var assetExtension = QuarkObject.AssetExtension;
-            var assetType = QuarkObject.AssetType;
-            var info = QuarkAssetObjectInfo.Create(assetName, assetPath, assetBundleName, assetExtension, assetType, referenceCount);
+            var assetName = QuarkObject.ObjectName;
+            var assetExtension = QuarkObject.ObjectExtension;
+            var assetType = QuarkObject.ObjectType;
+            var info = QuarkObjectState.Create(assetName, assetPath, assetBundleName, assetExtension, assetType, referenceCount);
             return info;
         }
     }

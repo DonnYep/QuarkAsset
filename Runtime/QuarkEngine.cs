@@ -92,7 +92,7 @@ namespace Quark
         /// 用于assetbundle模式；
         /// </summary>
         /// <param name="manifest">Manifest文件</param>
-        internal void SetAssetBundleModeManifest(QuarkAssetManifest manifest)
+        internal void SetAssetBundleModeManifest(QuarkManifest manifest)
         {
             if (quarkLoaderDict.TryGetValue(QuarkLoadMode.AssetBundle, out var loader))
                 loader.SetLoaderData(manifest);
@@ -102,7 +102,7 @@ namespace Quark
         /// 对QuarkAssetDataset进行编码
         /// </summary>
         /// <param name="assetData">QuarkAssetDataset对象</param>
-        internal void SetAssetDatabaseModeDataset(QuarkAssetDataset assetData)
+        internal void SetAssetDatabaseModeDataset(QuarkDataset assetData)
         {
             if (quarkLoaderDict.TryGetValue(QuarkLoadMode.AssetDatabase, out var loader))
                 loader.SetLoaderData(assetData);
@@ -219,25 +219,25 @@ where T : UnityEngine.Object
                 return loader.UnloadAllSceneAsync(progress, callback);
             return null;
         }
-        internal bool GetInfo(string assetName, Type type, out QuarkAssetObjectInfo info)
+        internal bool GetInfo(string assetName, Type type, out QuarkObjectState info)
         {
-            info = QuarkAssetObjectInfo.None;
+            info = QuarkObjectState.None;
             if (quarkLoaderDict.TryGetValue(QuarkAssetLoadMode, out var loader))
                 return loader.GetInfo(assetName, type, out info);
             return false;
         }
-        internal bool GetInfo(string assetName, out QuarkAssetObjectInfo info)
+        internal bool GetInfo(string assetName, out QuarkObjectState info)
         {
-            info = QuarkAssetObjectInfo.None;
+            info = QuarkObjectState.None;
             if (quarkLoaderDict.TryGetValue(QuarkAssetLoadMode, out var loader))
                 return loader.GetInfo(assetName, out info);
             return false;
         }
-        internal QuarkAssetObjectInfo[] GetAllLoadedInfos()
+        internal QuarkObjectState[] GetAllLoadedInfos()
         {
             if (quarkLoaderDict.TryGetValue(QuarkAssetLoadMode, out var loader))
                 return loader.GetAllLoadedInfos();
-            return new QuarkAssetObjectInfo[0];
+            return new QuarkObjectState[0];
         }
         /// <summary>
         /// 获取比较manifest成功；

@@ -3,6 +3,6 @@ namespace Quark.Editor
 {
     public class QuarkEditorDataProxy
     {
-        public static QuarkAssetDataset  QuarkAssetDataset{ get; set; }
+        public static QuarkDataset  QuarkAssetDataset{ get; set; }
     }
 }

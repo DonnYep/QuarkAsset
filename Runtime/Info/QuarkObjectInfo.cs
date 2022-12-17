@@ -1,12 +1,10 @@
 ﻿using System;
 using UnityEngine;
+
 namespace Quark.Asset
 {
-    /// <summary>
-    /// Quark资源寻址对象；
-    /// </summary>
     [Serializable]
-    public class QuarkObject : IEquatable<QuarkObject>
+    public class QuarkObjectInfo : IEquatable<QuarkObjectInfo>
     {
         [SerializeField]
         string objectName;
@@ -18,6 +16,11 @@ namespace Quark.Asset
         string objectType;
         [SerializeField]
         string bundleName;
+        [SerializeField]
+        long objectSize;
+        [SerializeField]
+        string objectFormatBytes;
+        Texture2D objectIcon;
         /// <summary>
         ///  资源的名称；
         /// </summary>
@@ -58,7 +61,22 @@ namespace Quark.Asset
             get { return bundleName; }
             set { bundleName = value; }
         }
-        public bool Equals(QuarkObject other)
+        public long ObjectSize
+        {
+            get { return objectSize; }
+            set { objectSize = value; }
+        }
+        public string ObjectFormatBytes
+        {
+            get { return objectFormatBytes; }
+            set { objectFormatBytes = value; }
+        }
+        public Texture2D ObjectIcon
+        {
+            get { return objectIcon; }
+            set { objectIcon = value; }
+        }
+        public bool Equals(QuarkObjectInfo other)
         {
             return other.ObjectName == this.ObjectName &&
                 other.ObjectPath == this.ObjectPath &&

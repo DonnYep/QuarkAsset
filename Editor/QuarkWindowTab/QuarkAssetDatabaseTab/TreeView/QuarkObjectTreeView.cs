@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Quark.Asset;
+using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
@@ -6,10 +7,10 @@ using UnityEngine;
 using Object = UnityEngine.Object;
 namespace Quark.Editor
 {
-    public class QuarkAssetObjectTreeView : TreeView
+    public class QuarkObjectTreeView : TreeView
     {
-        List<QuarkObjectItem> objectItemList = new List<QuarkObjectItem>();
-        public QuarkAssetObjectTreeView(TreeViewState treeViewState, MultiColumnHeader multiColumnHeader)
+        List<QuarkObjectInfo> objectInfoList = new List<QuarkObjectInfo>();
+        public QuarkObjectTreeView(TreeViewState treeViewState, MultiColumnHeader multiColumnHeader)
     : base(treeViewState, multiColumnHeader)
         {
             Reload();
@@ -17,36 +18,25 @@ namespace Quark.Editor
             showBorder = true;
             multiColumnHeader.sortingChanged += OnMultiColumnHeaderSortingChanged; ;
         }
-        public void AddPath(QuarkObjectItem item)
+        public void AddPath(QuarkObjectInfo info)
         {
-            objectItemList.Add(item);
+            objectInfoList.Add(info);
         }
-        public void AddPaths(IEnumerable<QuarkObjectItem> items)
+        public void AddPaths(IEnumerable<QuarkObjectInfo> infos)
         {
-            objectItemList.Clear();
-            objectItemList.AddRange(items);
-            Reload();
+            objectInfoList.Clear();
+            objectInfoList.AddRange(infos);
         }
         public void Clear()
         {
-            objectItemList.Clear();
-            Reload();
-        }
-        protected override void SingleClickedItem(int id)
-        {
-            base.SingleClickedItem(id);
-            if (objectItemList.Count < id)
-                return;
-            var obj = AssetDatabase.LoadAssetAtPath<Object>(objectItemList[id].AssetPath);
-            EditorGUIUtility.PingObject(obj);
-            Selection.activeObject = obj;
+            objectInfoList.Clear();
         }
         protected override void DoubleClickedItem(int id)
         {
             base.DoubleClickedItem(id);
-            if (objectItemList.Count < id)
+            if (objectInfoList.Count < id)
                 return;
-            var obj = AssetDatabase.LoadAssetAtPath<Object>(objectItemList[id].AssetPath);
+            var obj = AssetDatabase.LoadAssetAtPath<Object>(objectInfoList[id].ObjectPath);
             EditorGUIUtility.PingObject(obj);
             Selection.activeObject = obj;
         }
@@ -64,24 +54,20 @@ namespace Quark.Editor
         protected override TreeViewItem BuildRoot()
         {
             var root = new TreeViewItem { id = -1, depth = -1, displayName = "Root" };
-            Texture2D objectIcon = null;
             var allItems = new List<TreeViewItem>();
             {
-                for (int i = 0; i < objectItemList.Count; i++)
+                for (int i = 0; i < objectInfoList.Count; i++)
                 {
-                    var obj = AssetDatabase.LoadAssetAtPath(objectItemList[i].AssetPath, typeof(Object));
-                    bool isValidAsset = obj != null;
-                    if (isValidAsset)
+                    //var  objectIcon = EditorGUIUtility.FindTexture("console.erroricon");
+
+                    var objectInfo = objectInfoList[i];
+                    var item = new QuarkObjectTreeViewItem(i, 1, objectInfo.ObjectName, objectInfo.ObjectIcon)
                     {
-                        objectIcon = QuarkEditorUtility.ToTexture2D(EditorGUIUtility.ObjectContent(obj, obj.GetType()).image);
-                    }
-                    else
-                    {
-                        objectIcon = EditorGUIUtility.FindTexture("console.erroricon");
-                    }
-                    var objItem = objectItemList[i];
-                    var item = new QuarkObjectTreeViewItem(i, 1, objItem.AssetName, objectIcon)
-                    { BundleName = objItem.AssetBundleName, AssetPath = objItem.AssetPath, AssetExtension = objItem.AssetExtension };
+                        BundleName = objectInfo.BundleName, 
+                        AssetPath = objectInfo.ObjectPath,
+                        AssetExtension = objectInfo.ObjectExtension,
+                        FormatBytes= objectInfo.ObjectFormatBytes
+                    };
                     allItems.Add(item);
                 }
                 SetupParentsAndChildrenFromDepths(root, allItems);
@@ -110,33 +96,41 @@ namespace Quark.Editor
                 case 1://ObjectName
                     {
                         if (ascending)
-                            objectItemList.Sort((lhs, rhs) => lhs.AssetName.CompareTo(rhs.AssetName));
+                            objectInfoList.Sort((lhs, rhs) => lhs.ObjectName.CompareTo(rhs.ObjectName));
                         else
-                            objectItemList.Sort((lhs, rhs) => rhs.AssetName.CompareTo(lhs.AssetName));
+                            objectInfoList.Sort((lhs, rhs) => rhs.ObjectName.CompareTo(lhs.ObjectName));
                     }
                     break;
-                case 2://Extension
+                case 2://Size
                     {
                         if (ascending)
-                            objectItemList.Sort((lhs, rhs) => lhs.AssetExtension.CompareTo(rhs.AssetExtension));
+                            objectInfoList.Sort((lhs, rhs) => lhs.ObjectSize.CompareTo(rhs.ObjectSize));
                         else
-                            objectItemList.Sort((lhs, rhs) => rhs.AssetExtension.CompareTo(lhs.AssetExtension));
+                            objectInfoList.Sort((lhs, rhs) => rhs.ObjectSize.CompareTo(lhs.ObjectSize));
                     }
                     break;
-                case 3://BundleName
+                case 3://Extension
                     {
                         if (ascending)
-                            objectItemList.Sort((lhs, rhs) => rhs.AssetBundleName.CompareTo(lhs.AssetBundleName));
+                            objectInfoList.Sort((lhs, rhs) => lhs.BundleName.CompareTo(rhs.BundleName));
                         else
-                            objectItemList.Sort((lhs, rhs) => lhs.AssetBundleName.CompareTo(rhs.AssetBundleName));
+                            objectInfoList.Sort((lhs, rhs) => rhs.BundleName.CompareTo(lhs.BundleName));
                     }
                     break;
-                case 4://AssetPath
+                case 4://BundleName
                     {
                         if (ascending)
-                            objectItemList.Sort((lhs, rhs) => rhs.AssetPath.CompareTo(lhs.AssetPath));
+                            objectInfoList.Sort((lhs, rhs) => rhs.BundleName.CompareTo(lhs.BundleName));
                         else
-                            objectItemList.Sort((lhs, rhs) => lhs.AssetPath.CompareTo(rhs.AssetPath));
+                            objectInfoList.Sort((lhs, rhs) => lhs.BundleName.CompareTo(rhs.BundleName));
+                    }
+                    break;
+                case 5://AssetPath
+                    {
+                        if (ascending)
+                            objectInfoList.Sort((lhs, rhs) => rhs.ObjectPath.CompareTo(lhs.ObjectPath));
+                        else
+                            objectInfoList.Sort((lhs, rhs) => lhs.ObjectPath.CompareTo(rhs.ObjectPath));
                     }
                     break;
             }
@@ -163,15 +157,20 @@ namespace Quark.Editor
                     break;
                 case 2:
                     {
-                        DefaultGUI.Label(cellRect, treeView.AssetExtension, args.selected, args.focused);
+                        DefaultGUI.Label(cellRect, treeView.FormatBytes, args.selected, args.focused);
                     }
                     break;
                 case 3:
                     {
-                        DefaultGUI.Label(cellRect, treeView.BundleName, args.selected, args.focused);
+                        DefaultGUI.Label(cellRect, treeView.AssetExtension, args.selected, args.focused);
                     }
                     break;
                 case 4:
+                    {
+                        DefaultGUI.Label(cellRect, treeView.BundleName, args.selected, args.focused);
+                    }
+                    break;
+                case 5:
                     {
                         DefaultGUI.Label(cellRect, treeView.AssetPath, args.selected, args.focused);
                     }
@@ -181,13 +180,13 @@ namespace Quark.Editor
         void CopyObjectNameToClipboard(object context)
         {
             var id = Convert.ToInt32(context);
-            var name = objectItemList[id].AssetName;
+            var name = objectInfoList[id].ObjectName;
             GUIUtility.systemCopyBuffer = name;
         }
         void CopyObjectPathToClipboard(object context)
         {
             var id = Convert.ToInt32(context);
-            var path = objectItemList[id].AssetPath;
+            var path = objectInfoList[id].ObjectPath;
             GUIUtility.systemCopyBuffer = path;
         }
     }

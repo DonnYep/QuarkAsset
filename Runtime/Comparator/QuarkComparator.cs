@@ -26,8 +26,8 @@ namespace Quark.Networking
         //本地有但是远程没有，则标记为可过期文件；
         List<string> expired = new List<string>();
         bool isEncrypted { get { return QuarkDataProxy.QuarkAESEncryptionKeyBytes.Length > 0; } }
-        QuarkAssetManifest localManifest = null;
-        QuarkAssetManifest remoteManifest = null;
+        QuarkManifest localManifest = null;
+        QuarkManifest remoteManifest = null;
         public void Initiate(Action<string[], string[], long> onCompareSuccess, Action<string> onCompareFailure)
         {
             this.onCompareSuccess = onCompareSuccess;
@@ -95,11 +95,11 @@ namespace Quark.Networking
                             if (isEncrypted)
                             {
                                 var unencryptedManifest = QuarkUtility.AESDecryptStringToString(context, QuarkDataProxy.QuarkAESEncryptionKeyBytes);
-                                localManifest = QuarkUtility.ToObject<QuarkAssetManifest>(unencryptedManifest);
+                                localManifest = QuarkUtility.ToObject<QuarkManifest>(unencryptedManifest);
                             }
                             else
                             {
-                                localManifest = QuarkUtility.ToObject<QuarkAssetManifest>(context);
+                                localManifest = QuarkUtility.ToObject<QuarkManifest>(context);
                             }
                         }
                         catch (Exception e)
@@ -136,7 +136,7 @@ namespace Quark.Networking
                 {
                     localManifestContext = QuarkUtility.ReadTextFileContent(localManifestPath);
                 }
-                localManifest = QuarkUtility.ToObject<QuarkAssetManifest>(localManifestContext);
+                localManifest = QuarkUtility.ToObject<QuarkManifest>(localManifestContext);
             }
             catch { }
             try
@@ -145,11 +145,11 @@ namespace Quark.Networking
                 if (isEncrypted)
                 {
                     var unencryptedManifest = QuarkUtility.AESDecryptStringToString(remoteManifestContext, aesKey);
-                    remoteManifest = QuarkUtility.ToObject<QuarkAssetManifest>(unencryptedManifest);
+                    remoteManifest = QuarkUtility.ToObject<QuarkManifest>(unencryptedManifest);
                 }
                 else
                 {
-                    remoteManifest = QuarkUtility.ToObject<QuarkAssetManifest>(remoteManifestContext);
+                    remoteManifest = QuarkUtility.ToObject<QuarkManifest>(remoteManifestContext);
                 }
             }
             catch (Exception e)
@@ -165,7 +165,7 @@ namespace Quark.Networking
                 foreach (var bundleInfo in remoteManifest.BundleInfoDict.Values)
                 {
                     overallSize += bundleInfo.BundleSize;
-                    latest.Add(bundleInfo.QuarkAssetBundle.AssetBundleKey);
+                    latest.Add(bundleInfo.QuarkAssetBundle.BundleKey);
                 }
             }
             else
@@ -175,7 +175,7 @@ namespace Quark.Networking
                 //远端没有本地有，则缓存至expired；
                 foreach (var remoteBuildInfo in remoteManifest.BundleInfoDict)
                 {
-                    var remoteBundleKey = remoteBuildInfo.Value.QuarkAssetBundle.AssetBundleKey;
+                    var remoteBundleKey = remoteBuildInfo.Value.QuarkAssetBundle.BundleKey;
                     var remoteBundleName = remoteBuildInfo.Key;
                     var remoteBundleBuildInfo = remoteBuildInfo.Value;
                     if (localManifest.BundleInfoDict.TryGetValue(remoteBundleName, out var localBuildInfo))
@@ -190,18 +190,23 @@ namespace Quark.Networking
                         {
                             //检测远端包体与本地包体的大小是否相同。
                             //在Hash相同的情况下，若包体不同，则可能是本地的包不完整，因此需要重新加入下载队列。
-                            var localBundleKey = localBuildInfo.QuarkAssetBundle.AssetBundleKey;
+                            var localBundleKey = localBuildInfo.QuarkAssetBundle.BundleKey;
                             var localBundlePath = Path.Combine(QuarkDataProxy.PersistentPath, localBundleKey);
                             var localBundleSize = QuarkUtility.GetFileSize(localBundlePath);
                             var remoteBundleSize = remoteBundleBuildInfo.BundleSize;
                             if (remoteBundleSize != localBundleSize)
                             {
-                                var remainBundleSize = remoteBundleSize - localBundleSize;
-                                overallSize += remainBundleSize;
                                 latest.Add(remoteBundleKey);
-                                if (remoteBundleSize < localBundleSize)//若本地包体大于远端包体，则表示为本地包为过期包
+                                if (localBundleSize > remoteBundleSize)//若本地包体大于远端包体，则表示为本地包在断点下载时，追加bytes在错误offset位
                                 {
+                                    //重新下载；
+                                    overallSize += remoteBundleSize;
                                     expired.Add(localBundleKey);
+                                }
+                                else
+                                {
+                                    var remainBundleSize = Math.Abs(remoteBundleSize - localBundleSize);
+                                    overallSize += remainBundleSize;
                                 }
                             }
                         }
@@ -215,7 +220,7 @@ namespace Quark.Networking
                     {
                         if (!remoteManifest.BundleInfoDict.ContainsKey(_buildInfo.Key))
                         {
-                            expired.Add(_buildInfo.Value.QuarkAssetBundle.AssetBundleKey);
+                            expired.Add(_buildInfo.Value.QuarkAssetBundle.BundleKey);
                         }
                     }
                 }

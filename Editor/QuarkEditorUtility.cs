@@ -278,7 +278,18 @@ namespace Quark.Editor
                 },
                 new MultiColumnHeaderState.Column
                 {
-                    headerContent = new GUIContent("Extension"),
+                    headerContent = new GUIContent("Size"),
+                    headerTextAlignment = TextAlignment.Left,
+                    sortingArrowAlignment = TextAlignment.Left,
+                    sortedAscending = false,
+                    minWidth=64,
+                    width=92,
+                    maxWidth=192,
+                    autoResize = true,
+                },
+                new MultiColumnHeaderState.Column
+                {
+                   headerContent = new GUIContent("Extension"),
                     headerTextAlignment = TextAlignment.Left,
                     sortingArrowAlignment = TextAlignment.Left,
                     sortedAscending = false,

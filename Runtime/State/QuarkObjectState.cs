@@ -2,9 +2,9 @@
 namespace Quark
 {
     /// <summary>
-    /// 资源体的信息
+    /// 资源体的状态信息
     /// </summary>
-    public struct QuarkAssetObjectInfo : IEquatable<QuarkAssetObjectInfo>
+    public struct QuarkObjectState : IEquatable<QuarkObjectState>
     {
         /// <summary>
         /// 资源名称；
@@ -30,11 +30,11 @@ namespace Quark
         /// 源文件的后缀名；
         /// </summary>
         public string AssetExtension { get; private set; }
-        public QuarkAssetObjectInfo Clone()
+        public QuarkObjectState Clone()
         {
              return Create(this.AssetName, this.AssetPath, this.AssetBundleName, this.AssetExtension,this.AssetType, this.ReferenceCount);
         }
-        public bool Equals(QuarkAssetObjectInfo other)
+        public bool Equals(QuarkObjectState other)
         {
             return other.AssetName == this.AssetName &&
                 other.AssetPath == this.AssetPath &&
@@ -48,10 +48,10 @@ namespace Quark
             return $"AssetName:{AssetName},AssetPath:{AssetPath},AssetType{AssetType}" +
                 $",AssetBundleName:{AssetBundleName},ReferenceCount:{ReferenceCount}";
         }
-        public static QuarkAssetObjectInfo None { get { return new QuarkAssetObjectInfo(); } }
-        internal static QuarkAssetObjectInfo Create(string assetName, string assetPath, string assetBundleName, string assetExtension,string assetType, int referenceCount)
+        public static QuarkObjectState None { get { return new QuarkObjectState(); } }
+        internal static QuarkObjectState Create(string assetName, string assetPath, string assetBundleName, string assetExtension,string assetType, int referenceCount)
         {
-            QuarkAssetObjectInfo info = new QuarkAssetObjectInfo();
+            QuarkObjectState info = new QuarkObjectState();
             info.AssetName = assetName;
             info.AssetPath = assetPath;
             info.AssetBundleName = assetBundleName;

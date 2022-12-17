@@ -9,9 +9,9 @@ namespace Quark
         /// </summary>
         /// <param name="manifestContext">读取到的文本内容</param>
         /// <returns>反序列化后的内容</returns>
-        public static QuarkAssetManifest Deserialize(string manifestContext)
+        public static QuarkManifest Deserialize(string manifestContext)
         {
-            QuarkAssetManifest quarkAssetManifest = null;
+            QuarkManifest quarkAssetManifest = null;
             try
             {
                 var aesKeyBytes = QuarkDataProxy.QuarkAESEncryptionKeyBytes;
@@ -21,7 +21,7 @@ namespace Quark
                 {
                     unencryptedManifest = QuarkUtility.AESDecryptStringToString(manifestContext, aesKeyBytes);
                 }
-                quarkAssetManifest = QuarkUtility.ToObject<QuarkAssetManifest>(unencryptedManifest);
+                quarkAssetManifest = QuarkUtility.ToObject<QuarkManifest>(unencryptedManifest);
             }
             catch { }
             return quarkAssetManifest;
@@ -32,9 +32,9 @@ namespace Quark
         /// <param name="manifestContext">读取到的文本内容</param>
         /// <param name="aesKey">对称加密密钥</param>
         /// <returns>反序列化后的内容</returns>
-        public static QuarkAssetManifest Deserialize(string manifestContext,string aesKey)
+        public static QuarkManifest Deserialize(string manifestContext,string aesKey)
         {
-            QuarkAssetManifest quarkAssetManifest = null;
+            QuarkManifest quarkAssetManifest = null;
             try
             {
                 var aesKeyBytes = QuarkUtility.GenerateBytesAESKey(aesKey);
@@ -44,7 +44,7 @@ namespace Quark
                 {
                     unencryptedManifest = QuarkUtility.AESDecryptStringToString(manifestContext, aesKeyBytes);
                 }
-                quarkAssetManifest = QuarkUtility.ToObject<QuarkAssetManifest>(unencryptedManifest);
+                quarkAssetManifest = QuarkUtility.ToObject<QuarkManifest>(unencryptedManifest);
             }
             catch { }
             return quarkAssetManifest;

@@ -35,7 +35,7 @@ namespace Quark.Editor
             {
                 case QuarkLoadMode.AssetDatabase:
                     {
-                        sp_QuarkAssetDataset.objectReferenceValue = EditorGUILayout.ObjectField("QuarkAssetDataset", (QuarkAssetDataset)sp_QuarkAssetDataset.objectReferenceValue, typeof(QuarkAssetDataset), false);
+                        sp_QuarkAssetDataset.objectReferenceValue = EditorGUILayout.ObjectField("QuarkAssetDataset", (QuarkDataset)sp_QuarkAssetDataset.objectReferenceValue, typeof(QuarkDataset), false);
                     }
                     break;
                 case QuarkLoadMode.AssetBundle:
