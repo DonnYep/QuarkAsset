@@ -1,21 +1,22 @@
-﻿using UnityEditor;
+﻿using Quark.Asset;
+using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 namespace Quark.Editor
 {
-    public class QuarkAssetBundleSearchLabel
+    public class QuarkBundleSearchLabel
     {
-        QuarkAssetBundleTreeView treeView;
+        QuarkBundleTreeView treeView;
         TreeViewState treeViewState;
         SearchField searchField;
-        public QuarkAssetBundleTreeView TreeView { get { return treeView; } }
+        public QuarkBundleTreeView TreeView { get { return treeView; } }
         Rect lableRect;
         public void OnEnable()
         {
             searchField = new SearchField();
             treeViewState = new TreeViewState();
             var multiColumnHeaderState = new MultiColumnHeader(QuarkEditorUtility.CreateBundleMultiColumnHeader());
-            treeView = new QuarkAssetBundleTreeView(treeViewState, multiColumnHeaderState);
+            treeView = new QuarkBundleTreeView(treeViewState, multiColumnHeaderState);
             searchField.downOrUpArrowKeyPressed += treeView.SetFocusAndEnsureSelectedItem;
         }
         public void OnGUI(Rect rect)
@@ -31,6 +32,8 @@ namespace Quark.Editor
         }
         void DrawDragRect()
         {
+            if (QuarkEditorDataProxy.QuarkAssetDataset== null)
+                return;
             if (Event.current.type == EventType.DragUpdated)
             {
                 DragAndDrop.visualMode = DragAndDropVisualMode.Copy;
@@ -59,16 +62,31 @@ namespace Quark.Editor
                     {
                         Object obj = DragAndDrop.objectReferences[i];
                         string path = DragAndDrop.paths[i];
-                        if (!(obj is MonoScript)&&(obj is DefaultAsset))
+                        if (!(obj is MonoScript) && (obj is DefaultAsset))
                         {
+                            var bundleInfoList = QuarkEditorDataProxy.QuarkAssetDataset.QuarkBundleInfoList;
                             var isInSameBundle = QuarkUtility.CheckAssetsAndScenesInOneAssetBundle(path);
                             if (isInSameBundle)
                             {
                                 QuarkUtility.LogError($"Cannot mark assets and scenes in one AssetBundle. AssetBundle name is {path}");
                                 continue;
                             }
-                            treeView.AddPath(path);
+                            var bundleInfo = new QuarkBundleInfo()
+                            {
+                                BundleName = path,
+                                BundlePath = path
+                            };
+                            if (!bundleInfoList.Contains(bundleInfo))
+                            {
+                                long bundleSize = QuarkEditorUtility.GetUnityDirectorySize(path, QuarkEditorDataProxy.QuarkAssetDataset.QuarkAssetExts);
+                                bundleInfo.BundleSize = bundleSize;
+                                bundleInfo.BundleFormatBytes= EditorUtility.FormatBytes(bundleSize);
+                                bundleInfoList.Add(bundleInfo);
+                                bundleInfo.BundleKey = bundleInfo.BundleName;
+                                treeView.AddBundle(bundleInfo);
+                            }
                         }
+                        treeView.Reload();
                     }
                 }
                 else

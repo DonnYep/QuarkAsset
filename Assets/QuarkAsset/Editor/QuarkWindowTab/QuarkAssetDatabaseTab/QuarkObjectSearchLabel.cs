@@ -3,19 +3,19 @@ using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 namespace Quark.Editor
 {
-    public class QuarkAssetObjectSearchLabel
+    public class QuarkObjectSearchLabel
     {
-        QuarkAssetObjectTreeView treeView;
+        QuarkObjectTreeView treeView;
         TreeViewState treeViewState;
         SearchField searchField;
-        public QuarkAssetObjectTreeView TreeView { get { return treeView; } }
+        public QuarkObjectTreeView TreeView { get { return treeView; } }
 
         public void OnEnable()
         {
             searchField = new SearchField();
             treeViewState = new TreeViewState();
             var multiColumnHeaderState = new MultiColumnHeader(QuarkEditorUtility.CreateObjectMultiColumnHeader());
-            treeView = new QuarkAssetObjectTreeView(treeViewState, multiColumnHeaderState);
+            treeView = new QuarkObjectTreeView(treeViewState, multiColumnHeaderState);
             searchField.downOrUpArrowKeyPressed += treeView.SetFocusAndEnsureSelectedItem;
         }
         public void OnGUI(Rect rect)

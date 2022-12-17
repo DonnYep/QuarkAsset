@@ -59,38 +59,38 @@ namespace Quark.Loader
         public abstract Coroutine UnloadSceneAsync(string sceneName, Action<float> progress, Action callback);
         public abstract Coroutine UnloadAllSceneAsync(Action<float> progress, Action callback);
         public abstract void ClearLoader();
-        public bool GetInfo(string assetName, Type type, out QuarkAssetObjectInfo info)
+        public bool GetInfo(string assetName, Type type, out QuarkObjectState info)
         {
-            info = QuarkAssetObjectInfo.None;
+            info = QuarkObjectState.None;
             var hasWapper = GetQuarkObject(assetName, type, out var wapper);
             if (hasWapper)
             {
-                var referenceCount = objectWarpperDict[wapper.AssetPath].ReferenceCount;
-                info = QuarkAssetObjectInfo.Create(wapper.AssetName, wapper.AssetPath, wapper.AssetBundleName, wapper.AssetExtension, wapper.AssetType, referenceCount);
+                var referenceCount = objectWarpperDict[wapper.ObjectPath].ReferenceCount;
+                info = QuarkObjectState.Create(wapper.ObjectName, wapper.ObjectPath, wapper.BundleName, wapper.ObjectExtension, wapper.ObjectType, referenceCount);
                 return true;
             }
             return false;
         }
-        public bool GetInfo(string assetName, out QuarkAssetObjectInfo info)
+        public bool GetInfo(string assetName, out QuarkObjectState info)
         {
-            info = QuarkAssetObjectInfo.None;
+            info = QuarkObjectState.None;
             var hasWapper = GetQuarkObject(assetName, out var wapper);
             if (hasWapper)
             {
-                var referenceCount = objectWarpperDict[wapper.AssetPath].ReferenceCount;
-                info = QuarkAssetObjectInfo.Create(wapper.AssetName, wapper.AssetPath, wapper.AssetBundleName, wapper.AssetExtension, wapper.AssetType, referenceCount);
+                var referenceCount = objectWarpperDict[wapper.ObjectPath].ReferenceCount;
+                info = QuarkObjectState.Create(wapper.ObjectName, wapper.ObjectPath, wapper.BundleName, wapper.ObjectExtension, wapper.ObjectType, referenceCount);
                 return true;
             }
             return false;
         }
-        public QuarkAssetObjectInfo[] GetAllLoadedInfos()
+        public QuarkObjectState[] GetAllLoadedInfos()
         {
-            QuarkAssetObjectInfo[] quarkAssetObjectInfos = new QuarkAssetObjectInfo[objectWarpperDict.Count];
+            QuarkObjectState[] quarkAssetObjectInfos = new QuarkObjectState[objectWarpperDict.Count];
             int idx = 0;
             foreach (var objectWarpper in objectWarpperDict.Values)
             {
                 var obj = objectWarpper.QuarkObject;
-                var info = QuarkAssetObjectInfo.Create(obj.AssetName, obj.AssetPath, obj.AssetBundleName, obj.AssetExtension, obj.AssetType, objectWarpper.ReferenceCount);
+                var info = QuarkObjectState.Create(obj.ObjectName, obj.ObjectPath, obj.BundleName, obj.ObjectExtension, obj.ObjectType, objectWarpper.ReferenceCount);
                 quarkAssetObjectInfos[idx] = info;
                 idx++;
             }
@@ -121,7 +121,7 @@ namespace Quark.Loader
                 {
                     foreach (var qObject in lnk)
                     {
-                        if (qObject.AssetExtension == lowerExt && qObject.AssetType == typeString)
+                        if (qObject.ObjectExtension == lowerExt && qObject.ObjectType == typeString)
                         {
                             quarkObject = qObject;
                             break;
@@ -155,7 +155,7 @@ namespace Quark.Loader
                 {
                     foreach (var qObject in lnk)
                     {
-                        if (qObject.AssetExtension == lowerExt)
+                        if (qObject.ObjectExtension == lowerExt)
                         {
                             quarkObject = qObject;
                             break;
@@ -172,7 +172,7 @@ namespace Quark.Loader
             {
                 foreach (var quarkObj in abLnk)
                 {
-                    if (quarkObj.AssetExtension == ".unity")
+                    if (quarkObj.ObjectExtension == ".unity")
                     {
                         quarkObject = quarkObj;
                         break;
@@ -256,7 +256,7 @@ namespace Quark.Loader
         /// </summary>
         protected virtual void OnResourceObjectLoad(QuarkObject quarkObject)
         {
-            if (!objectWarpperDict.TryGetValue(quarkObject.AssetPath, out var resourceObjectWarpper))
+            if (!objectWarpperDict.TryGetValue(quarkObject.ObjectPath, out var resourceObjectWarpper))
                 return;
             resourceObjectWarpper.ReferenceCount++;
         }
@@ -265,9 +265,9 @@ namespace Quark.Loader
         /// </summary>
         protected virtual void OnResourceObjectUnload(QuarkObject quarkObject)
         {
-            if (!objectWarpperDict.TryGetValue(quarkObject.AssetPath, out var resourceObjectWarpper))
+            if (!objectWarpperDict.TryGetValue(quarkObject.ObjectPath, out var resourceObjectWarpper))
                 return;
-            if (!bundleWarpperDict.TryGetValue(resourceObjectWarpper.QuarkObject.AssetBundleName, out var resourceBundleWarpper))
+            if (!bundleWarpperDict.TryGetValue(resourceObjectWarpper.QuarkObject.BundleName, out var resourceBundleWarpper))
                 return;
             resourceObjectWarpper.ReferenceCount--;
             UnloadAssetBundleWithDependencies(resourceBundleWarpper);

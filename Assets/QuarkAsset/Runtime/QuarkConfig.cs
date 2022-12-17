@@ -44,7 +44,7 @@ namespace Quark
         /// QuarkAssetLoadMode 下AssetDatabase模式所需的寻址数据；
         /// <see cref="Quark.QuarkLoadMode"/>
         /// </summary>
-        [SerializeField] QuarkAssetDataset quarkAssetDataset;
+        [SerializeField] QuarkDataset quarkAssetDataset;
         /// <summary>
         /// 资源下载到的地址；
         /// </summary>
@@ -92,7 +92,7 @@ namespace Quark
                 return instance;
             }
         }
-        public void LaunchAssetDatabaseMode(QuarkAssetDataset dataset)
+        public void LaunchAssetDatabaseMode(QuarkDataset dataset)
         {
             QuarkResources.QuarkAssetLoadMode = QuarkLoadMode.AssetDatabase;
             QuarkDataProxy.QuarkAssetDataset = dataset;

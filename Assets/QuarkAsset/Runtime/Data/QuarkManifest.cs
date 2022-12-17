@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Quark.Asset
 {
     [Serializable]
-    public class QuarkAssetManifest : IQuarkLoaderData
+    public class QuarkManifest : IQuarkLoaderData
     {
         [Serializable]
         public class QuarkBundleInfo
@@ -12,7 +12,7 @@ namespace Quark.Asset
             public string Hash;
             public string BundleName;
             public long BundleSize;
-            public QuarkAssetBundle QuarkAssetBundle;
+            public QuarkBundle QuarkAssetBundle;
         }
         Dictionary<string, QuarkBundleInfo> bundleDict;
         public string BuildTime { get; set; }

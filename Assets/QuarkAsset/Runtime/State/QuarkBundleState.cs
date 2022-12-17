@@ -1,7 +1,10 @@
 ﻿using System;
 namespace Quark
 {
-    public struct QuarkAssetBundleInfo : IEquatable<QuarkAssetBundleInfo>
+    /// <summary>
+    /// 状态信息；
+    /// </summary>
+    public struct QuarkBundleState : IEquatable<QuarkBundleState>
     {
         /// <summary>
         /// AB包的名称；
@@ -11,7 +14,7 @@ namespace Quark
         /// 包体对应的引用计数；
         /// </summary>
         public int ReferenceCount { get; private set; }
-        public bool Equals(QuarkAssetBundleInfo other)
+        public bool Equals(QuarkBundleState other)
         {
             return other.AssetBundleName==this.AssetBundleName&&
                 other.ReferenceCount==this.ReferenceCount;
@@ -20,9 +23,9 @@ namespace Quark
         {
             return $"AssetBundleName:{AssetBundleName},ReferenceCount:{ReferenceCount}";
         }
-        internal static QuarkAssetBundleInfo Create(string assetBundleName,int referenceCount)
+        internal static QuarkBundleState Create(string assetBundleName,int referenceCount)
         {
-            QuarkAssetBundleInfo info = new QuarkAssetBundleInfo();
+            QuarkBundleState info = new QuarkBundleState();
             info.AssetBundleName = assetBundleName;
             info.ReferenceCount = referenceCount;
             return info;

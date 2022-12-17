@@ -12,7 +12,7 @@ namespace Quark.Editor
     {
         QuarkAssetBundleTabData tabData;
         const string AssetBundleTabDataFileName = "QuarkAsset_AssetBundleTabData.json";
-        QuarkAssetDataset dataset { get { return QuarkEditorDataProxy.QuarkAssetDataset; } }
+        QuarkDataset dataset { get { return QuarkEditorDataProxy.QuarkAssetDataset; } }
         QuarkAssetDatabaseTab assetDatabaseTab;
         public void SetAssetDatabaseTab(QuarkAssetDatabaseTab assetDatabaseTab)
         {
@@ -194,62 +194,84 @@ namespace Quark.Editor
             {
                 Directory.CreateDirectory(assetBundleBuildPath);
             }
-            var quarkManifest = new QuarkAssetManifest();
+            var quarkManifest = new QuarkManifest();
             yield return assetDatabaseTab.BuildDataset();
             yield return SetAssetBundleName(quarkManifest);
             var assetBundleManifest = BuildPipeline.BuildAssetBundles(assetBundleBuildPath, tabData.BuildAssetBundleOptions, tabData.BuildTarget);
             yield return FinishBuild(assetBundleManifest, quarkManifest);
         }
-        IEnumerator SetAssetBundleName(QuarkAssetManifest quarkManifest)
+        IEnumerator SetAssetBundleName(QuarkManifest quarkManifest)
         {
             QuarkUtility.LogInfo("Start build asset bundle");
-            var bundles = dataset.QuarkAssetBundleList;
-            foreach (var bundle in bundles)
+            var bundleInfos = dataset.QuarkBundleInfoList;
+            foreach (var bundleInfo in bundleInfos)
             {
-                var bundlePath = bundle.AssetBundlePath;
+                var bundlePath = bundleInfo.BundlePath;
                 var importer = AssetImporter.GetAtPath(bundlePath);
                 var nameType = tabData.AssetBundleNameType;
-                var bundleName = bundle.AssetBundleName;
+                var bundleName = bundleInfo.BundleName;
                 var path = Path.Combine(QuarkEditorUtility.ApplicationPath, bundlePath);
                 var hash = QuarkEditorUtility.CreateDirectoryMd5(path);
                 switch (nameType)
                 {
                     case AssetBundleNameType.DefaultName:
-                        bundle.AssetBundleKey = bundle.AssetBundleName;
+                        bundleInfo.BundleKey = bundleInfo.BundleName;
                         break;
                     case AssetBundleNameType.HashInstead:
                         {
                             bundleName = hash;
-                            bundle.AssetBundleKey = hash;
+                            bundleInfo.BundleKey = hash;
                         }
                         break;
                 }
                 importer.assetBundleName = bundleName;
-                var bundleInfo = new QuarkAssetManifest.QuarkBundleInfo()
+                var bundle = new QuarkBundle()
+                {
+                    BundleKey = bundleInfo.BundleKey,
+                    BundleName = bundleInfo.BundleName,
+                    BundlePath = bundleInfo.BundlePath
+                };
+                bundle.DependentBundleKeyList.AddRange(bundleInfo.DependentBundleKeyList);
+                var objectInfoList = bundleInfo.ObjectInfoList;
+                var objectInfoLength = objectInfoList.Count;
+                for (int j = 0; j < objectInfoLength; j++)
+                {
+                    var objectInfo = objectInfoList[j];
+                    var quarkObject = new QuarkObject()
+                    {
+                        ObjectName = objectInfo.ObjectName,
+                        ObjectPath = objectInfo.ObjectPath,
+                        BundleName = objectInfo.BundleName,
+                        ObjectExtension = objectInfo.ObjectExtension,
+                        ObjectType = objectInfo.ObjectType
+                    };
+                    bundle.ObjectList.Add(quarkObject);
+                }
+                var quarkBundleInfo = new QuarkManifest.QuarkBundleInfo()
                 {
                     Hash = hash,
                     QuarkAssetBundle = bundle,
-                    BundleName = bundle.AssetBundleName
+                    BundleName = bundleInfo.BundleName
                 };
-                quarkManifest.BundleInfoDict.Add(bundleName, bundleInfo);
+                quarkManifest.BundleInfoDict.Add(bundleName, quarkBundleInfo);
                 yield return null;
             }
-            for (int i = 0; i < bundles.Count; i++)
+            for (int i = 0; i < bundleInfos.Count; i++)
             {
-                var bundle = bundles[i];
+                var bundle = bundleInfos[i];
                 bundle.DependentBundleKeyList.Clear();
-                var importer = AssetImporter.GetAtPath(bundle.AssetBundlePath);
+                var importer = AssetImporter.GetAtPath(bundle.BundlePath);
                 bundle.DependentBundleKeyList.AddRange(AssetDatabase.GetAssetBundleDependencies(importer.assetBundleName, true));
             }
         }
-        IEnumerator FinishBuild(AssetBundleManifest manifest, QuarkAssetManifest quarkManifest)
+        IEnumerator FinishBuild(AssetBundleManifest manifest, QuarkManifest quarkManifest)
         {
             var assetBundleBuildPath = tabData.AssetBundleBuildPath;
             if (manifest == null)
                 yield break;
-            Dictionary<string, QuarkAssetBundle> bundleKeyDict = null;
+            Dictionary<string, QuarkBundleInfo> bundleKeyDict = null;
             if (tabData.AssetBundleNameType == AssetBundleNameType.HashInstead)
-                bundleKeyDict = dataset.QuarkAssetBundleList.ToDictionary(b => b.AssetBundleKey);
+                bundleKeyDict = dataset.QuarkBundleInfoList.ToDictionary(b => b.BundleKey);
             var bundleKeys = manifest.GetAllAssetBundles();
             var bundleKeyLength = bundleKeys.Length;
             for (int i = 0; i < bundleKeyLength; i++)
@@ -282,7 +304,7 @@ namespace Quark.Editor
                     case AssetBundleNameType.HashInstead:
                         {
                             if (bundleKeyDict.TryGetValue(bundleKey, out var bundle))
-                                bundleName = bundle.AssetBundleKey;
+                                bundleName = bundle.BundleKey;
                         }
                         break;
                 }
@@ -311,12 +333,28 @@ namespace Quark.Editor
             var buildMainManifestPath = QuarkUtility.Append(buildMainPath, ".manifest");
             QuarkUtility.DeleteFile(buildMainPath);
             QuarkUtility.DeleteFile(buildMainManifestPath);
-            var bundles = dataset.QuarkAssetBundleList;
-            var bundleLength = bundles.Count;
-            for (int i = 0; i < bundleLength; i++)
+            var bundleInfos = dataset.QuarkBundleInfoList;
+            var bundleInfoLength = bundleInfos.Count;
+
+            //这段还原dataset在editor模式的依赖
+            for (int i = 0; i < bundleInfoLength; i++)
             {
-                var bundle = bundles[i];
-                var importer = AssetImporter.GetAtPath(bundle.AssetBundlePath);
+                var bundle = bundleInfos[i];
+                var importer = AssetImporter.GetAtPath(bundle.BundlePath);
+                importer.assetBundleName = bundle.BundleName;
+            }
+            for (int i = 0; i < bundleInfoLength; i++)
+            {
+                var bundleInfo = bundleInfos[i];
+                var importer = AssetImporter.GetAtPath(bundleInfo.BundlePath);
+                bundleInfo.DependentBundleKeyList.Clear();
+                bundleInfo.DependentBundleKeyList.AddRange(AssetDatabase.GetAssetBundleDependencies(importer.assetBundleName, true));
+            }
+
+            for (int i = 0; i < bundleInfoLength; i++)
+            {
+                var bundle = bundleInfos[i];
+                var importer = AssetImporter.GetAtPath(bundle.BundlePath);
                 importer.assetBundleName = string.Empty;
             }
             if (tabData.CopyToStreamingAssets)

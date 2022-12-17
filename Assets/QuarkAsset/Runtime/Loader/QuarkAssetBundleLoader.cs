@@ -19,7 +19,7 @@ namespace Quark.Loader
         {
             SceneManager.sceneUnloaded += OnSceneUnloaded;
             SceneManager.sceneLoaded += OnSceneLoaded;
-            InitManifest(loaderData as QuarkAssetManifest);
+            InitManifest(loaderData as QuarkManifest);
         }
         public override T LoadAsset<T>(string assetName)
         {
@@ -27,7 +27,7 @@ namespace Quark.Loader
             var hasObject = GetQuarkObject(assetName, out var quarkObject);
             if (!hasObject)
                 return null;
-            var assetBundleName = quarkObject.AssetBundleName;
+            var assetBundleName = quarkObject.BundleName;
             if (string.IsNullOrEmpty(assetBundleName))
                 return null;
             LoadAssetBundleWithDependencies(assetBundleName);
@@ -49,7 +49,7 @@ namespace Quark.Loader
             var hasObject = GetQuarkObject(assetName, out var quarkObject);
             if (!hasObject)
                 return null;
-            var assetBundleName = quarkObject.AssetBundleName;
+            var assetBundleName = quarkObject.BundleName;
             if (string.IsNullOrEmpty(assetBundleName))
                 return null;
             LoadAssetBundleWithDependencies(assetBundleName);
@@ -84,7 +84,7 @@ namespace Quark.Loader
             var hasObject = GetQuarkObject(assetName, out var quarkObject);
             if (!hasObject)
                 return null;
-            var assetBundleName = quarkObject.AssetBundleName;
+            var assetBundleName = quarkObject.BundleName;
             if (string.IsNullOrEmpty(assetBundleName))
                 return null;
             LoadAssetBundleWithDependencies(assetBundleName);
@@ -106,7 +106,7 @@ namespace Quark.Loader
             var hasObject = GetQuarkObject(assetName, out var quarkObject);
             if (!hasObject)
                 return null;
-            var assetBundleName = quarkObject.AssetBundleName;
+            var assetBundleName = quarkObject.BundleName;
             if (string.IsNullOrEmpty(assetBundleName))
                 return null;
             LoadAssetBundleWithDependencies(assetBundleName);
@@ -195,7 +195,7 @@ namespace Quark.Loader
             var hasObject = GetQuarkObject(assetName, out var quarkObject);
             if (hasObject)
             {
-                if (objectWarpperDict.TryGetValue(quarkObject.AssetPath, out var objectWapper))
+                if (objectWarpperDict.TryGetValue(quarkObject.ObjectPath, out var objectWapper))
                     OnResoucreObjectRelease(objectWapper);
             }
         }
@@ -215,7 +215,11 @@ namespace Quark.Loader
             foreach (var bundleWarpper in bundleWarpperDict.Values)
             {
                 bundleWarpper.ReferenceCount = 0;
-                bundleWarpper.AssetBundle?.Unload(unloadAllLoadedObjects);
+                if (bundleWarpper.AssetBundle != null)
+                {
+                    bundleWarpper.AssetBundle?.Unload(unloadAllLoadedObjects);
+                    bundleWarpper.AssetBundle = null;
+                }
             }
         }
         public override void UnloadAssetBundle(string assetBundleName, bool unloadAllLoadedObjects = true)
@@ -238,7 +242,10 @@ namespace Quark.Loader
             foreach (var bundleWarpper in bundleWarpperDict.Values)
             {
                 if (bundleWarpper.AssetBundle != null)
+                {
                     bundleWarpper.AssetBundle?.Unload(true);
+                    bundleWarpper.AssetBundle = null;
+                }
             }
             loadedSceneDict.Clear();
             loadSceneList.Clear();
@@ -256,7 +263,7 @@ namespace Quark.Loader
                 callback?.Invoke(null);
                 yield break;
             }
-            var assetBundleName = quarkObject.AssetBundleName;
+            var assetBundleName = quarkObject.BundleName;
             yield return EnumLoadAssetBundleWithDependenciesAsync(assetBundleName);
             var hasBundleWarpper = bundleWarpperDict.TryGetValue(assetBundleName, out var bundleWarpper);
             if (!hasBundleWarpper)
@@ -285,7 +292,7 @@ namespace Quark.Loader
                 callback?.Invoke(null);
                 yield break;
             }
-            var assetBundleName = quarkObject.AssetBundleName;
+            var assetBundleName = quarkObject.BundleName;
             yield return EnumLoadAssetBundleWithDependenciesAsync(assetBundleName);
             var hasBundleWarpper = bundleWarpperDict.TryGetValue(assetBundleName, out var bundleWarpper);
             if (!hasBundleWarpper)
@@ -345,7 +352,7 @@ namespace Quark.Loader
                 callback?.Invoke();
                 yield break;
             }
-            yield return EnumLoadAssetBundleWithDependenciesAsync(quarkObject.AssetBundleName);
+            yield return EnumLoadAssetBundleWithDependenciesAsync(quarkObject.BundleName);
             LoadSceneMode loadSceneMode = additive == true ? LoadSceneMode.Additive : LoadSceneMode.Single;
             var operation = SceneManager.LoadSceneAsync(sceneName, loadSceneMode);
             if (operation == null)
@@ -425,7 +432,7 @@ namespace Quark.Loader
             {
                 if (bundleWarpper.AssetBundle == null)
                 {
-                    var abPath = Path.Combine(PersistentPath, bundleWarpper.QuarkAssetBundle.AssetBundleKey);
+                    var abPath = Path.Combine(PersistentPath, bundleWarpper.QuarkAssetBundle.BundleKey);
                     var abReq = AssetBundle.LoadFromFileAsync(abPath, 0, QuarkDataProxy.QuarkEncryptionOffset);
                     yield return abReq;
                     bundleWarpper.AssetBundle = abReq.assetBundle;
@@ -472,7 +479,10 @@ namespace Quark.Loader
                 //当包体的引用计数小于等于0时，则表示该包已经未被依赖。
                 //卸载AssetBundle；
                 if (bundleWarpper.AssetBundle != null)
+                {
                     bundleWarpper.AssetBundle.Unload(unloadAllLoadedObjects);
+                    bundleWarpper.AssetBundle = null;
+                }
             }
             var dependentList = bundleWarpper.QuarkAssetBundle.DependentBundleKeyList;
             var dependentLength = dependentList.Count;
@@ -487,39 +497,42 @@ namespace Quark.Loader
                     if (dependentBundleWarpper.ReferenceCount <= 0)
                     {
                         if (dependentBundleWarpper.AssetBundle != null)
+                        {
                             dependentBundleWarpper.AssetBundle.Unload(unloadAllLoadedObjects);
+                            dependentBundleWarpper.AssetBundle = null;
+                        }
                     }
                 }
             }
         }
-        void InitManifest(QuarkAssetManifest manifest)
+        void InitManifest(QuarkManifest manifest)
         {
             var bundles = manifest.BundleInfoDict.Values; ;
             foreach (var bundle in bundles)
             {
-                var objects = bundle.QuarkAssetBundle.QuarkObjects;
+                var objects = bundle.QuarkAssetBundle.ObjectList;
                 foreach (var obj in objects)
                 {
                     var quarkObject = obj;
                     QuarkObjectWapper wapper = new QuarkObjectWapper();
                     wapper.QuarkObject = quarkObject;
-                    if (!objectLnkDict.TryGetValue(quarkObject.AssetName, out var lnkList))
+                    if (!objectLnkDict.TryGetValue(quarkObject.ObjectName, out var lnkList))
                     {
                         lnkList = new LinkedList<QuarkObject>();
-                        objectLnkDict.Add(quarkObject.AssetName, lnkList);
+                        objectLnkDict.Add(quarkObject.ObjectName, lnkList);
                     }
                     lnkList.AddLast(obj);
-                    objectWarpperDict[obj.AssetPath] = wapper;//AssetPath与QuarkObject映射地址。理论上地址不可能重复。
+                    objectWarpperDict[obj.ObjectPath] = wapper;//AssetPath与QuarkObject映射地址。理论上地址不可能重复。
                 }
-                var bundleName = bundle.QuarkAssetBundle.AssetBundleName;
+                var bundleName = bundle.QuarkAssetBundle.BundleName;
                 if (!bundleWarpperDict.ContainsKey(bundleName))
                 {
                     var bundleWarpper = new QuarkBundleWarpper(bundle.QuarkAssetBundle);
                     bundleWarpperDict.Add(bundleName, bundleWarpper);
                 }
-                if (!nameBundleKeyDict.ContainsKey(bundle.QuarkAssetBundle.AssetBundleKey))
+                if (!nameBundleKeyDict.ContainsKey(bundle.QuarkAssetBundle.BundleKey))
                 {
-                    nameBundleKeyDict.Add(bundle.QuarkAssetBundle.AssetBundleKey, bundleName);
+                    nameBundleKeyDict.Add(bundle.QuarkAssetBundle.BundleKey, bundleName);
                 }
             }
             QuarkDataProxy.QuarkManifest = manifest;
@@ -532,7 +545,7 @@ namespace Quark.Loader
                 if (assetBundle == null)//判断当前warpper是否存在AssetBundle
                 {
                     //同步加载AssetBundle
-                    var abPath = Path.Combine(PersistentPath, bundleWarpper.QuarkAssetBundle.AssetBundleKey);
+                    var abPath = Path.Combine(PersistentPath, bundleWarpper.QuarkAssetBundle.BundleKey);
                     assetBundle = AssetBundle.LoadFromFile(abPath, 0, QuarkDataProxy.QuarkEncryptionOffset);
                     if (assetBundle != null)
                     {
@@ -573,7 +586,7 @@ namespace Quark.Loader
         {
             var count = objectWarpper.ReferenceCount;
             objectWarpper.ReferenceCount = 0;
-            if (bundleWarpperDict.TryGetValue(objectWarpper.QuarkObject.AssetName, out var bundleWarpper))
+            if (bundleWarpperDict.TryGetValue(objectWarpper.QuarkObject.ObjectName, out var bundleWarpper))
             {
                 UnloadAssetBundleWithDependencies(bundleWarpper, count);
             }
@@ -585,7 +598,7 @@ namespace Quark.Loader
         {
             if (!bundleWarpperDict.TryGetValue(bundleName, out var bundleWarpper))
                 return;
-            var ResourceObjectList = bundleWarpper.QuarkAssetBundle.QuarkObjects;
+            var ResourceObjectList = bundleWarpper.QuarkAssetBundle.ObjectList;
             foreach (var resourceObject in ResourceObjectList)
             {
                 OnResourceObjectLoad(resourceObject);

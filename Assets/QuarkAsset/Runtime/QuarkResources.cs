@@ -64,7 +64,7 @@ namespace Quark
         /// 用于assetbundle模式；
         /// </summary>
         /// <param name="manifest">Manifest文件</param>
-        public static void SetAssetBundleModeManifest(QuarkAssetManifest manifest)
+        public static void SetAssetBundleModeManifest(QuarkManifest manifest)
         {
             QuarkEngine.Instance.SetAssetBundleModeManifest(manifest);
         }
@@ -73,7 +73,7 @@ namespace Quark
         /// 对QuarkAssetDataset进行编码
         /// </summary>
         /// <param name="dataset">QuarkAssetDataset对象</param>
-        public static void SetAssetDatabaseModeDataset(QuarkAssetDataset dataset)
+        public static void SetAssetDatabaseModeDataset(QuarkDataset dataset)
         {
             QuarkEngine.Instance.SetAssetDatabaseModeDataset(dataset);
         }
@@ -166,19 +166,19 @@ where T : Object
         {
             QuarkEngine.Instance.ClearLoader();
         }
-        public static bool GetInfo<T>(string assetName, out QuarkAssetObjectInfo info) where T : Object
+        public static bool GetInfo<T>(string assetName, out QuarkObjectState info) where T : Object
         {
             return QuarkEngine.Instance.GetInfo(assetName, typeof(T), out info);
         }
-        public static bool GetInfo(string assetName, Type type, out QuarkAssetObjectInfo info)
+        public static bool GetInfo(string assetName, Type type, out QuarkObjectState info)
         {
             return QuarkEngine.Instance.GetInfo(assetName, type, out info);
         }
-        public static bool GetInfo(string assetName, out QuarkAssetObjectInfo info)
+        public static bool GetInfo(string assetName, out QuarkObjectState info)
         {
             return QuarkEngine.Instance.GetInfo(assetName, out info);
         }
-        public static QuarkAssetObjectInfo[] GetAllLoadedInfos()
+        public static QuarkObjectState[] GetAllLoadedInfos()
         {
             return QuarkEngine.Instance.GetAllLoadedInfos();
         }

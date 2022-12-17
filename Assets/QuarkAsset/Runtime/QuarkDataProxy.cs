@@ -52,10 +52,10 @@ namespace Quark
         /// <summary>
         /// editor模式下加载寻址依据；
         /// </summary>
-        public static QuarkAssetDataset QuarkAssetDataset { get; internal set; }
+        public static QuarkDataset QuarkAssetDataset { get; internal set; }
         /// <summary>
         /// 存储ab包中包含的资源信息；
         /// </summary>
-        public static QuarkAssetManifest QuarkManifest { get; internal set; }
+        public static QuarkManifest QuarkManifest { get; internal set; }
     }
 }

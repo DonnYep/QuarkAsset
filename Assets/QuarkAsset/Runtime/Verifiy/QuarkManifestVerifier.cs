@@ -13,7 +13,7 @@ namespace Quark.Verifiy
         /// <param name="comparer">用于比较的文件</param>
         /// <param name="latestInfo">最新的信息</param>
         /// <param name="expiredInfo">过期的信息</param>
-        public void VerificateManifest(QuarkAssetManifest source, QuarkAssetManifest comparer, out QuarkBundleVerifiyInfo[] latestInfo, out QuarkBundleVerifiyInfo[] expiredInfo)
+        public void VerificateManifest(QuarkManifest source, QuarkManifest comparer, out QuarkBundleVerifiyInfo[] latestInfo, out QuarkBundleVerifiyInfo[] expiredInfo)
         {
 
             latestInfo = new QuarkBundleVerifiyInfo[0];
@@ -31,7 +31,7 @@ namespace Quark.Verifiy
                 foreach (var cmpBuildInfo in comparer.BundleInfoDict.Values)
                 {
                     var cmpBundleName = cmpBuildInfo.BundleName;
-                    var cmpBundleKey = cmpBuildInfo.QuarkAssetBundle.AssetBundleKey;
+                    var cmpBundleKey = cmpBuildInfo.QuarkAssetBundle.BundleKey;
                     var cmpBundleSize = cmpBuildInfo.BundleSize;
                     var cmpBundleHash = cmpBuildInfo.Hash;
                     if (source.BundleInfoDict.TryGetValue(cmpBundleName, out var srcBuildInfo))
@@ -53,7 +53,7 @@ namespace Quark.Verifiy
                         {
                             //检测远端包体与本地包体的大小是否相同。
                             //在Hash相同的情况下，若包体不同，则可能是本地的包不完整，因此需要重新加入下载队列。
-                            var srcBundleKey = srcBuildInfo.QuarkAssetBundle.AssetBundleKey;
+                            var srcBundleKey = srcBuildInfo.QuarkAssetBundle.BundleKey;
                             var srcBundlePath = Path.Combine(QuarkDataProxy.PersistentPath, srcBundleKey);
                             var srcLocalBundleSize = QuarkUtility.GetFileSize(srcBundlePath);
                             if (cmpBundleSize != srcLocalBundleSize)
@@ -97,13 +97,13 @@ namespace Quark.Verifiy
                     }
                     foreach (var srcInfo in source.BundleInfoDict.Values)
                     {
-                        var bundleKey = srcInfo.QuarkAssetBundle.AssetBundleKey;
+                        var bundleKey = srcInfo.QuarkAssetBundle.BundleKey;
                         if (!comparer.BundleInfoDict.ContainsKey(bundleKey))
                         {
                             var expiredVerifiyInfo = new QuarkBundleVerifiyInfo()
                             {
                                 BundleHash = srcInfo.Hash,
-                                BundleKey = srcInfo.QuarkAssetBundle.AssetBundleKey,
+                                BundleKey = srcInfo.QuarkAssetBundle.BundleKey,
                                 BundleName = srcInfo.BundleName,
                                 BundleSize = srcInfo.BundleSize
                             };
@@ -120,7 +120,7 @@ namespace Quark.Verifiy
         /// </summary>
         /// <param name="manifest">文件清单</param>
         /// <param name="invalidInfos">无效的包信息</param>
-        public void VerificateManifest(QuarkAssetManifest manifest, out QuarkBundleVerifiyInfo[] invalidInfos)
+        public void VerificateManifest(QuarkManifest manifest, out QuarkBundleVerifiyInfo[] invalidInfos)
         {
             invalidInfos = new QuarkBundleVerifiyInfo[0];
             var invalids = new List<QuarkBundleVerifiyInfo>();
@@ -129,7 +129,7 @@ namespace Quark.Verifiy
             {
                 //检测远端包体与本地包体的大小是否相同。
                 //在Hash相同的情况下，若包体不同，则可能是本地的包不完整，因此需要重新加入下载队列。
-                var bundleKey = buildInfo.QuarkAssetBundle.AssetBundleKey;
+                var bundleKey = buildInfo.QuarkAssetBundle.BundleKey;
                 var bundlePath = Path.Combine(QuarkDataProxy.PersistentPath, bundleKey);
                 var bundleSize = buildInfo.BundleSize;
                 var localBundleSize = QuarkUtility.GetFileSize(bundlePath);

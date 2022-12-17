@@ -11,11 +11,11 @@ namespace Quark.Editor
         QuarkAssetDatabaseTabData tabData;
         internal const string QuarkAssetDatabaseTabDataFileName = "QuarkAsset_DatabaseTabData.json";
 
-        QuarkAssetBundleSearchLabel assetBundleSearchLabel = new QuarkAssetBundleSearchLabel();
-        QuarkAssetObjectSearchLabel assetObjectSearchLabel = new QuarkAssetObjectSearchLabel();
+        QuarkBundleSearchLabel assetBundleSearchLabel = new QuarkBundleSearchLabel();
+        QuarkObjectSearchLabel assetObjectSearchLabel = new QuarkObjectSearchLabel();
 
-        QuarkAssetDataset dataset;
-        EditorCoroutine coroutine;
+        QuarkDataset dataset;
+        EditorCoroutine dataAssignCoroutine;
 
         int loadingObjectProgress;
         /// <summary>
@@ -44,13 +44,15 @@ namespace Quark.Editor
         public void OnDisable()
         {
             QuarkEditorUtility.SaveData(QuarkAssetDatabaseTabDataFileName, tabData);
+            if (dataAssignCoroutine != null)
+                QuarkEditorUtility.StopCoroutine(dataAssignCoroutine);
         }
         public void OnDatasetAssign()
         {
-            if (coroutine != null)
-                QuarkEditorUtility.StopCoroutine(coroutine);
+            if (dataAssignCoroutine != null)
+                QuarkEditorUtility.StopCoroutine(dataAssignCoroutine);
             var dataset = QuarkEditorDataProxy.QuarkAssetDataset;
-            coroutine = QuarkEditorUtility.StartCoroutine(EnumOnAssignDataset(dataset));
+            dataAssignCoroutine = QuarkEditorUtility.StartCoroutine(EnumOnAssignDataset(dataset));
         }
         public void OnDatasetRefresh()
         {
@@ -58,8 +60,8 @@ namespace Quark.Editor
         }
         public void OnDatasetUnassign()
         {
-            if (coroutine != null)
-                QuarkEditorUtility.StopCoroutine(coroutine);
+            if (dataAssignCoroutine != null)
+                QuarkEditorUtility.StopCoroutine(dataAssignCoroutine);
             assetObjectSearchLabel.TreeView.Clear();
             assetBundleSearchLabel.TreeView.Clear();
         }
@@ -113,7 +115,7 @@ namespace Quark.Editor
                     GUILayout.FlexibleSpace();
                     if (GUILayout.Button("ClearAllAssetBundle"))
                     {
-                        QuarkEditorDataProxy.QuarkAssetDataset.QuarkAssetBundleList?.Clear();
+                        QuarkEditorDataProxy.QuarkAssetDataset.QuarkBundleInfoList?.Clear();
                         assetBundleSearchLabel.TreeView.Clear();
                     }
                 }
@@ -128,9 +130,13 @@ namespace Quark.Editor
         }
         void ClearDataset()
         {
+            if (dataset == null)
+                return;
             dataset.Dispose();
             assetBundleSearchLabel.TreeView.Clear();
             assetObjectSearchLabel.TreeView.Clear();
+            assetBundleSearchLabel.TreeView.Reload();
+            assetObjectSearchLabel.TreeView.Reload();
             EditorUtility.SetDirty(dataset);
             QuarkEditorUtility.ClearData(QuarkAssetDatabaseTabDataFileName);
             QuarkUtility.LogInfo("Quark asset clear done ");
@@ -143,23 +149,26 @@ namespace Quark.Editor
                 yield break;
             }
             EditorUtility.ClearProgressBar();
-            var bundles = dataset.QuarkAssetBundleList;
+            var bundleInfos = dataset.QuarkBundleInfoList;
             var extensions = dataset.QuarkAssetExts;
-            List<QuarkObject> quarkAssetList = new List<QuarkObject>();
-            List<QuarkObject> quarkSceneList = new List<QuarkObject>();
-            List<QuarkAssetBundle> validBundleList = new List<QuarkAssetBundle>();
+            List<QuarkObjectInfo> quarkSceneList = new List<QuarkObjectInfo>();
+            List<QuarkBundleInfo> invalidBundleInfos = new List<QuarkBundleInfo>();
             var sceneAssetFullName = typeof(SceneAsset).FullName;
             int currentBundleIndex = 0;
-            int bundleCount = bundles.Count;
-            foreach (var bundle in bundles)
+            int bundleCount = bundleInfos.Count;
+            foreach (var bundleInfo in bundleInfos)
             {
                 currentBundleIndex++;
-                var bundlePath = bundle.AssetBundlePath;
+                var bundlePath = bundleInfo.BundlePath;
                 if (!AssetDatabase.IsValidFolder(bundlePath))
+                {
+                    invalidBundleInfos.Add(bundleInfo);
                     continue;
-                bundle.AssetBundleSize = QuarkEditorUtility.GetUnityDirectorySize(bundlePath, QuarkEditorDataProxy.QuarkAssetDataset.QuarkAssetExts);
-                validBundleList.Add(bundle);
-                bundle.QuarkObjects.Clear();
+                }
+                bundleInfo.ObjectInfoList.Clear();
+                bundleInfo.BundleSize = QuarkEditorUtility.GetUnityDirectorySize(bundlePath, QuarkEditorDataProxy.QuarkAssetDataset.QuarkAssetExts);
+                bundleInfo.BundleFormatBytes = EditorUtility.FormatBytes(bundleInfo.BundleSize);
+                bundleInfo.BundleKey = bundleInfo.BundleName;
                 var filePaths = Directory.GetFiles(bundlePath, ".", SearchOption.AllDirectories);
                 var fileLength = filePaths.Length;
                 for (int i = 0; i < fileLength; i++)
@@ -171,30 +180,32 @@ namespace Quark.Editor
                     var lowerExtFilePath = filePath.Replace(srcFileExt, lowerExt);
                     if (extensions.Contains(lowerExt))
                     {
-                        var assetObject = new QuarkObject()
+                        var objectInfo = new QuarkObjectInfo()
                         {
-                            AssetName = Path.GetFileNameWithoutExtension(filePath),
-                            AssetExtension = lowerExt,
-                            AssetBundleName = bundle.AssetBundleName,
-                            AssetPath = lowerExtFilePath,
-                            AssetType = AssetDatabase.LoadAssetAtPath(filePath, typeof(Object)).GetType().FullName
+                            ObjectName = Path.GetFileNameWithoutExtension(filePath),
+                            ObjectExtension = lowerExt,
+                            BundleName = bundleInfo.BundleName,
+                            ObjectPath = lowerExtFilePath,
+                            ObjectType = AssetDatabase.LoadAssetAtPath(filePath, typeof(Object)).GetType().FullName,
+                            ObjectIcon = AssetDatabase.GetCachedIcon(filePath) as Texture2D,
+                            ObjectSize = QuarkUtility.GetFileSize(filePath)
                         };
-                        quarkAssetList.Add(assetObject);
-                        if (assetObject.AssetType == sceneAssetFullName)
+                        objectInfo.ObjectFormatBytes = EditorUtility.FormatBytes(objectInfo.ObjectSize);
+                        if (objectInfo.ObjectType == sceneAssetFullName)
                         {
-                            quarkSceneList.Add(assetObject);
+                            quarkSceneList.Add(objectInfo);
                         }
-                        bundle.QuarkObjects.Add(assetObject);
+                        bundleInfo.ObjectInfoList.Add(objectInfo);
                     }
                 }
                 EditorUtility.DisplayCancelableProgressBar("QuarkAsset", "QuarkDataset Building", currentBundleIndex / (float)bundleCount);
                 yield return null;
             }
             EditorUtility.ClearProgressBar();
-            dataset.QuarkObjectList.Clear();
-            dataset.QuarkObjectList.AddRange(quarkAssetList);
-            dataset.QuarkAssetBundleList.Clear();
-            dataset.QuarkAssetBundleList.AddRange(validBundleList);
+            for (int i = 0; i < invalidBundleInfos.Count; i++)
+            {
+                bundleInfos.Remove(invalidBundleInfos[i]);
+            }
             dataset.QuarkSceneList.Clear();
             dataset.QuarkSceneList.AddRange(quarkSceneList);
 
@@ -209,13 +220,13 @@ namespace Quark.Editor
 #endif
             QuarkUtility.LogInfo("Quark asset  build done ");
         }
-        IEnumerator EnumOnAssignDataset(QuarkAssetDataset dataset)
+        IEnumerator EnumOnAssignDataset(QuarkDataset dataset)
         {
             loadingQuarkObject = true;
             loadingObjectProgress = 0;
             currentLoadingBundleIndex = 0;
             this.dataset = dataset;
-            var bundles = dataset.QuarkAssetBundleList;
+            var bundles = dataset.QuarkBundleInfoList;
             var bundleLen = bundles.Count;
             loadingBundleLength = bundleLen;
             assetBundleSearchLabel.TreeView.Clear();
@@ -223,18 +234,15 @@ namespace Quark.Editor
             for (int i = 0; i < bundleLen; i++)
             {
                 currentLoadingBundleIndex++;
-
                 var bundle = bundles[i];
-                assetBundleSearchLabel.TreeView.AddPath(bundle.AssetBundlePath);
-                var objects = bundle.QuarkObjects;
-                var objectLength = objects.Count;
-                for (int j = 0; j < objectLength; j++)
+                assetBundleSearchLabel.TreeView.AddBundle(bundle);
+                var objectInfos = bundle.ObjectInfoList;
+                var objectInfoLength = objectInfos.Count;
+                for (int j = 0; j < objectInfoLength; j++)
                 {
-                    var obj = objects[j];
-                    var item = new QuarkObjectItem(obj.AssetName, obj.AssetExtension, obj.AssetPath, obj.AssetBundleName);
-                    assetObjectSearchLabel.TreeView.AddPath(item);
-
-                    var progress = Mathf.RoundToInt((float)j / (objectLength - 1) * 100);
+                    var objectInfo = objectInfos[j];
+                    assetObjectSearchLabel.TreeView.AddPath(objectInfo);
+                    var progress = Mathf.RoundToInt((float)j / (objectInfoLength - 1) * 100);
                     loadingObjectProgress = progress > 0 ? progress : 0;
                 }
                 yield return null;
@@ -242,6 +250,8 @@ namespace Quark.Editor
             }
             yield return null;
             loadingQuarkObject = false;
+            assetObjectSearchLabel.TreeView.Reload();
+            assetBundleSearchLabel.TreeView.Reload();
         }
     }
 }

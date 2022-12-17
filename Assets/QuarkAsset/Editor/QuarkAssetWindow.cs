@@ -13,7 +13,7 @@ namespace Quark.Editor
         internal const string QuarkAssetWindowDataName = "QuarkAsset_WindowData.json";
 
         QuarkAssetWindowData windowData;
-        QuarkAssetDataset latestDataset;
+        QuarkDataset latestDataset;
         /// <summary>
         /// dataset是否为空处理标记；
         /// </summary>
@@ -64,7 +64,7 @@ namespace Quark.Editor
             GUILayout.Space(16);
             EditorGUILayout.BeginHorizontal();
             {
-                latestDataset = (QuarkAssetDataset)EditorGUILayout.ObjectField("QuarkAssetDataset", latestDataset, typeof(QuarkAssetDataset), false);
+                latestDataset = (QuarkDataset)EditorGUILayout.ObjectField("QuarkAssetDataset", latestDataset, typeof(QuarkDataset), false);
                 if (GUILayout.Button(refreshIcon, GUILayout.MaxWidth(32)))
                 {
                     if (latestDataset == null)
@@ -135,9 +135,9 @@ namespace Quark.Editor
             QuarkEditorDataProxy.QuarkAssetDataset = null;
         }
 
-        QuarkAssetDataset CreateQuarkAssetDataset()
+        QuarkDataset CreateQuarkAssetDataset()
         {
-            var dataset = ScriptableObject.CreateInstance<QuarkAssetDataset>();
+            var dataset = ScriptableObject.CreateInstance<QuarkDataset>();
             dataset.hideFlags = HideFlags.NotEditable;
             AssetDatabase.CreateAsset(dataset, "Assets/New QuarkAssetDataset.asset");
             dataset.QuarkAssetExts.AddRange(QuarkEditorConstant.Extensions);
@@ -160,7 +160,7 @@ namespace Quark.Editor
             }
             if (!string.IsNullOrEmpty(windowData.QuarkDatasetPath))
             {
-                latestDataset = AssetDatabase.LoadAssetAtPath<QuarkAssetDataset>(windowData.QuarkDatasetPath);
+                latestDataset = AssetDatabase.LoadAssetAtPath<QuarkDataset>(windowData.QuarkDatasetPath);
             }
         }
         void SaveWindowData()
