@@ -1,10 +1,29 @@
-﻿namespace Quark.Editor
+﻿using System;
+using System.Collections.Generic;
+
+namespace Quark.Editor
 {
+    [Serializable]
     internal class QuarkAssetDatabaseTabData
     {
+        List<int> selectedBundleIds;
         /// <summary>
-        ///  所选择界面的序号；
+        /// 当前被选择的bundleId集合
         /// </summary>
-        public int SelectedBarIndex;
+        public List<int> SelectedBundleIds
+        {
+            get
+            {
+                if (selectedBundleIds == null)
+                    selectedBundleIds = new List<int>();
+                return selectedBundleIds;
+            }
+            set
+            {
+                selectedBundleIds = value;
+                if (selectedBundleIds == null)
+                    selectedBundleIds = new List<int>();
+            }
+        }
     }
 }

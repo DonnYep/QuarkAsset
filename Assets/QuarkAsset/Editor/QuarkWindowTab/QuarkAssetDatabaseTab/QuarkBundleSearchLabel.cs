@@ -1,7 +1,10 @@
 ﻿using Quark.Asset;
+using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
+using Object=UnityEngine.Object;
 namespace Quark.Editor
 {
     public class QuarkBundleSearchLabel
@@ -11,6 +14,21 @@ namespace Quark.Editor
         SearchField searchField;
         public QuarkBundleTreeView TreeView { get { return treeView; } }
         Rect lableRect;
+        public event Action<IList<int>> OnSelectionChanged
+        {
+            add { treeView.onSelectionChanged += value; }
+            remove { treeView.onSelectionChanged -= value; }
+        }
+        public event Action<IList<int>> OnDelete
+        {
+            add { treeView.onDelete += value; }
+            remove { treeView.onDelete -= value; }
+        }
+        public event Action OnAllDelete
+        {
+            add { treeView.onAllDelete += value; }
+            remove { treeView.onAllDelete -= value; }
+        }
         public void OnEnable()
         {
             searchField = new SearchField();
@@ -78,9 +96,6 @@ namespace Quark.Editor
                             };
                             if (!bundleInfoList.Contains(bundleInfo))
                             {
-                                long bundleSize = QuarkEditorUtility.GetUnityDirectorySize(path, QuarkEditorDataProxy.QuarkAssetDataset.QuarkAssetExts);
-                                bundleInfo.BundleSize = bundleSize;
-                                bundleInfo.BundleFormatBytes= EditorUtility.FormatBytes(bundleSize);
                                 bundleInfoList.Add(bundleInfo);
                                 bundleInfo.BundleKey = bundleInfo.BundleName;
                                 treeView.AddBundle(bundleInfo);
