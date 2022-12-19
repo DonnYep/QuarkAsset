@@ -20,6 +20,9 @@ namespace Quark.Editor
         /// 上一行的cellRect
         /// </summary>
         Rect latestBundleCellRect;
+        public Action<IList<int>> onSelectionChanged;
+        public Action<IList<int>> onDelete;
+        public Action onAllDelete;
         public QuarkBundleTreeView(TreeViewState treeViewState, MultiColumnHeader multiColumnHeader)
       : base(treeViewState, multiColumnHeader)
         {
@@ -64,7 +67,7 @@ namespace Quark.Editor
                     if (bundleInfos[i].BundleName == bundleName)
                     {
                         removeIndex = i;
-                        removedBundle= bundleInfos[i];
+                        removedBundle = bundleInfos[i];
                         break;
                     }
                 }
@@ -110,6 +113,11 @@ namespace Quark.Editor
             }
             SetupParentsAndChildrenFromDepths(root, allItems);
             return root;
+        }
+        protected override void SelectionChanged(IList<int> selectedIds)
+        {
+            base.SelectionChanged(selectedIds);
+            onSelectionChanged?.Invoke(selectedIds);
         }
         protected override void RenameEnded(RenameEndedArgs args)
         {
@@ -159,23 +167,20 @@ namespace Quark.Editor
         }
         protected override void ContextClickedItem(int id)
         {
-            List<string> selectedNodes = new List<string>();
             var selected = GetSelection();
-            foreach (var nodeID in selected)
-            {
-                selectedNodes.Add(FindItem(nodeID, rootItem).displayName);
-            }
             GenericMenu menu = new GenericMenu();
-            if (selectedNodes.Count > 1)
+            if (selected.Count > 1)
             {
-                menu.AddItem(new GUIContent("Delete "), false, Delete, selectedNodes);
+                menu.AddItem(new GUIContent("Delete bundle"), false, Delete, selected);
                 menu.AddItem(new GUIContent("Delete all bundles"), false, DeleteAll);
                 menu.AddItem(new GUIContent("Reset the names of all bundles"), false, ResetAllBundlesName);
             }
-            if (selectedNodes.Count == 1)
+            if (selected.Count == 1)
             {
-                menu.AddItem(new GUIContent("Delete"), false, Delete, selectedNodes);
+                menu.AddItem(new GUIContent("Delete bundle"), false, Delete, selected);
+                menu.AddItem(new GUIContent("Delete all bundles"), false, DeleteAll);
                 menu.AddItem(new GUIContent("Reset bundle name"), false, ResetBundleName, id);
+                menu.AddItem(new GUIContent("Reset the names of all bundles"), false, ResetAllBundlesName);
                 menu.AddItem(new GUIContent("Copy bundle name to clipboard"), false, CopyBundleNameToClipboard, id);
                 menu.AddItem(new GUIContent("Copy bundle path to clipboard"), false, CopyBundlePathToClipboard, id);
             }
@@ -191,15 +196,15 @@ namespace Quark.Editor
         }
         //public override void OnGUI(Rect rect)
         //{
-            //var tRect = this.treeViewRect;
-            //var newRect = tRect;
-            //EditorGUIUtility.AddCursorRect(tRect, MouseCursor.ResizeVertical);
-            //if (Event.current.type == EventType.MouseDown && tRect.Contains(Event.current.mousePosition))
-            //{
-            //   var m_VerticalSplitterPercentRight = Mathf.Clamp(Event.current.mousePosition.y / tRect.height, 0.2f, 0.98f);
-            //    newRect.x = newRect.height* m_VerticalSplitterPercentRight;
-            //}
-            //base.OnGUI(newRect);
+        //var tRect = this.treeViewRect;
+        //var newRect = tRect;
+        //EditorGUIUtility.AddCursorRect(tRect, MouseCursor.ResizeVertical);
+        //if (Event.current.type == EventType.MouseDown && tRect.Contains(Event.current.mousePosition))
+        //{
+        //   var m_VerticalSplitterPercentRight = Mathf.Clamp(Event.current.mousePosition.y / tRect.height, 0.2f, 0.98f);
+        //    newRect.x = newRect.height* m_VerticalSplitterPercentRight;
+        //}
+        //base.OnGUI(newRect);
         //}
         void OnSortingChanged(MultiColumnHeader multiColumnHeader)
         {
@@ -286,6 +291,7 @@ namespace Quark.Editor
         void DeleteAll()
         {
             Reload();
+            onAllDelete?.Invoke();
         }
         void ResetAllBundlesName()
         {
@@ -330,11 +336,20 @@ namespace Quark.Editor
         {
             try
             {
-                var list = context as List<string>;
-                for (int i = 0; i < list.Count; i++)
+                var list = context as IList<int>;
+                var length = list.Count;
+                var rmBundleInfos = new QuarkBundleInfo[length];
+                for (int i = 0; i < length; i++)
                 {
-                    RemoveBundleByName(list[i]);
+                    var rmId = list[i];
+                    rmBundleInfos[i] = bundleInfoList[rmId];
                 }
+                for (int i = 0; i < length; i++)
+                {
+                    bundleInfoList.Remove(rmBundleInfos[i]);
+                }
+                onDelete?.Invoke(list);
+
             }
             catch (Exception e)
             {
