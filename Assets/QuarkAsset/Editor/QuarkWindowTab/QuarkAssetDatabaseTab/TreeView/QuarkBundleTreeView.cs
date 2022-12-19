@@ -21,7 +21,8 @@ namespace Quark.Editor
         /// </summary>
         Rect latestBundleCellRect;
         public Action<IList<int>> onSelectionChanged;
-        public Action<IList<int>> onDelete;
+        public Action<IList<int>, IList<int>> onBundleDelete;
+        public Action<IList<int>> onBundleSort;
         public Action onAllDelete;
         public QuarkBundleTreeView(TreeViewState treeViewState, MultiColumnHeader multiColumnHeader)
       : base(treeViewState, multiColumnHeader)
@@ -255,6 +256,7 @@ namespace Quark.Editor
 #endif
             AssetDatabase.Refresh();
             Reload();
+            onBundleSort?.Invoke(GetSelection());
         }
         void DrawCellGUI(Rect cellRect, QuarkBundleTreeViewItem treeView, int column, ref RowGUIArgs args)
         {
@@ -348,7 +350,7 @@ namespace Quark.Editor
                 {
                     bundleInfoList.Remove(rmBundleInfos[i]);
                 }
-                onDelete?.Invoke(list);
+                onBundleDelete?.Invoke(list,GetSelection());
 
             }
             catch (Exception e)
