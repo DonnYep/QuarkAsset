@@ -19,10 +19,15 @@ namespace Quark.Editor
             add { treeView.onSelectionChanged += value; }
             remove { treeView.onSelectionChanged -= value; }
         }
-        public event Action<IList<int>> OnDelete
+        public event Action<IList<int>, IList<int>> OnBundleDelete
         {
-            add { treeView.onDelete += value; }
-            remove { treeView.onDelete -= value; }
+            add { treeView.onBundleDelete += value; }
+            remove { treeView.onBundleDelete -= value; }
+        }
+        public event Action<IList<int>> OnBundleSort
+        {
+            add { treeView.onBundleSort+= value; }
+            remove { treeView.onBundleSort -= value; }
         }
         public event Action OnAllDelete
         {
@@ -128,7 +133,7 @@ namespace Quark.Editor
         }
         void DrawTreeView(Rect rect)
         {
-            GUILayout.BeginVertical(GUILayout.MaxWidth(rect.width * 0.4f));
+            GUILayout.BeginVertical(GUILayout.MaxWidth(rect.width * 0.38f));
             Rect viewRect = GUILayoutUtility.GetRect(32, 8192, 32, 8192);
             treeView.OnGUI(viewRect);
             GUILayout.EndVertical();

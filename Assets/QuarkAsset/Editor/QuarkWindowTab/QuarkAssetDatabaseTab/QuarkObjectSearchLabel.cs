@@ -34,7 +34,7 @@ namespace Quark.Editor
         }
         void DrawTreeView(Rect rect)
         {
-            GUILayout.BeginVertical(GUILayout.MaxWidth(rect.width * 0.6f));
+            GUILayout.BeginVertical(GUILayout.MaxWidth(rect.width * 0.62f));
             Rect viewRect = GUILayoutUtility.GetRect(32, 8192, 32, 8192);
             treeView.OnGUI(viewRect);
             GUILayout.EndVertical();

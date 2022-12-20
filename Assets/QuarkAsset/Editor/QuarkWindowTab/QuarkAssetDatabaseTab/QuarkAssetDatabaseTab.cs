@@ -45,11 +45,10 @@ namespace Quark.Editor
             assetBundleSearchLabel.OnEnable();
             assetObjectSearchLabel.OnEnable();
             assetBundleSearchLabel.OnSelectionChanged += OnSelectionChanged;
-            assetBundleSearchLabel.OnDelete += OnBundleDelete; ;
+            assetBundleSearchLabel.OnBundleDelete += OnBundleDelete; ;
             assetBundleSearchLabel.OnAllDelete += OnAllBundleDelete ;
+            assetBundleSearchLabel.OnBundleSort += OnBundleSort; ;
         }
-
-
         public void OnDisable()
         {
             QuarkEditorUtility.SaveData(QuarkAssetDatabaseTabDataFileName, tabData);
@@ -161,7 +160,7 @@ namespace Quark.Editor
             EditorUtility.SetDirty(dataset);
             QuarkEditorUtility.SaveData(QuarkAssetDatabaseTabDataFileName, tabData);
         }
-        void OnBundleDelete(IList<int> bundleIds)
+        void OnBundleDelete(IList<int> bundleIds, IList<int> selectedIds)
         {
             if (dataset== null)
                 return;
@@ -183,6 +182,11 @@ namespace Quark.Editor
             assetObjectSearchLabel.TreeView.Clear();
             assetObjectSearchLabel.TreeView.Reload();
             assetBundleSearchLabel.TreeView.Reload();
+            OnSelectionChanged(selectedIds);
+        }
+        void OnBundleSort(IList<int> selectedIds)
+        {
+            OnSelectionChanged(selectedIds);
         }
         void ClearDataset()
         {
