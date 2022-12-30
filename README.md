@@ -99,7 +99,7 @@ QuarkAsset是一套轻量级的插件化Unity资源加载方案。 内置AssetDa
 ### AssetDatasetTab
 ![Quark_AssetDatasetTab](Docs/Images/Quark_AssetDatasetTab.png)
 
-* Dataset通过文件后缀名进行识别。 若需要自定义识别文件的后缀名，则可在此页面对文件后缀名列表进行增删操作。
+* Dataset通过文件后缀名进行识别。 此列表表示所有可以被quark识别的文件后缀名类型。若自定义的后缀名未被quark识别，则在此页面增加需要被识别的后缀名。
 
 -----
 
@@ -139,7 +139,7 @@ QuarkAsset是一套轻量级的插件化Unity资源加载方案。 内置AssetDa
 
 ## QuarkRuntime加载
 
-* Quark的加载类为`QuarkResources`，对应unity的Resources。
+* Quark的加载类为`QuarkResources`。
 
 * 加载资源时输入的名称可采用以下三种范式：
     * 1、资源名。      
