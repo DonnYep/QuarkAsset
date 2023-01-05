@@ -51,6 +51,7 @@ namespace Quark.Editor
         }
         public void OnDisable()
         {
+            tabData.SelectedBundleIds.Clear();
             QuarkEditorUtility.SaveData(QuarkAssetDatabaseTabDataFileName, tabData);
             if (dataAssignCoroutine != null)
                 QuarkEditorUtility.StopCoroutine(dataAssignCoroutine);
