@@ -206,6 +206,11 @@ namespace Quark.Editor
             var bundleInfos = dataset.QuarkBundleInfoList;
             foreach (var bundleInfo in bundleInfos)
             {
+                //过滤空包。若文件夹被标记为bundle，且不包含内容，则unity会过滤。因此遵循unity的规范；
+                if (bundleInfo.ObjectInfoList.Count <= 0)
+                {
+                    continue;
+                }
                 var bundlePath = bundleInfo.BundlePath;
                 var importer = AssetImporter.GetAtPath(bundlePath);
                 var nameType = tabData.AssetBundleNameType;
@@ -258,10 +263,15 @@ namespace Quark.Editor
             }
             for (int i = 0; i < bundleInfos.Count; i++)
             {
-                var bundle = bundleInfos[i];
-                bundle.DependentBundleKeyList.Clear();
-                var importer = AssetImporter.GetAtPath(bundle.BundlePath);
-                bundle.DependentBundleKeyList.AddRange(AssetDatabase.GetAssetBundleDependencies(importer.assetBundleName, true));
+                var bundleInfo = bundleInfos[i];
+                bundleInfo.DependentBundleKeyList.Clear();
+                var importer = AssetImporter.GetAtPath(bundleInfo.BundlePath);
+                bundleInfo.DependentBundleKeyList.AddRange(AssetDatabase.GetAssetBundleDependencies(importer.assetBundleName, true));
+                if( quarkManifest.BundleInfoDict.TryGetValue(bundleInfo.BundleKey, out var manifestBundleInfo))
+                {
+                    manifestBundleInfo.QuarkAssetBundle.DependentBundleKeyList.Clear();
+                    manifestBundleInfo.QuarkAssetBundle.DependentBundleKeyList.AddRange(bundleInfo.DependentBundleKeyList);
+                }
             }
         }
         IEnumerator FinishBuild(AssetBundleManifest manifest, QuarkManifest quarkManifest)
@@ -339,9 +349,10 @@ namespace Quark.Editor
             //这段还原dataset在editor模式的依赖
             for (int i = 0; i < bundleInfoLength; i++)
             {
-                var bundle = bundleInfos[i];
-                var importer = AssetImporter.GetAtPath(bundle.BundlePath);
-                importer.assetBundleName = bundle.BundleName;
+                var bundleInfo = bundleInfos[i];
+                var importer = AssetImporter.GetAtPath(bundleInfo.BundlePath);
+                importer.assetBundleName = bundleInfo.BundleName;
+                bundleInfo.BundleKey = bundleInfo.BundleName;
             }
             for (int i = 0; i < bundleInfoLength; i++)
             {
