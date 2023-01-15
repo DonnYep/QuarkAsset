@@ -133,6 +133,8 @@ QuarkAsset是一套轻量级的插件化Unity资源加载方案。 内置AssetDa
 
 * 若在资源构建阶段进行了加密，则在Encryption折叠选项下填入对应的密钥与数字，Quark会在runtime自动解密。
 
+* QuarkRuntime加载资源会自动计算引用计数，并根据引用计数加载或卸载assetbundle，无需手动管理ab资源。
+
 -----
 
 <a name="QuarkRuntime加载"></a>
@@ -232,7 +234,7 @@ QuarkResources.LoadAssetAsync<Texture>("Assets/Textures/MyTexture.png",res=>
 
 ## BuildPipeline
 
-* Quark支持自动化流水线部署，支持Jenkins等类型的命令行打包。
+* Quark支持自动化流水线，提供构建静态函数，目前测试可使用Jenkins进行自动化部署。
 
 <a name="打包配置"></a>
 
@@ -261,7 +263,5 @@ QuarkBuildPipeline.BuildAssetBundle(BuildTarget buildTarget);
 * 若在编辑器环境下对AB进行构建，为使得构建的资源准确无误，建议每次都手动清理StreamingAssets下的文件夹。
 
 * 自动化部署构建资源请根据打包策略选择合适的清理方式。建议采用所有资源重新构建的策略。
-
-* 当前自动化版本未做加密支持。
 
 **[回到最上层](#标题导航)**
