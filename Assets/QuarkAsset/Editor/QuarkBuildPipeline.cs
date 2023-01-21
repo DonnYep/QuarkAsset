@@ -287,7 +287,6 @@ namespace Quark.Editor
                     BundleName = bundleInfo.BundleName,
                     BundlePath = bundleInfo.BundlePath
                 };
-                bundle.DependentBundleKeyList.AddRange(bundleInfo.DependentBundleKeyList);
                 var objectInfoList = bundleInfo.ObjectInfoList;
                 var objectInfoLength = objectInfoList.Count;
                 for (int j = 0; j < objectInfoLength; j++)
