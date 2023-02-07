@@ -46,12 +46,11 @@ namespace Quark.Editor
             assetObjectSearchLabel.OnEnable();
             assetBundleSearchLabel.OnSelectionChanged += OnSelectionChanged;
             assetBundleSearchLabel.OnBundleDelete += OnBundleDelete; ;
-            assetBundleSearchLabel.OnAllDelete += OnAllBundleDelete ;
+            assetBundleSearchLabel.OnAllDelete += OnAllBundleDelete;
             assetBundleSearchLabel.OnBundleSort += OnBundleSort; ;
         }
         public void OnDisable()
         {
-            tabData.SelectedBundleIds.Clear();
             QuarkEditorUtility.SaveData(QuarkAssetDatabaseTabDataFileName, tabData);
             if (dataAssignCoroutine != null)
                 QuarkEditorUtility.StopCoroutine(dataAssignCoroutine);
@@ -163,7 +162,7 @@ namespace Quark.Editor
         }
         void OnBundleDelete(IList<int> bundleIds, IList<int> selectedIds)
         {
-            if (dataset== null)
+            if (dataset == null)
                 return;
             if (selectionCoroutine != null)
                 QuarkEditorUtility.StopCoroutine(selectionCoroutine);
@@ -248,9 +247,9 @@ namespace Quark.Editor
                             BundleName = bundleInfo.BundleName,
                             ObjectPath = lowerExtFilePath,
                             ObjectType = AssetDatabase.LoadAssetAtPath(filePath, typeof(Object)).GetType().FullName,
-                            ObjectIcon = AssetDatabase.GetCachedIcon(filePath) as Texture2D,
                             ObjectSize = QuarkUtility.GetFileSize(filePath)
                         };
+                        objectInfo.ObjectValid = AssetDatabase.LoadMainAssetAtPath(objectInfo.ObjectPath) != null;
                         objectInfo.ObjectFormatBytes = EditorUtility.FormatBytes(objectInfo.ObjectSize);
                         if (objectInfo.ObjectType == sceneAssetFullName)
                         {

@@ -228,9 +228,9 @@ namespace Quark.Editor
                             BundleName = bundleInfo.BundleName,
                             ObjectPath = lowerExtFilePath,
                             ObjectType = AssetDatabase.LoadAssetAtPath(filePath, typeof(Object)).GetType().FullName,
-                            ObjectIcon = AssetDatabase.GetCachedIcon(filePath) as Texture2D,
                             ObjectSize = QuarkUtility.GetFileSize(filePath)
                         };
+                        objectInfo.ObjectValid = AssetDatabase.LoadMainAssetAtPath(objectInfo.ObjectPath)!=null;
                         objectInfo.ObjectFormatBytes = EditorUtility.FormatBytes(objectInfo.ObjectSize);
                         if (objectInfo.ObjectType == sceneAssetFullName)
                         {
@@ -378,7 +378,7 @@ namespace Quark.Editor
             quarkManifest.BuildVersion = tabData.BuildVersion;
             var manifestJson = QuarkUtility.ToJson(quarkManifest);
             var manifestContext = manifestJson;
-            var manifestWritePath = Path.Combine(tabData.AssetBundleBuildPath, QuarkConstant.ManifestName);
+            var manifestWritePath = Path.Combine(tabData.AssetBundleBuildPath, QuarkConstant.MANIFEST_NAME);
             if (tabData.UseAesEncryptionForManifest)
             {
                 var key = QuarkUtility.GenerateBytesAESKey(tabData.AesEncryptionKeyForManifest);

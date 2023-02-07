@@ -41,13 +41,13 @@ namespace Quark.Loader
         public abstract void SetLoaderData(IQuarkLoaderData loaderData);
         public abstract T LoadAsset<T>(string assetName) where T : Object;
         public abstract Object LoadAsset(string assetName, Type type);
-        public abstract GameObject LoadPrefab(string assetName, bool instantiate = false);
+        public abstract GameObject LoadPrefab(string assetName, bool instantiate);
         public abstract T[] LoadMainAndSubAssets<T>(string assetName) where T : Object;
         public abstract Object[] LoadMainAndSubAssets(string assetName, Type type);
         public abstract Object[] LoadAllAssets(string assetBundleName);
         public abstract Coroutine LoadAssetAsync<T>(string assetName, Action<T> callback) where T : Object;
         public abstract Coroutine LoadAssetAsync(string assetName, Type type, Action<Object> callback);
-        public abstract Coroutine LoadPrefabAsync(string assetName, Action<GameObject> callback, bool instantiate = false);
+        public abstract Coroutine LoadPrefabAsync(string assetName, Action<GameObject> callback, bool instantiate);
         public abstract Coroutine LoadMainAndSubAssetsAsync<T>(string assetName, Action<T[]> callback) where T : Object;
         public abstract Coroutine LoadMainAndSubAssetsAsync(string assetName, Type type, Action<Object[]> callback);
         public abstract Coroutine LoadAllAssetAsync(string assetBundleName, Action<Object[]> callback);
@@ -58,7 +58,10 @@ namespace Quark.Loader
         public abstract void UnloadAllAssetBundle(bool unloadAllLoadedObjects = true);
         public abstract Coroutine UnloadSceneAsync(string sceneName, Action<float> progress, Action callback);
         public abstract Coroutine UnloadAllSceneAsync(Action<float> progress, Action callback);
-        public abstract void ClearLoader();
+        /// <summary>
+        /// 重置清空寻址信息；
+        /// </summary>
+        public abstract void ResetLoader();
         public bool GetInfo(string assetName, Type type, out QuarkObjectState info)
         {
             info = QuarkObjectState.None;

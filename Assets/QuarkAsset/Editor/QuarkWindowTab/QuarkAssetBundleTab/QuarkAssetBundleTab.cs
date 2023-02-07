@@ -328,7 +328,7 @@ namespace Quark.Editor
             quarkManifest.BuildVersion = tabData.BuildVersion;
             var manifestJson = QuarkUtility.ToJson(quarkManifest);
             var manifestContext = manifestJson;
-            var manifestWritePath = Path.Combine(tabData.AssetBundleBuildPath, QuarkConstant.ManifestName);
+            var manifestWritePath = Path.Combine(tabData.AssetBundleBuildPath, QuarkConstant.MANIFEST_NAME);
             if (tabData.UseAesEncryptionForManifest)
             {
                 var key = QuarkUtility.GenerateBytesAESKey(tabData.AesEncryptionKeyForManifest);

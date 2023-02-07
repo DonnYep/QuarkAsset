@@ -4,6 +4,5 @@
     {
         StreamingAssets=0x0,
         PersistentDataPath= 0x1,
-        URL= 0x2,
     }
 }

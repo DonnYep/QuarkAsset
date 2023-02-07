@@ -10,6 +10,7 @@ namespace Quark
 {
     public partial class QuarkUtility
     {
+        #region Properties
         /// <summary>
         /// 标准的UTF-8是不含BOM的；
         /// 构造的UTF8Encoding，排除掉UTF8-BOM的影响；
@@ -17,6 +18,9 @@ namespace Quark
         static UTF8Encoding utf8Encoding = new UTF8Encoding(false);
         [ThreadStatic]//每个静态类型字段对于每一个线程都是唯一的
         static StringBuilder stringBuilderCache = new StringBuilder(1024);
+        #endregion
+
+        #region String
         public static string Append(params object[] args)
         {
             if (args == null)
@@ -30,76 +34,6 @@ namespace Quark
                 stringBuilderCache.Append(args[i]);
             }
             return stringBuilderCache.ToString();
-        }
-        /// <summary>
-        /// 读取指定路径下某text类型文件的内容
-        /// </summary>
-        /// <param name="fileFullPath">文件的完整路径，包含文件名与扩展名</param>
-        /// <returns>指定文件的包含的内容</returns>
-        public static string ReadTextFileContent(string fileFullPath)
-        {
-            if (!File.Exists(fileFullPath))
-                throw new IOException("ReadTextFileContent path not exist !" + fileFullPath);
-            string result = string.Empty;
-            using (FileStream stream = File.Open(fileFullPath, FileMode.Open))
-            {
-                using (StreamReader reader = new StreamReader(stream, utf8Encoding))
-                {
-                    result = Append(reader.ReadToEnd());
-                }
-            }
-            return result;
-        }
-        /// <summary>
-        /// 获取文件大小；
-        /// 若文件存在，则返回正确的大小；若不存在，则返回-1；
-        /// </summary>
-        /// <param name="filePath">文件地址</param>
-        /// <returns>文件long类型的长度</returns>
-        public static long GetFileSize(string filePath)
-        {
-            if (!Directory.Exists(Path.GetDirectoryName(filePath)))
-            {
-                return -1;
-            }
-            else if (File.Exists(filePath))
-            {
-                return new FileInfo(filePath).Length;
-            }
-            return -1;
-        }
-        /// <summary>
-        /// 完全覆写；
-        ///  使用UTF8编码；
-        /// </summary>
-        /// <param name="fileFullPath">文件完整路径</param>
-        /// <param name="context">写入的信息</param>
-        public static void OverwriteTextFile(string fileFullPath, string context)
-        {
-            using (FileStream stream = File.Open(fileFullPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite))
-            {
-                stream.Seek(0, SeekOrigin.Begin);
-                stream.SetLength(0);
-                using (StreamWriter writer = new StreamWriter(stream, utf8Encoding))
-                {
-                    writer.WriteLine(context);
-                    writer.Flush();
-                }
-            }
-        }
-        /// <summary>
-        /// Ping URL是否存在；
-        /// Ping的过程本身是阻塞的，谨慎使用！
-        /// </summary>
-        /// <param name="url">资源地址</param>
-        /// <returns>是否存在</returns>
-        public static bool PingURI(string url)
-        {
-            using (HttpClient client = new HttpClient())
-            {
-                var response = client.GetAsync(url).Result;
-                return response.StatusCode == HttpStatusCode.OK;
-            }
         }
         /// <summary>
         /// 分割字符串
@@ -117,13 +51,6 @@ namespace Quark
         {
             if (string.IsNullOrEmpty(context))
                 throw new ArgumentNullException(exceptionContext);
-        }
-        public static void DeleteFile(string fileFullPath)
-        {
-            if (File.Exists(fileFullPath))
-            {
-                File.Delete(fileFullPath);
-            }
         }
         /// <summary>
         /// 格式化AB名称；
@@ -158,6 +85,9 @@ namespace Quark
             }
             return context;
         }
+        #endregion
+
+        #region Encryption
         public static byte[] GenerateBytesAESKey(string srckey)
         {
             var srcKeyLen = Encoding.UTF8.GetBytes(srckey).Length;
@@ -257,6 +187,7 @@ namespace Quark
                 }
             }
         }
+        #endregion
 
         #region Debug
         public static void LogInfo(object msg)
@@ -272,6 +203,7 @@ namespace Quark
             UnityEngine.Debug.LogError($"<b><color=red>{"[QUARK-ERROR]-->>"} </color></b>{msg}");
         }
         #endregion
+
         #region Json
         /// <summary>
         /// 将对象序列化为JSON字段
@@ -312,6 +244,71 @@ namespace Quark
             return ToObject<T>(Encoding.UTF8.GetString(jsonData));
         }
         #endregion
+
+        #region IO
+        /// <summary>
+        /// 读取指定路径下某text类型文件的内容
+        /// </summary>
+        /// <param name="fileFullPath">文件的完整路径，包含文件名与扩展名</param>
+        /// <returns>指定文件的包含的内容</returns>
+        public static string ReadTextFileContent(string fileFullPath)
+        {
+            if (!File.Exists(fileFullPath))
+                throw new IOException("ReadTextFileContent path not exist !" + fileFullPath);
+            string result = string.Empty;
+            using (FileStream stream = File.Open(fileFullPath, FileMode.Open))
+            {
+                using (StreamReader reader = new StreamReader(stream, utf8Encoding))
+                {
+                    result = Append(reader.ReadToEnd());
+                }
+            }
+            return result;
+        }
+        /// <summary>
+        /// 获取文件大小；
+        /// 若文件存在，则返回正确的大小；若不存在，则返回-1；
+        /// </summary>
+        /// <param name="filePath">文件地址</param>
+        /// <returns>文件long类型的长度</returns>
+        public static long GetFileSize(string filePath)
+        {
+            if (!Directory.Exists(Path.GetDirectoryName(filePath)))
+            {
+                return -1;
+            }
+            else if (File.Exists(filePath))
+            {
+                return new FileInfo(filePath).Length;
+            }
+            return -1;
+        }
+        /// <summary>
+        /// 完全覆写；
+        ///  使用UTF8编码；
+        /// </summary>
+        /// <param name="fileFullPath">文件完整路径</param>
+        /// <param name="context">写入的信息</param>
+        public static void OverwriteTextFile(string fileFullPath, string context)
+        {
+            using (FileStream stream = File.Open(fileFullPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite))
+            {
+                stream.Seek(0, SeekOrigin.Begin);
+                stream.SetLength(0);
+                using (StreamWriter writer = new StreamWriter(stream, utf8Encoding))
+                {
+                    writer.WriteLine(context);
+                    writer.Flush();
+                }
+            }
+        }
+        public static void DeleteFile(string fileFullPath)
+        {
+            if (File.Exists(fileFullPath))
+            {
+                File.Delete(fileFullPath);
+            }
+        }
         /// <summary>
         /// 获取文件夹中的文件数量；
         /// </summary>
@@ -328,18 +325,6 @@ namespace Quark
                 count += FolderFileCount(dir);
             }
             return count;
-        }
-        /// <summary>
-        /// 标准 Windows 文件路径地址合并；
-        /// 返回结果示例：Resources\JsonData\
-        /// </summary>
-        /// <param name="paths">路径params</param>
-        /// <returns>合并的路径</returns>
-        public static string PathCombine(params string[] paths)
-        {
-            var resultPath = Path.Combine(paths);
-            resultPath = resultPath.Replace("/", "\\");
-            return resultPath;
         }
         /// <summary>
         /// 完全覆写；
@@ -386,26 +371,6 @@ namespace Quark
                 {
                     handler(fsInfo);
                 }
-            }
-        }
-        /// <summary>
-        /// 遍历文件夹下的所有文件地址；
-        /// </summary>
-        /// <param name="folderPath">文件夹路径</param>
-        /// <param name="handler">遍历到一个文件时的处理的函数</param>
-        /// <exception cref="IOException">
-        /// Folder path is invalid
-        /// </exception>
-        public static void TraverseFolderFilePath(string folderPath, Action<string> handler)
-        {
-            if (!Directory.Exists(folderPath))
-                throw new IOException("Folder path is invalid ! ");
-            if (handler == null)
-                throw new ArgumentNullException("Handler is invalid !");
-            var fileDirs = Directory.GetFiles(folderPath, "*", SearchOption.AllDirectories);
-            foreach (var dir in fileDirs)
-            {
-                handler.Invoke(dir);
             }
         }
         /// <summary>
@@ -461,25 +426,6 @@ namespace Quark
                 }
                 directory.Delete();
             }
-        }
-        /// <summary>
-        /// 重命名文件；
-        /// 第一个参数需要：盘符+地址+文件名+后缀；
-        /// 第二个参数仅需文件名+后缀名；
-        /// </summary>
-        /// <param name="oldFileFullPath">旧文件的完整路径，需要带后缀名</param>
-        /// <param name="newFileNamewithExtension">新的文件名，仅需文件名+后缀名</param>
-        public static void RenameFile(string oldFileFullPath, string newFileNamewithExtension)
-        {
-            if (!File.Exists(oldFileFullPath))
-            {
-                using (FileStream fs = File.Create(oldFileFullPath)) { }
-            }
-            var dirPath = Path.GetDirectoryName(oldFileFullPath);
-            var newFileName = Path.Combine(dirPath, newFileNamewithExtension);
-            if (File.Exists(newFileName))
-                File.Delete(newFileName);
-            File.Move(oldFileFullPath, newFileName);
         }
         /// <summary>
         /// 使用UTF8编码；
@@ -542,5 +488,20 @@ namespace Quark
             }
             return false;
         }
+        #endregion
+
+        #region Platform
+        public static string PlatformPerfix
+        {
+            get
+            {
+                string perfix = string.Empty;
+#if UNITY_IOS || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
+                perfix=@"file://";
+#endif
+                return perfix;
+            }
+        }
+        #endregion
     }
 }

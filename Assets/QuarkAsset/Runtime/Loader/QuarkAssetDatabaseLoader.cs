@@ -51,7 +51,7 @@ namespace Quark.Loader
 #endif
             return asset;
         }
-        public override GameObject LoadPrefab(string assetName, bool instantiate = false)
+        public override GameObject LoadPrefab(string assetName, bool instantiate)
         {
             var resGGo = LoadAsset<GameObject>(assetName);
             if (instantiate)
@@ -125,7 +125,7 @@ namespace Quark.Loader
 #endif
             return assetList.ToArray();
         }
-        public override Coroutine LoadPrefabAsync(string assetName, Action<GameObject> callback, bool instantiate = false)
+        public override Coroutine LoadPrefabAsync(string assetName, Action<GameObject> callback, bool instantiate)
         {
             return QuarkUtility.Unity.StartCoroutine(EnumLoadAssetAsync(assetName, typeof(GameObject), (resGo) =>
             {
@@ -216,7 +216,7 @@ namespace Quark.Loader
         {
             return QuarkUtility.Unity.StartCoroutine(EnumUnloadAllSceneAsync(progress, callback));
         }
-        public override void ClearLoader()
+        public override void ResetLoader()
         {
             loadedSceneDict.Clear();
             loadSceneList.Clear();
