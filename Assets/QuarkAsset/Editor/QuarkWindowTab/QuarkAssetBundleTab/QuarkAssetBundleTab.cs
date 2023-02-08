@@ -312,8 +312,8 @@ namespace Quark.Editor
                         break;
                     case AssetBundleNameType.HashInstead:
                         {
-                            if (bundleKeyDict.TryGetValue(bundleKey, out var bundle))
-                                bundleName = bundle.BundleKey;
+                            if (bundleKeyDict.TryGetValue(bundleKey, out var bundleInfo))
+                                bundleName = bundleInfo.BundleKey;
                         }
                         break;
                 }

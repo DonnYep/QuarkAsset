@@ -225,6 +225,9 @@ namespace Quark.Editor
                     invalidBundleInfos.Add(bundleInfo);
                     continue;
                 }
+                var importer = AssetImporter.GetAtPath(bundleInfo.BundlePath);
+                importer.assetBundleName = bundleInfo.BundleName;
+
                 bundleInfo.ObjectInfoList.Clear();
                 bundleInfo.BundleSize = QuarkEditorUtility.GetUnityDirectorySize(bundlePath, QuarkEditorDataProxy.QuarkAssetDataset.QuarkAssetExts);
                 bundleInfo.BundleFormatBytes = EditorUtility.FormatBytes(bundleInfo.BundleSize);
@@ -266,6 +269,19 @@ namespace Quark.Editor
             {
                 bundleInfos.Remove(invalidBundleInfos[i]);
             }
+            for (int i = 0; i < bundleInfos.Count; i++)
+            {
+                var bundleInfo = bundleInfos[i];
+                var importer = AssetImporter.GetAtPath(bundleInfo.BundlePath);
+                bundleInfo.DependentBundleKeyList.Clear();
+                bundleInfo.DependentBundleKeyList.AddRange(AssetDatabase.GetAssetBundleDependencies(importer.assetBundleName, true));
+            }
+            for (int i = 0; i < bundleInfos.Count; i++)
+            {
+                var bundleInfo = bundleInfos[i];
+                var importer = AssetImporter.GetAtPath(bundleInfo.BundlePath);
+                importer.assetBundleName = string.Empty;
+            }
             dataset.QuarkSceneList.Clear();
             dataset.QuarkSceneList.AddRange(quarkSceneList);
 
@@ -278,6 +294,8 @@ namespace Quark.Editor
 #elif UNITY_2019_1_OR_NEWER
             AssetDatabase.SaveAssets();
 #endif
+            AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
+
             assetBundleSearchLabel.TreeView.Reload();
 
             QuarkUtility.LogInfo("Quark asset  build done ");
