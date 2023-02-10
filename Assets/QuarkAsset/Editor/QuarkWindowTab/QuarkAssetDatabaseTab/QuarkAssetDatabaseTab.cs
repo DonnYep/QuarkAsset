@@ -265,6 +265,7 @@ namespace Quark.Editor
                 yield return null;
             }
             EditorUtility.ClearProgressBar();
+            AssetDatabase.Refresh();
             for (int i = 0; i < invalidBundleInfos.Count; i++)
             {
                 bundleInfos.Remove(invalidBundleInfos[i]);

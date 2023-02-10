@@ -230,7 +230,7 @@ namespace Quark.Editor
                             ObjectType = AssetDatabase.LoadAssetAtPath(filePath, typeof(Object)).GetType().FullName,
                             ObjectSize = QuarkUtility.GetFileSize(filePath)
                         };
-                        objectInfo.ObjectValid = AssetDatabase.LoadMainAssetAtPath(objectInfo.ObjectPath)!=null;
+                        objectInfo.ObjectValid = AssetDatabase.LoadMainAssetAtPath(objectInfo.ObjectPath) != null;
                         objectInfo.ObjectFormatBytes = EditorUtility.FormatBytes(objectInfo.ObjectSize);
                         if (objectInfo.ObjectType == sceneAssetFullName)
                         {
@@ -310,6 +310,7 @@ namespace Quark.Editor
                 };
                 quarkManifest.BundleInfoDict.Add(bundleName, quarkBundleInfo);
             }
+            AssetDatabase.Refresh();
             for (int i = 0; i < bundleInfos.Count; i++)
             {
                 var bundleInfo = bundleInfos[i];

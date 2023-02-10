@@ -260,6 +260,7 @@ namespace Quark.Editor
                 quarkManifest.BundleInfoDict.Add(bundleName, quarkBundleInfo);
                 yield return null;
             }
+            AssetDatabase.Refresh();
             for (int i = 0; i < bundleInfos.Count; i++)
             {
                 var bundleInfo = bundleInfos[i];
