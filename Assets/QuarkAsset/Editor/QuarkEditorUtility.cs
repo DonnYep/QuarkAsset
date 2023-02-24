@@ -92,9 +92,21 @@ namespace Quark.Editor
         {
             return EditorGUIUtility.FindTexture("Folder Icon");
         }
+        public static Texture2D GetFolderEmptyIcon()
+        {
+            return EditorGUIUtility.FindTexture("FolderEmpty Icon");
+        }
         public static Texture2D GetRefreshIcon()
         {
             return EditorGUIUtility.FindTexture("Refresh");
+        }
+        public static Texture2D GetValidIcon()
+        {
+            return EditorGUIUtility.FindTexture("TestPassed");
+        }
+        public static Texture2D GetInvalidIcon()
+        {
+            return EditorGUIUtility.FindTexture("TestIgnored");
         }
         public static Texture2D ToTexture2D(Texture texture)
         {
@@ -230,6 +242,18 @@ namespace Quark.Editor
                     sortedAscending = false,
                     minWidth=36,
                     width = 48,
+                    maxWidth=92,
+                    autoResize = false,
+                    canSort=true
+                },
+                  new MultiColumnHeaderState.Column
+                {
+                    headerContent = new GUIContent("Splittable"),
+                    headerTextAlignment = TextAlignment.Left,
+                    sortingArrowAlignment = TextAlignment.Left,
+                    sortedAscending = false,
+                    minWidth=48,
+                    width = 64,
                     maxWidth=92,
                     autoResize = false,
                     canSort=true

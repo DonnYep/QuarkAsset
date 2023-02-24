@@ -1,6 +1,8 @@
 ﻿using System;
 using UnityEngine;
 using System.Collections.Generic;
+using System.Linq;
+
 namespace Quark.Asset
 {
     /// <summary>
@@ -13,8 +15,8 @@ namespace Quark.Asset
         List<QuarkBundleInfo> quarkBundleInfoList;
         [SerializeField]
         List<string> quarkAssetExts;
-        [SerializeField]
         List<QuarkObjectInfo> quarkSceneList;
+        Dictionary<string, QuarkBundleInfo> bundleInfoDict;
         /// <summary>
         /// 可识别的文件后缀名
         /// </summary>
@@ -49,9 +51,59 @@ namespace Quark.Asset
                 return quarkSceneList;
             }
         }
+        public Dictionary<string, QuarkBundleInfo> BundleInfoDict
+        {
+            get
+            {
+                if (bundleInfoDict == null)
+                {
+                    bundleInfoDict = GetBundleInfos().ToDictionary((b) => b.BundleName);
+                }
+                return bundleInfoDict;
+            }
+        }
+        public bool PeekBundleInfo(string displayName, out QuarkBundleInfo bundleInfo)
+        {
+            return BundleInfoDict.TryGetValue(displayName, out bundleInfo);
+        }
+        public void RegenerateBundleInfoDict()
+        {
+            bundleInfoDict?.Clear();
+            bundleInfoDict = GetBundleInfos().ToDictionary((b) => b.BundleName);
+        }
+        public List<QuarkBundleInfo> GetBundleInfos()
+        {
+            List<QuarkBundleInfo> infoList = new List<QuarkBundleInfo>();
+            var length = QuarkBundleInfoList.Count;
+            for (int i = 0; i < length; i++)
+            {
+                var bundleInfo = quarkBundleInfoList[i];
+                if (bundleInfo.Splittable)
+                {
+                    GetSubBundleInfo(bundleInfo, ref infoList);
+                }
+                else
+                {
+                    infoList.Add(bundleInfo);
+                }
+            }
+            return infoList;
+        }
         public void Dispose()
         {
             quarkBundleInfoList?.Clear();
+        }
+        void GetSubBundleInfo(QuarkBundleInfo bundleInfo, ref List<QuarkBundleInfo> infoList)
+        {
+            //quark不支持二次拆包
+            //多次拆包不在此版本考虑范围内
+            var subBundleInfos = bundleInfo.SubBundleInfoList;
+            var length = subBundleInfos.Count;
+            for (int i = 0; i < length; i++)
+            {
+                var subBundleInfo = subBundleInfos[i];
+                infoList.Add(subBundleInfo);
+            }
         }
     }
 }

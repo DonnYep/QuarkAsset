@@ -36,23 +36,6 @@ namespace Quark
             return stringBuilderCache.ToString();
         }
         /// <summary>
-        /// 分割字符串
-        /// </summary>
-        /// <param name="fullString">分割字符串</param>
-        /// <param name="separator">new string[]{"."}</param>
-        /// <returns>分割后的字段数组</returns>
-        public static string[] StringSplit(string fullString, string[] separator)
-        {
-            string[] stringArray = null;
-            stringArray = fullString.Split(separator, StringSplitOptions.None);
-            return stringArray;
-        }
-        public static void IsStringValid(string context, string exceptionContext)
-        {
-            if (string.IsNullOrEmpty(context))
-                throw new ArgumentNullException(exceptionContext);
-        }
-        /// <summary>
         /// 格式化AB名称；
         /// 此方法Quark专供；
         /// </summary>
@@ -275,13 +258,13 @@ namespace Quark
         {
             if (!Directory.Exists(Path.GetDirectoryName(filePath)))
             {
-                return -1;
+                return 0;
             }
             else if (File.Exists(filePath))
             {
                 return new FileInfo(filePath).Length;
             }
-            return -1;
+            return 0;
         }
         /// <summary>
         /// 完全覆写；

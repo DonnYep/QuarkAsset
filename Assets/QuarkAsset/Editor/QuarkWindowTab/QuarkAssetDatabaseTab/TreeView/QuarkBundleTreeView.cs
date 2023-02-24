@@ -24,6 +24,8 @@ namespace Quark.Editor
         public Action<IList<int>, IList<int>> onBundleDelete;
         public Action<IList<int>> onBundleSort;
         public Action onAllDelete;
+        public Action<IList<int>> onMarkAsSplittable;
+        public Action<IList<int>> onMarkAsUnsplittable;
         public QuarkBundleTreeView(TreeViewState treeViewState, MultiColumnHeader multiColumnHeader)
       : base(treeViewState, multiColumnHeader)
         {
@@ -102,13 +104,29 @@ namespace Quark.Editor
         {
             var root = new TreeViewItem { id = -1, depth = -1, displayName = "Root" };
             var allItems = new List<TreeViewItem>();
-            var assetIcon = EditorGUIUtility.FindTexture("PreMatCube");
+            var folderIcon = QuarkEditorUtility.GetFolderIcon();
+            var emptyFolderIcon = QuarkEditorUtility.GetFolderEmptyIcon();
+            var splittableIcon = QuarkEditorUtility.GetValidIcon();
+            var unsplittableIcon = QuarkEditorUtility.GetInvalidIcon();
             for (int i = 0; i < bundleInfoList.Count; i++)
             {
-                var item = new QuarkBundleTreeViewItem(i, 1, bundleInfoList[i].BundleName, assetIcon)
+                Texture2D icon;
+                if (bundleInfoList[i].ObjectInfoList.Count == 0)
+                {
+                    icon = emptyFolderIcon;
+                }
+                else
+                {
+                    icon = folderIcon;
+                }
+                var item = new QuarkBundleTreeViewItem(i, 1, bundleInfoList[i].BundleName, icon)
                 {
                     ObjectCount = bundleInfoList[i].ObjectInfoList.Count,
-                    BundleSize = bundleInfoList[i].BundleFormatBytes
+                    BundleSize = bundleInfoList[i].BundleFormatBytes,
+                    Splittable = bundleInfoList[i].Splittable,
+                    SplittableIcon = splittableIcon,
+                    UnsplittableIcon = unsplittableIcon,
+                    SplittedBundleCount = bundleInfoList[i].SubBundleInfoList.Count
                 };
                 allItems.Add(item);
             }
@@ -175,6 +193,8 @@ namespace Quark.Editor
                 menu.AddItem(new GUIContent("Delete bundle"), false, Delete, selected);
                 menu.AddItem(new GUIContent("Delete all bundles"), false, DeleteAll);
                 menu.AddItem(new GUIContent("Reset the names of all bundles"), false, ResetAllBundlesName);
+                menu.AddItem(new GUIContent("Mark as splittable"), false, SplitBundles, selected);
+                menu.AddItem(new GUIContent("Mark as unsplittable"), false, MergeBundles, selected);
             }
             if (selected.Count == 1)
             {
@@ -184,6 +204,8 @@ namespace Quark.Editor
                 menu.AddItem(new GUIContent("Reset the names of all bundles"), false, ResetAllBundlesName);
                 menu.AddItem(new GUIContent("Copy bundle name to clipboard"), false, CopyBundleNameToClipboard, id);
                 menu.AddItem(new GUIContent("Copy bundle path to clipboard"), false, CopyBundlePathToClipboard, id);
+                menu.AddItem(new GUIContent("Mark as splittable"), false, SplitBundles, selected);
+                menu.AddItem(new GUIContent("Mark as unsplittable"), false, MergeBundles, selected);
             }
             menu.ShowAsContext();
         }
@@ -237,7 +259,15 @@ namespace Quark.Editor
                             quarkBundleInfoList.Sort((lhs, rhs) => rhs.ObjectInfoList.Count.CompareTo(lhs.ObjectInfoList.Count));
                     }
                     break;
-                case 3://bundle
+                case 3://splittable
+                    {
+                        if (ascending)
+                            quarkBundleInfoList.Sort((lhs, rhs) => lhs.Splittable.CompareTo(rhs.Splittable));
+                        else
+                            quarkBundleInfoList.Sort((lhs, rhs) => rhs.Splittable.CompareTo(lhs.Splittable));
+                    }
+                    break;
+                case 4://bundle
                     {
                         if (ascending)
                             quarkBundleInfoList.Sort((lhs, rhs) => rhs.BundleName.CompareTo(lhs.BundleName));
@@ -278,6 +308,23 @@ namespace Quark.Editor
                     }
                     break;
                 case 3:
+                    {
+                        var iconRect = new Rect(cellRect.x + 4, cellRect.y, cellRect.height, cellRect.height);
+                        if (treeView.Splittable)
+                        {
+                            if (treeView.SplittableIcon != null)
+                                GUI.DrawTexture(iconRect, treeView.SplittableIcon, ScaleMode.ScaleToFit);
+                            var labelCellRect = new Rect(cellRect.x + iconRect.width + 4, cellRect.y, cellRect.width - iconRect.width, cellRect.height);
+                            DefaultGUI.Label(labelCellRect, treeView.SplittedBundleCount.ToString(), args.selected, args.focused);
+                        }
+                        else
+                        {
+                            if (treeView.UnsplittableIcon != null)
+                                GUI.DrawTexture(iconRect, treeView.UnsplittableIcon, ScaleMode.ScaleToFit);
+                        }
+                    }
+                    break;
+                case 4:
                     {
                         var iconRect = new Rect(cellRect.x + 4, cellRect.y, cellRect.height, cellRect.height);
                         if (treeView.icon != null)
@@ -350,8 +397,59 @@ namespace Quark.Editor
                 {
                     bundleInfoList.Remove(rmBundleInfos[i]);
                 }
-                onBundleDelete?.Invoke(list,GetSelection());
-
+                onBundleDelete?.Invoke(list, GetSelection());
+            }
+            catch (Exception e)
+            {
+                QuarkUtility.LogError(e);
+            }
+        }
+        void SplitBundles(object context)
+        {
+            try
+            {
+                var list = context as IList<int>;
+                var items = FindRows(list);
+                var length = items.Count;
+                for (int i = 0; i < length; i++)
+                {
+                    var item = items[i];
+                    var bundleInfo = QuarkEditorDataProxy.QuarkAssetDataset.QuarkBundleInfoList.Find((b) => b.BundleName == item.displayName);
+                    var has = bundleInfo != null;
+                    if (has)
+                    {
+                        bundleInfo.Splittable = true;
+                    }
+                }
+                if (length > 0)
+                    onMarkAsSplittable?.Invoke(list);
+                Reload();
+            }
+            catch (Exception e)
+            {
+                QuarkUtility.LogError(e);
+            }
+        }
+        void MergeBundles(object context)
+        {
+            try
+            {
+                var list = context as IList<int>;
+                var items = FindRows(list);
+                var length = items.Count;
+                for (int i = 0; i < length; i++)
+                {
+                    var item = items[i];
+                    var bundleInfo = QuarkEditorDataProxy.QuarkAssetDataset.QuarkBundleInfoList.Find((b) => b.BundleName == item.displayName);
+                    var has = bundleInfo != null;
+                    if (has)
+                    {
+                        bundleInfo.Splittable = false;
+                    }
+                }
+                if (length > 0)
+                    onMarkAsUnsplittable?.Invoke(list);
+                Reload();
             }
             catch (Exception e)
             {

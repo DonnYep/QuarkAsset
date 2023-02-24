@@ -203,7 +203,7 @@ namespace Quark.Editor
         IEnumerator SetAssetBundleName(QuarkManifest quarkManifest)
         {
             QuarkUtility.LogInfo("Start build asset bundle");
-            var bundleInfos = dataset.QuarkBundleInfoList;
+            var bundleInfos = dataset.GetBundleInfos();
             foreach (var bundleInfo in bundleInfos)
             {
                 //过滤空包。若文件夹被标记为bundle，且不包含内容，则unity会过滤。因此遵循unity的规范；
@@ -343,7 +343,7 @@ namespace Quark.Editor
             var buildMainManifestPath = QuarkUtility.Append(buildMainPath, ".manifest");
             QuarkUtility.DeleteFile(buildMainPath);
             QuarkUtility.DeleteFile(buildMainManifestPath);
-            var bundleInfos = dataset.QuarkBundleInfoList;
+            var bundleInfos = dataset.GetBundleInfos();
             var bundleInfoLength = bundleInfos.Count;
 
             //这段还原dataset在editor模式的依赖

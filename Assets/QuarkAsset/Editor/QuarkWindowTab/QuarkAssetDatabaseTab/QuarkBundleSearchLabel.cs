@@ -5,7 +5,7 @@ using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 using Object=UnityEngine.Object;
-namespace Quark.Editor
+ namespace Quark.Editor
 {
     public class QuarkBundleSearchLabel
     {
@@ -48,7 +48,6 @@ namespace Quark.Editor
             GUILayout.BeginVertical();
             {
                 DrawDragRect();
-                DrawToolbar();
                 DrawTreeView(rect);
             }
             GUILayout.EndVertical();
@@ -125,15 +124,10 @@ namespace Quark.Editor
                 }
             }
         }
-        void DrawToolbar()
-        {
-            GUILayout.BeginHorizontal(EditorStyles.toolbar);
-            treeView.searchString = searchField.OnToolbarGUI(treeView.searchString);
-            GUILayout.EndHorizontal();
-        }
         void DrawTreeView(Rect rect)
         {
             GUILayout.BeginVertical(GUILayout.MaxWidth(rect.width * 0.38f));
+            treeView.searchString = searchField.OnToolbarGUI(treeView.searchString);
             Rect viewRect = GUILayoutUtility.GetRect(32, 8192, 32, 8192);
             treeView.OnGUI(viewRect);
             GUILayout.EndVertical();

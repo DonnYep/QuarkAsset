@@ -190,7 +190,7 @@ namespace Quark.Editor
                 return;
             }
             EditorUtility.ClearProgressBar();
-            var bundleInfos = dataset.QuarkBundleInfoList;
+            var bundleInfos = dataset.GetBundleInfos();
             var extensions = dataset.QuarkAssetExts;
             List<QuarkObjectInfo> quarkSceneList = new List<QuarkObjectInfo>();
             List<QuarkBundleInfo> invalidBundleInfos = new List<QuarkBundleInfo>();
@@ -254,7 +254,7 @@ namespace Quark.Editor
         }
         static void OnSetAssetBundleName(QuarkManifest quarkManifest, QuarkDataset dataset)
         {
-            var bundleInfos = dataset.QuarkBundleInfoList;
+            var bundleInfos = dataset.GetBundleInfos();
             foreach (var bundleInfo in bundleInfos)
             {
                 //过滤空包。若文件夹被标记为bundle，且不包含内容，则unity会过滤。因此遵循unity的规范；
@@ -331,7 +331,7 @@ namespace Quark.Editor
                 return;
             Dictionary<string, QuarkBundleInfo> bundleKeyDict = null;
             if (tabData.AssetBundleNameType == AssetBundleNameType.HashInstead)
-                bundleKeyDict = dataset.QuarkBundleInfoList.ToDictionary(b => b.BundleKey);
+                bundleKeyDict = dataset.GetBundleInfos().ToDictionary(b => b.BundleKey);
             var bundleKeys = manifest.GetAllAssetBundles();
             var bundleKeyLength = bundleKeys.Length;
             for (int i = 0; i < bundleKeyLength; i++)

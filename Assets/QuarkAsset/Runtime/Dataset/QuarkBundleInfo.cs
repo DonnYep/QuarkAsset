@@ -24,6 +24,10 @@ namespace Quark.Asset
         List<QuarkObjectInfo> objectInfoList;
         [SerializeField]
         List<string> dependentBundleKeyList;
+        [SerializeField]
+        bool splittable;
+        [SerializeField]
+        List<QuarkBundleInfo> subBundleInfoList;
         /// <summary>
         /// AB包的名称；
         /// </summary>
@@ -92,9 +96,25 @@ namespace Quark.Asset
             }
             set { dependentBundleKeyList = value; }
         }
+        public bool Splittable
+        {
+            get { return splittable; }
+            set { splittable = value; }
+        }
+        public List<QuarkBundleInfo> SubBundleInfoList
+        {
+            get
+            {
+                if (subBundleInfoList == null)
+                    subBundleInfoList = new List<QuarkBundleInfo>();
+                return subBundleInfoList;
+            }
+            set { subBundleInfoList = value; }
+        }
+
         public bool Equals(QuarkBundleInfo other)
         {
-            return other.bundleName == this.bundleName||other.bundlePath==bundlePath;
+            return other.bundleName == this.bundleName || other.bundlePath == bundlePath;
         }
     }
 }
