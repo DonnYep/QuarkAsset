@@ -61,12 +61,17 @@ namespace Quark.Editor
                     //var  objectIcon = EditorGUIUtility.FindTexture("console.erroricon");
 
                     var objectInfo = objectInfoList[i];
-                    var item = new QuarkObjectTreeViewItem(i, 1, objectInfo.ObjectName, objectInfo.ObjectIcon)
+                    Texture2D objectIcon = null;
+                    if (objectInfo.ObjectValid)
+                        objectIcon = AssetDatabase.GetCachedIcon(objectInfo.ObjectPath) as Texture2D;
+                    else
+                        objectIcon = EditorGUIUtility.FindTexture("console.erroricon");
+                    var item = new QuarkObjectTreeViewItem(i, 1, objectInfo.ObjectName, objectIcon)
                     {
-                        BundleName = objectInfo.BundleName, 
+                        BundleName = objectInfo.BundleName,
                         AssetPath = objectInfo.ObjectPath,
                         AssetExtension = objectInfo.ObjectExtension,
-                        FormatBytes= objectInfo.ObjectFormatBytes
+                        FormatBytes = objectInfo.ObjectFormatBytes
                     };
                     allItems.Add(item);
                 }

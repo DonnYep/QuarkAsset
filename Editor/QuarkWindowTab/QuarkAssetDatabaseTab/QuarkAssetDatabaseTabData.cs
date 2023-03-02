@@ -6,6 +6,8 @@ namespace Quark.Editor
     [Serializable]
     internal class QuarkAssetDatabaseTabData
     {
+        public int LabelTabIndex;
+
         List<int> selectedBundleIds;
         /// <summary>
         /// 当前被选择的bundleId集合

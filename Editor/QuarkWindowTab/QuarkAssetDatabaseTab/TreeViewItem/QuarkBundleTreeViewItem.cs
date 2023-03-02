@@ -7,6 +7,10 @@ namespace Quark.Editor
     {
         string bundleSize;
         public int ObjectCount { get; set; }
+        public bool Splittable{ get; set; }
+        public int SplittedBundleCount { get; set; }
+        public Texture2D SplittableIcon { get; set; }
+        public Texture2D UnsplittableIcon { get; set; }
         public string BundleSize
         {
             get

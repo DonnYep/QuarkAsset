@@ -190,7 +190,7 @@ namespace Quark.Editor
                 return;
             }
             EditorUtility.ClearProgressBar();
-            var bundleInfos = dataset.QuarkBundleInfoList;
+            var bundleInfos = dataset.GetBundleInfos();
             var extensions = dataset.QuarkAssetExts;
             List<QuarkObjectInfo> quarkSceneList = new List<QuarkObjectInfo>();
             List<QuarkBundleInfo> invalidBundleInfos = new List<QuarkBundleInfo>();
@@ -228,9 +228,9 @@ namespace Quark.Editor
                             BundleName = bundleInfo.BundleName,
                             ObjectPath = lowerExtFilePath,
                             ObjectType = AssetDatabase.LoadAssetAtPath(filePath, typeof(Object)).GetType().FullName,
-                            ObjectIcon = AssetDatabase.GetCachedIcon(filePath) as Texture2D,
                             ObjectSize = QuarkUtility.GetFileSize(filePath)
                         };
+                        objectInfo.ObjectValid = AssetDatabase.LoadMainAssetAtPath(objectInfo.ObjectPath) != null;
                         objectInfo.ObjectFormatBytes = EditorUtility.FormatBytes(objectInfo.ObjectSize);
                         if (objectInfo.ObjectType == sceneAssetFullName)
                         {
@@ -254,9 +254,14 @@ namespace Quark.Editor
         }
         static void OnSetAssetBundleName(QuarkManifest quarkManifest, QuarkDataset dataset)
         {
-            var bundleInfos = dataset.QuarkBundleInfoList;
+            var bundleInfos = dataset.GetBundleInfos();
             foreach (var bundleInfo in bundleInfos)
             {
+                //过滤空包。若文件夹被标记为bundle，且不包含内容，则unity会过滤。因此遵循unity的规范；
+                if (bundleInfo.ObjectInfoList.Count <= 0)
+                {
+                    continue;
+                }
                 var bundlePath = bundleInfo.BundlePath;
                 var importer = AssetImporter.GetAtPath(bundlePath);
                 var nameType = tabData.AssetBundleNameType;
@@ -282,7 +287,6 @@ namespace Quark.Editor
                     BundleName = bundleInfo.BundleName,
                     BundlePath = bundleInfo.BundlePath
                 };
-                bundle.DependentBundleKeyList.AddRange(bundleInfo.DependentBundleKeyList);
                 var objectInfoList = bundleInfo.ObjectInfoList;
                 var objectInfoLength = objectInfoList.Count;
                 for (int j = 0; j < objectInfoLength; j++)
@@ -306,12 +310,18 @@ namespace Quark.Editor
                 };
                 quarkManifest.BundleInfoDict.Add(bundleName, quarkBundleInfo);
             }
+            AssetDatabase.Refresh();
             for (int i = 0; i < bundleInfos.Count; i++)
             {
                 var bundleInfo = bundleInfos[i];
                 bundleInfo.DependentBundleKeyList.Clear();
                 var importer = AssetImporter.GetAtPath(bundleInfo.BundlePath);
                 bundleInfo.DependentBundleKeyList.AddRange(AssetDatabase.GetAssetBundleDependencies(importer.assetBundleName, true));
+                if (quarkManifest.BundleInfoDict.TryGetValue(bundleInfo.BundleKey, out var manifestBundleInfo))
+                {
+                    manifestBundleInfo.QuarkAssetBundle.DependentBundleKeyList.Clear();
+                    manifestBundleInfo.QuarkAssetBundle.DependentBundleKeyList.AddRange(bundleInfo.DependentBundleKeyList);
+                }
             }
         }
         static void OnFinishBuild(AssetBundleManifest manifest, QuarkManifest quarkManifest, QuarkDataset dataset)
@@ -321,7 +331,7 @@ namespace Quark.Editor
                 return;
             Dictionary<string, QuarkBundleInfo> bundleKeyDict = null;
             if (tabData.AssetBundleNameType == AssetBundleNameType.HashInstead)
-                bundleKeyDict = dataset.QuarkBundleInfoList.ToDictionary(b => b.BundleKey);
+                bundleKeyDict = dataset.GetBundleInfos().ToDictionary(b => b.BundleKey);
             var bundleKeys = manifest.GetAllAssetBundles();
             var bundleKeyLength = bundleKeys.Length;
             for (int i = 0; i < bundleKeyLength; i++)
@@ -369,7 +379,7 @@ namespace Quark.Editor
             quarkManifest.BuildVersion = tabData.BuildVersion;
             var manifestJson = QuarkUtility.ToJson(quarkManifest);
             var manifestContext = manifestJson;
-            var manifestWritePath = Path.Combine(tabData.AssetBundleBuildPath, QuarkConstant.ManifestName);
+            var manifestWritePath = Path.Combine(tabData.AssetBundleBuildPath, QuarkConstant.MANIFEST_NAME);
             if (tabData.UseAesEncryptionForManifest)
             {
                 var key = QuarkUtility.GenerateBytesAESKey(tabData.AesEncryptionKeyForManifest);
@@ -388,9 +398,10 @@ namespace Quark.Editor
             //这段还原dataset在editor模式的依赖
             for (int i = 0; i < bundleInfoLength; i++)
             {
-                var bundle = bundleInfos[i];
-                var importer = AssetImporter.GetAtPath(bundle.BundlePath);
-                importer.assetBundleName = bundle.BundleName;
+                var bundleInfo = bundleInfos[i];
+                var importer = AssetImporter.GetAtPath(bundleInfo.BundlePath);
+                importer.assetBundleName = bundleInfo.BundleName;
+                bundleInfo.BundleKey = bundleInfo.BundleName;
             }
             for (int i = 0; i < bundleInfoLength; i++)
             {

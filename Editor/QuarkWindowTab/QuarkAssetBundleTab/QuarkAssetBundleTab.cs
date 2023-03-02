@@ -203,9 +203,14 @@ namespace Quark.Editor
         IEnumerator SetAssetBundleName(QuarkManifest quarkManifest)
         {
             QuarkUtility.LogInfo("Start build asset bundle");
-            var bundleInfos = dataset.QuarkBundleInfoList;
+            var bundleInfos = dataset.GetBundleInfos();
             foreach (var bundleInfo in bundleInfos)
             {
+                //过滤空包。若文件夹被标记为bundle，且不包含内容，则unity会过滤。因此遵循unity的规范；
+                if (bundleInfo.ObjectInfoList.Count <= 0)
+                {
+                    continue;
+                }
                 var bundlePath = bundleInfo.BundlePath;
                 var importer = AssetImporter.GetAtPath(bundlePath);
                 var nameType = tabData.AssetBundleNameType;
@@ -231,7 +236,6 @@ namespace Quark.Editor
                     BundleName = bundleInfo.BundleName,
                     BundlePath = bundleInfo.BundlePath
                 };
-                bundle.DependentBundleKeyList.AddRange(bundleInfo.DependentBundleKeyList);
                 var objectInfoList = bundleInfo.ObjectInfoList;
                 var objectInfoLength = objectInfoList.Count;
                 for (int j = 0; j < objectInfoLength; j++)
@@ -256,12 +260,18 @@ namespace Quark.Editor
                 quarkManifest.BundleInfoDict.Add(bundleName, quarkBundleInfo);
                 yield return null;
             }
+            AssetDatabase.Refresh();
             for (int i = 0; i < bundleInfos.Count; i++)
             {
-                var bundle = bundleInfos[i];
-                bundle.DependentBundleKeyList.Clear();
-                var importer = AssetImporter.GetAtPath(bundle.BundlePath);
-                bundle.DependentBundleKeyList.AddRange(AssetDatabase.GetAssetBundleDependencies(importer.assetBundleName, true));
+                var bundleInfo = bundleInfos[i];
+                bundleInfo.DependentBundleKeyList.Clear();
+                var importer = AssetImporter.GetAtPath(bundleInfo.BundlePath);
+                bundleInfo.DependentBundleKeyList.AddRange(AssetDatabase.GetAssetBundleDependencies(importer.assetBundleName, true));
+                if( quarkManifest.BundleInfoDict.TryGetValue(bundleInfo.BundleKey, out var manifestBundleInfo))
+                {
+                    manifestBundleInfo.QuarkAssetBundle.DependentBundleKeyList.Clear();
+                    manifestBundleInfo.QuarkAssetBundle.DependentBundleKeyList.AddRange(bundleInfo.DependentBundleKeyList);
+                }
             }
         }
         IEnumerator FinishBuild(AssetBundleManifest manifest, QuarkManifest quarkManifest)
@@ -303,8 +313,8 @@ namespace Quark.Editor
                         break;
                     case AssetBundleNameType.HashInstead:
                         {
-                            if (bundleKeyDict.TryGetValue(bundleKey, out var bundle))
-                                bundleName = bundle.BundleKey;
+                            if (bundleKeyDict.TryGetValue(bundleKey, out var bundleInfo))
+                                bundleName = bundleInfo.BundleKey;
                         }
                         break;
                 }
@@ -319,7 +329,7 @@ namespace Quark.Editor
             quarkManifest.BuildVersion = tabData.BuildVersion;
             var manifestJson = QuarkUtility.ToJson(quarkManifest);
             var manifestContext = manifestJson;
-            var manifestWritePath = Path.Combine(tabData.AssetBundleBuildPath, QuarkConstant.ManifestName);
+            var manifestWritePath = Path.Combine(tabData.AssetBundleBuildPath, QuarkConstant.MANIFEST_NAME);
             if (tabData.UseAesEncryptionForManifest)
             {
                 var key = QuarkUtility.GenerateBytesAESKey(tabData.AesEncryptionKeyForManifest);
@@ -333,15 +343,16 @@ namespace Quark.Editor
             var buildMainManifestPath = QuarkUtility.Append(buildMainPath, ".manifest");
             QuarkUtility.DeleteFile(buildMainPath);
             QuarkUtility.DeleteFile(buildMainManifestPath);
-            var bundleInfos = dataset.QuarkBundleInfoList;
+            var bundleInfos = dataset.GetBundleInfos();
             var bundleInfoLength = bundleInfos.Count;
 
             //这段还原dataset在editor模式的依赖
             for (int i = 0; i < bundleInfoLength; i++)
             {
-                var bundle = bundleInfos[i];
-                var importer = AssetImporter.GetAtPath(bundle.BundlePath);
-                importer.assetBundleName = bundle.BundleName;
+                var bundleInfo = bundleInfos[i];
+                var importer = AssetImporter.GetAtPath(bundleInfo.BundlePath);
+                importer.assetBundleName = bundleInfo.BundleName;
+                bundleInfo.BundleKey = bundleInfo.BundleName;
             }
             for (int i = 0; i < bundleInfoLength; i++)
             {

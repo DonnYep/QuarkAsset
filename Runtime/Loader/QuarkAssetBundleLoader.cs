@@ -65,7 +65,7 @@ namespace Quark.Loader
             }
             return asset;
         }
-        public override GameObject LoadPrefab(string assetName, bool instantiate = false)
+        public override GameObject LoadPrefab(string assetName, bool instantiate)
         {
             var resGo = LoadAsset<GameObject>(assetName);
             if (instantiate)
@@ -147,7 +147,7 @@ namespace Quark.Loader
         {
             return QuarkUtility.Unity.StartCoroutine(EnumLoadAssetAsync(assetName, type, callback));
         }
-        public override Coroutine LoadPrefabAsync(string assetName, Action<GameObject> callback, bool instantiate = false)
+        public override Coroutine LoadPrefabAsync(string assetName, Action<GameObject> callback, bool instantiate)
         {
             return QuarkUtility.Unity.StartCoroutine(EnumLoadAssetAsync(assetName, typeof(GameObject), (resGo) =>
              {
@@ -237,7 +237,7 @@ namespace Quark.Loader
         {
             return QuarkUtility.Unity.StartCoroutine(EnumUnloadAllSceneAsync(progress, callback));
         }
-        public override void ClearLoader()
+        public override void ResetLoader()
         {
             foreach (var bundleWarpper in bundleWarpperDict.Values)
             {
@@ -433,7 +433,7 @@ namespace Quark.Loader
                 if (bundleWarpper.AssetBundle == null)
                 {
                     var abPath = Path.Combine(PersistentPath, bundleWarpper.QuarkAssetBundle.BundleKey);
-                    var abReq = AssetBundle.LoadFromFileAsync(abPath, 0, QuarkDataProxy.QuarkEncryptionOffset);
+                    var abReq = AssetBundle.LoadFromFileAsync(abPath, 0, QuarkDataProxy.QuarkEncrytionData.QuarkEncryptionOffset);
                     yield return abReq;
                     bundleWarpper.AssetBundle = abReq.assetBundle;
                     if (bundleWarpper.AssetBundle != null)
@@ -454,7 +454,7 @@ namespace Quark.Loader
                         if (dependentBundleWarpper.AssetBundle == null)
                         {
                             var abPath = Path.Combine(PersistentPath, dependentBundleKey);
-                            var abReq = AssetBundle.LoadFromFileAsync(abPath, 0, QuarkDataProxy.QuarkEncryptionOffset);
+                            var abReq = AssetBundle.LoadFromFileAsync(abPath, 0, QuarkDataProxy.QuarkEncrytionData.QuarkEncryptionOffset);
                             yield return abReq;
                             dependentBundleWarpper.AssetBundle = abReq.assetBundle;
                             if (dependentBundleWarpper.AssetBundle != null)
@@ -546,7 +546,7 @@ namespace Quark.Loader
                 {
                     //同步加载AssetBundle
                     var abPath = Path.Combine(PersistentPath, bundleWarpper.QuarkAssetBundle.BundleKey);
-                    assetBundle = AssetBundle.LoadFromFile(abPath, 0, QuarkDataProxy.QuarkEncryptionOffset);
+                    assetBundle = AssetBundle.LoadFromFile(abPath, 0, QuarkDataProxy.QuarkEncrytionData.QuarkEncryptionOffset);
                     if (assetBundle != null)
                     {
                         bundleWarpper.AssetBundle = assetBundle;
@@ -569,7 +569,7 @@ namespace Quark.Loader
                         if (dependAssetBundle == null)
                         {
                             var abPath = Path.Combine(PersistentPath, dependBundleKey);
-                            dependAssetBundle = AssetBundle.LoadFromFile(abPath, 0, QuarkDataProxy.QuarkEncryptionOffset);
+                            dependAssetBundle = AssetBundle.LoadFromFile(abPath, 0, QuarkDataProxy.QuarkEncrytionData.QuarkEncryptionOffset);
                             if (dependAssetBundle != null)
                             {
                                 dependBundleWarpper.AssetBundle = dependAssetBundle;

@@ -1,63 +1,138 @@
 ﻿using Quark.Asset;
+using Quark.Compare;
+using Quark.Loader;
 using Quark.Networking;
-using Quark.Verifiy;
+using Quark.Verify;
 using System;
+using System.IO;
+using System.Threading.Tasks;
 using UnityEngine;
 using Object = UnityEngine.Object;
 namespace Quark
 {
     public static class QuarkResources
     {
-        public static string ManifestBuildVersion
+        static QuarkDownloader quarkDownloader;
+        static QuarkManifestVerifier quarkManifestVerifier;
+        static QuarkManifestRequester quarkManifestRequester;
+        static QuarlManifestComparer quarlManifestComparer;
+        static QuarkLoadModeProvider quarkLoadModeProvider
+            = new QuarkLoadModeProvider();
+        public static QuarkLoadMode QuarkLoadMode
         {
-            get
-            {
-                return QuarkDataProxy.QuarkManifest != null ? QuarkDataProxy.QuarkManifest.BuildVersion : "<NONE>";
-            }
-        }
-        public static QuarkLoadMode QuarkAssetLoadMode
-        {
-            get { return QuarkEngine.Instance.QuarkAssetLoadMode; }
-            set { QuarkEngine.Instance.QuarkAssetLoadMode = value; }
-        }
-        /// <summary>
-        /// 当检测到最新的；
-        /// LatestURLS---Size
-        /// </summary>
-        public static event Action<string[], long> OnCompareManifestSuccess
-        {
-            add { QuarkEngine.Instance.onCompareManifestSuccess += value; }
-            remove { QuarkEngine.Instance.onCompareManifestSuccess -= value; }
-        }
-        /// <summary>
-        /// 当检测失败；
-        /// ErrorMessage
-        /// </summary>
-        public static event Action<string> OnCompareManifestFailure
-        {
-            add { QuarkEngine.Instance.onCompareManifestFailure += value; }
-            remove { QuarkEngine.Instance.onCompareManifestFailure -= value; }
+            get { return QuarkDataProxy.QuarkAssetLoadMode; }
+            set { QuarkDataProxy.QuarkAssetLoadMode = value; }
         }
         /// <summary>
         /// 文件下载器；
         /// </summary>
         public static QuarkDownloader QuarkDownloader
         {
-            get { return QuarkEngine.Instance.quarkDownloader; }
+            get
+            {
+                if (quarkDownloader == null)
+                    quarkDownloader = new QuarkDownloader();
+                return quarkDownloader;
+            }
         }
         /// <summary>
         /// 文件校验器；
         /// </summary>
         public static QuarkManifestVerifier QuarkManifestVerifier
         {
-            get { return QuarkEngine.Instance.quarkManifestVerifier; }
+            get
+            {
+                if (quarkManifestVerifier == null)
+                    quarkManifestVerifier = new QuarkManifestVerifier();
+                return quarkManifestVerifier;
+            }
         }
         /// <summary>
-        /// 文件比较器；
+        /// 文件清单获取器
         /// </summary>
-        public static QuarkComparator QuarkComparator
+        public static QuarkManifestRequester QuarkManifestRequester
         {
-            get { return QuarkEngine.Instance.quarkComparator; }
+            get
+            {
+                if (quarkManifestRequester == null)
+                    quarkManifestRequester = new QuarkManifestRequester();
+                return quarkManifestRequester;
+            }
+        }
+        /// <summary>
+        /// 文件清单比较器
+        /// </summary>
+        public static QuarlManifestComparer QuarlManifestComparer
+        {
+            get
+            {
+                if (quarlManifestComparer == null)
+                    quarlManifestComparer = new QuarlManifestComparer();
+                return quarlManifestComparer;
+            }
+        }
+        /// <summary>
+        /// launch quark assetBundle mode, local file only!
+        /// </summary>
+        /// <param name="path">directory path</param>
+        /// <param name="manifestAesKey">ase key for manifest file</param>
+        /// <param name="encryptionOffset">bundle encryption offset</param>
+        public static void LaunchAssetBundleMode(string path, Action onSuccess, Action<string> onFailure, string manifestAesKey = "", ulong encryptionOffset = 0)
+        {
+            QuarkLoadMode = QuarkLoadMode.AssetBundle;
+            QuarkDataProxy.QuarkEncrytionData.QuarkEncryptionOffset = encryptionOffset;
+            QuarkDataProxy.QuarkEncrytionData.QuarkAesEncryptionKey = manifestAesKey;
+            var aesKeyBytes = QuarkUtility.GenerateBytesAESKey(manifestAesKey);
+            string manifestPerfixPath = string.Empty;
+            string persistentPath = string.Empty;
+            string uri = string.Empty;
+            if (!string.IsNullOrEmpty(QuarkUtility.PlatformPerfix))
+            {
+                //若平台宏字符串不为空，则判断是否以平台宏前缀开始
+                if (!path.StartsWith(QuarkUtility.PlatformPerfix))
+                {
+                    manifestPerfixPath = QuarkUtility.PlatformPerfix + path;
+                    persistentPath = path;
+                }
+                else
+                {
+                    //若dirPath包含了平台宏
+                    manifestPerfixPath = path;
+                    //持久化路径需要移除平台宏前缀
+                    persistentPath = path.Remove(0, QuarkUtility.PlatformPerfix.Length);
+                }
+            }
+            else
+            {
+                //若平台宏字符串为空，则直接使用地址
+                manifestPerfixPath = path;
+                persistentPath = path;
+            }
+
+            uri = Path.Combine(manifestPerfixPath, QuarkConstant.MANIFEST_NAME);
+            QuarkDataProxy.PersistentPath = persistentPath;
+            QuarkManifestRequester.OnManifestAcquireSuccess((manifest) =>
+            {
+                SetAssetBundleModeManifest(manifest);
+                onSuccess?.Invoke();
+            });
+            QuarkManifestRequester.OnManifestAcquireFailure(onFailure);
+            QuarkManifestRequester.RequestManifestAsync(uri, aesKeyBytes);
+        }
+        /// <summary>
+        /// launch quark assetDatabase mode, editor only!
+        /// </summary>
+        /// <param name="quarkDataset">dataset</param>
+        public static void LaunchAssetDatabaseMode(QuarkDataset quarkDataset, Action onSuccess, Action<string> onFailure)
+        {
+            QuarkLoadMode = QuarkLoadMode.AssetDatabase;
+            if (quarkDataset == null)
+            {
+                onFailure?.Invoke("quarkDataset is null !");
+                return;
+            }
+            SetAssetDatabaseModeDataset(quarkDataset);
+            onSuccess?.Invoke();
         }
         /// <summary>
         /// 设置Manifest；
@@ -66,7 +141,7 @@ namespace Quark
         /// <param name="manifest">Manifest文件</param>
         public static void SetAssetBundleModeManifest(QuarkManifest manifest)
         {
-            QuarkEngine.Instance.SetAssetBundleModeManifest(manifest);
+            quarkLoadModeProvider.SetAssetBundleModeManifest(manifest);
         }
         /// <summary>
         /// 用于Editor开发模式；
@@ -75,112 +150,122 @@ namespace Quark
         /// <param name="dataset">QuarkAssetDataset对象</param>
         public static void SetAssetDatabaseModeDataset(QuarkDataset dataset)
         {
-            QuarkEngine.Instance.SetAssetDatabaseModeDataset(dataset);
+            quarkLoadModeProvider.SetAssetDatabaseModeDataset(dataset);
+        }
+        public static string GetBuildVersion()
+        {
+            return QuarkDataProxy.QuarkManifest != null ? QuarkDataProxy.QuarkManifest.BuildVersion : "<NONE>";
         }
         public static T LoadAsset<T>(string assetName)
 where T : Object
         {
-            return QuarkEngine.Instance.LoadAsset<T>(assetName);
+            return quarkLoadModeProvider.LoadAsset<T>(assetName);
         }
         public static Object LoadAsset(string assetName, Type type)
         {
-            return QuarkEngine.Instance.LoadAsset(assetName, type);
+            return quarkLoadModeProvider.LoadAsset(assetName, type);
         }
         public static Coroutine LoadAssetAsync<T>(string assetName, Action<T> callback)
 where T : Object
         {
-            return QuarkEngine.Instance.LoadAssetAsync<T>(assetName, callback);
+            return quarkLoadModeProvider.LoadAssetAsync<T>(assetName, callback);
         }
         public static Coroutine LoadAssetAsync(string assetName, Type type, Action<Object> callback)
         {
-            return QuarkEngine.Instance.LoadAssetAsync(assetName, type, callback);
+            return quarkLoadModeProvider.LoadAssetAsync(assetName, type, callback);
         }
         public static GameObject LoadPrefab(string assetName, bool instantiate = false)
         {
-            return QuarkEngine.Instance.LoadPrefab(assetName, instantiate);
+            return quarkLoadModeProvider.LoadPrefab(assetName, instantiate);
         }
         public static T[] LoadMainAndSubAssets<T>(string assetName) where T : Object
         {
-            return QuarkEngine.Instance.LoadMainAndSubAssets<T>(assetName);
+            return quarkLoadModeProvider.LoadMainAndSubAssets<T>(assetName);
         }
         public static Object[] LoadMainAndSubAssets(string assetName, Type type)
         {
-            return QuarkEngine.Instance.LoadMainAndSubAssets(assetName, type);
+            return quarkLoadModeProvider.LoadMainAndSubAssets(assetName, type);
         }
         public static Object[] LoadAllAssets(string assetBundleName)
         {
-            return QuarkEngine.Instance.LoadAllAssets(assetBundleName);
+            return quarkLoadModeProvider.LoadAllAssets(assetBundleName);
         }
         public static Coroutine LoadPrefabAsync(string assetName, Action<GameObject> callback, bool instantiate = false)
         {
-            return QuarkEngine.Instance.LoadPrefabAsync(assetName, callback, instantiate);
+            return quarkLoadModeProvider.LoadPrefabAsync(assetName, callback, instantiate);
         }
         public static Coroutine LoadMainAndSubAssetsAsync<T>(string assetName, Action<T[]> callback) where T : UnityEngine.Object
         {
-            return QuarkEngine.Instance.LoadMainAndSubAssetsAsync<T>(assetName, callback);
+            return quarkLoadModeProvider.LoadMainAndSubAssetsAsync<T>(assetName, callback);
         }
         public static Coroutine LoadMainAndSubAssetsAsync(string assetName, Type type, Action<Object[]> callback)
         {
-            return QuarkEngine.Instance.LoadMainAndSubAssetsAsync(assetName, type, callback);
+            return quarkLoadModeProvider.LoadMainAndSubAssetsAsync(assetName, type, callback);
         }
         public static Coroutine LoadAllAssetAsync(string assetBundleName, Action<Object[]> callback)
         {
-            return QuarkEngine.Instance.LoadAllAssetAsync(assetBundleName, callback);
+            return quarkLoadModeProvider.LoadAllAssetAsync(assetBundleName, callback);
         }
         public static Coroutine LoadSceneAsync(string sceneName, Action<float> progress, Action callback, bool additive = false)
         {
-            return QuarkEngine.Instance.LoadSceneAsync(sceneName, null, progress, null, callback, additive);
+            return quarkLoadModeProvider.LoadSceneAsync(sceneName, null, progress, null, callback, additive);
         }
         public static Coroutine LoadSceneAsync(string sceneName, Action<float> progress, Func<bool> condition, Action callback, bool additive = false)
         {
-            return QuarkEngine.Instance.LoadSceneAsync(sceneName, null, progress, condition, callback, additive);
+            return quarkLoadModeProvider.LoadSceneAsync(sceneName, null, progress, condition, callback, additive);
         }
         public static Coroutine LoadSceneAsync(string sceneName, Func<float> progressProvider, Action<float> progress, Func<bool> condition, Action callback, bool additive = false)
         {
-            return QuarkEngine.Instance.LoadSceneAsync(sceneName, progressProvider, progress, condition, callback, additive);
+            return quarkLoadModeProvider.LoadSceneAsync(sceneName, progressProvider, progress, condition, callback, additive);
         }
         public static void UnloadAsset(string assetName)
         {
-            QuarkEngine.Instance.UnloadAsset(assetName);
+            quarkLoadModeProvider.UnloadAsset(assetName);
         }
         public static void UnloadAllAssetBundle(bool unloadAllLoadedObjects = true)
         {
-            QuarkEngine.Instance.UnloadAllAssetBundle(unloadAllLoadedObjects);
+            quarkLoadModeProvider.UnloadAllAssetBundle(unloadAllLoadedObjects);
         }
         public static void UnloadAssetBundle(string assetBundleName, bool unloadAllLoadedObjects = true)
         {
-            QuarkEngine.Instance.UnloadAssetBundle(assetBundleName, unloadAllLoadedObjects);
+            quarkLoadModeProvider.UnloadAssetBundle(assetBundleName, unloadAllLoadedObjects);
         }
         public static Coroutine UnloadSceneAsync(string sceneName, Action<float> progress, Action callback)
         {
-            return QuarkEngine.Instance.UnloadSceneAsync(sceneName, progress, callback);
+            return quarkLoadModeProvider.UnloadSceneAsync(sceneName, progress, callback);
         }
         public static Coroutine UnloadAllSceneAsync(Action<float> progress, Action callback)
         {
-            return QuarkEngine.Instance.UnloadAllSceneAsync(progress, callback);
+            return quarkLoadModeProvider.UnloadAllSceneAsync(progress, callback);
         }
         /// <summary>
-        /// 谨慎使用，清理加载器；
+        /// 重置清空寻址信息；
         /// </summary>
-        public static void ClearLoader()
+        public static void ResetLoader(QuarkLoadMode loadMode)
         {
-            QuarkEngine.Instance.ClearLoader();
+            quarkLoadModeProvider.ResetLoader(loadMode);
         }
         public static bool GetInfo<T>(string assetName, out QuarkObjectState info) where T : Object
         {
-            return QuarkEngine.Instance.GetInfo(assetName, typeof(T), out info);
+            return quarkLoadModeProvider.GetInfo(assetName, typeof(T), out info);
         }
         public static bool GetInfo(string assetName, Type type, out QuarkObjectState info)
         {
-            return QuarkEngine.Instance.GetInfo(assetName, type, out info);
+            return quarkLoadModeProvider.GetInfo(assetName, type, out info);
         }
         public static bool GetInfo(string assetName, out QuarkObjectState info)
         {
-            return QuarkEngine.Instance.GetInfo(assetName, out info);
+            return quarkLoadModeProvider.GetInfo(assetName, out info);
         }
         public static QuarkObjectState[] GetAllLoadedInfos()
         {
-            return QuarkEngine.Instance.GetAllLoadedInfos();
+            return quarkLoadModeProvider.GetAllLoadedInfos();
+        }
+
+
+        public static async Task<T> LoadAssetAsync<T>(string assetName) where T : Object
+        {
+            return await new QuarkLoadAwaiter<T>(assetName);
         }
     }
 }

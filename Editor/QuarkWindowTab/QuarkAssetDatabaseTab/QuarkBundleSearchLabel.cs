@@ -5,7 +5,7 @@ using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 using Object=UnityEngine.Object;
-namespace Quark.Editor
+ namespace Quark.Editor
 {
     public class QuarkBundleSearchLabel
     {
@@ -19,10 +19,15 @@ namespace Quark.Editor
             add { treeView.onSelectionChanged += value; }
             remove { treeView.onSelectionChanged -= value; }
         }
-        public event Action<IList<int>> OnDelete
+        public event Action<IList<int>, IList<int>> OnBundleDelete
         {
-            add { treeView.onDelete += value; }
-            remove { treeView.onDelete -= value; }
+            add { treeView.onBundleDelete += value; }
+            remove { treeView.onBundleDelete -= value; }
+        }
+        public event Action<IList<int>> OnBundleSort
+        {
+            add { treeView.onBundleSort+= value; }
+            remove { treeView.onBundleSort -= value; }
         }
         public event Action OnAllDelete
         {
@@ -43,7 +48,6 @@ namespace Quark.Editor
             GUILayout.BeginVertical();
             {
                 DrawDragRect();
-                DrawToolbar();
                 DrawTreeView(rect);
             }
             GUILayout.EndVertical();
@@ -120,15 +124,10 @@ namespace Quark.Editor
                 }
             }
         }
-        void DrawToolbar()
-        {
-            GUILayout.BeginHorizontal(EditorStyles.toolbar);
-            treeView.searchString = searchField.OnToolbarGUI(treeView.searchString);
-            GUILayout.EndHorizontal();
-        }
         void DrawTreeView(Rect rect)
         {
-            GUILayout.BeginVertical(GUILayout.MaxWidth(rect.width * 0.4f));
+            GUILayout.BeginVertical(GUILayout.MaxWidth(rect.width * 0.38f));
+            treeView.searchString = searchField.OnToolbarGUI(treeView.searchString);
             Rect viewRect = GUILayoutUtility.GetRect(32, 8192, 32, 8192);
             treeView.OnGUI(viewRect);
             GUILayout.EndVertical();
