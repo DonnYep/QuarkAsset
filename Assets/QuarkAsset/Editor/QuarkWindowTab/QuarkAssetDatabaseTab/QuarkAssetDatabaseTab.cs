@@ -284,7 +284,7 @@ namespace Quark.Editor
                             QuarkUtility.LogError($"Cannot mark assets and scenes in one AssetBundle. AssetBundle name is {subBundlePath}");
                             continue;
                         }
-                        var subBundleInfo = new QuarkBundleInfo()
+                        var subBundleInfo = new QuarkSubBundleInfo()
                         {
                             BundleName = subBundlePath,
                             BundlePath = subBundlePath

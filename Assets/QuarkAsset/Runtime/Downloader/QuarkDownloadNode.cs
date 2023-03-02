@@ -4,34 +4,34 @@ using System.Runtime.InteropServices;
 namespace Quark.Networking
 {
     [StructLayout(LayoutKind.Auto)]
-    public struct QuarkDownloadCompletedInfo:IEquatable<QuarkDownloadCompletedInfo>
+    public struct QuarkDownloadNode:IEquatable<QuarkDownloadNode>
     {
-        public QuarkDownloadCompletedInfo(string uRI, string downloadPath, long downloadedLength, TimeSpan downloadTimeSpan)
+        public QuarkDownloadNode(string downloadUri, string downloadPath, long downloadedLength, TimeSpan downloadTimeSpan)
         {
-            URI = uRI;
+            DownloadUri = downloadUri;
             DownloadPath = downloadPath;
-            DownloadedLength = downloadedLength;
+            DownloadedBytes = downloadedLength;
             DownloadTimeSpan = downloadTimeSpan;
         }
-        public string URI { get; private set; }
+        public string DownloadUri { get; private set; }
         public string DownloadPath { get; private set; }
         /// <summary>
         /// length of downloaded file
         /// </summary>
-        public long DownloadedLength { get; private set; }
+        public long DownloadedBytes { get; private set; }
         /// <summary>
         /// Length of time spent downloading
         /// </summary>
         public TimeSpan DownloadTimeSpan { get; private set; }
 
-        public bool Equals(QuarkDownloadCompletedInfo other)
+        public bool Equals(QuarkDownloadNode other)
         {
-            return this.URI == other.URI &&
+            return this.DownloadUri == other.DownloadUri &&
                 this.DownloadPath == other.DownloadPath;
         }
         public override string ToString()
         {
-            return $"URI: {URI}; DownloadPath: {DownloadPath}; DownloadedLength: {DownloadedLength}; DownloadTimeSpan: {DownloadTimeSpan}";
+            return $"URI: {DownloadUri}; DownloadPath: {DownloadPath}; DownloadedBytes: {DownloadedBytes}; DownloadTimeSpan: {DownloadTimeSpan}";
         }
     }
 }

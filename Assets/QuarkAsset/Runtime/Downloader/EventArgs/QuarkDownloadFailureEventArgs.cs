@@ -3,25 +3,27 @@ using System;
 
 namespace Quark.Networking
 {
-    public class QuarkDownloadFailureEventArgs : EventArgs, IRecyclable
+    public class QuarkDownloadFailureEventArgs : QuarkEventArgsBase
     {
-        public QuarkDownloadCompletedInfo CompletedInfo { get; private set; }
+        public QuarkDownloadNode CurrentDownloadNode { get; private set; }
         public string ErrorMessage { get; private set; }
-        public void Clear()
+
+        public override void Clear()
         {
-            CompletedInfo = default;
+            CurrentDownloadNode = default;
             ErrorMessage = string.Empty;
         }
-        internal static QuarkDownloadFailureEventArgs Create(QuarkDownloadCompletedInfo info, string errorMessage)
+        internal QuarkDownloadFailureEventArgs() { }
+        internal static QuarkDownloadFailureEventArgs Create(QuarkDownloadNode node, string errorMessage)
         {
-            var eventArgs = QuarkPool.Acquire<QuarkDownloadFailureEventArgs>();
-            eventArgs.CompletedInfo = info;
+            var eventArgs = QuarkEventArgsPool.Acquire<QuarkDownloadFailureEventArgs>();
+            eventArgs.CurrentDownloadNode = node;
             eventArgs.ErrorMessage = errorMessage;
             return eventArgs;
         }
         internal static void Release(QuarkDownloadFailureEventArgs eventArgs)
         {
-            QuarkPool.Release(eventArgs);
+            QuarkEventArgsPool.Release(eventArgs);
         }
     }
 }

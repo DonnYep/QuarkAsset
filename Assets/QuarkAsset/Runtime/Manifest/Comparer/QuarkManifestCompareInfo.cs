@@ -20,7 +20,6 @@ namespace Quark.Compare
             BundleSize = bundleSize;
             BundleHash = bundleHash;
         }
-
         public bool Equals(QuarkManifestCompareInfo other)
         {
             return other.BundleName == this.BundleName &&

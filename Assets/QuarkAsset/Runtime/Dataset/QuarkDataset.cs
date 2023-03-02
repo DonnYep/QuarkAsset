@@ -102,7 +102,18 @@ namespace Quark.Asset
             for (int i = 0; i < length; i++)
             {
                 var subBundleInfo = subBundleInfos[i];
-                infoList.Add(subBundleInfo);
+
+                var newBundleInfo = new QuarkBundleInfo()
+                {
+                    BundleName = subBundleInfo.BundleName,
+                    BundlePath = subBundleInfo.BundlePath,
+                    BundleKey = subBundleInfo.BundleKey,
+                    BundleSize = subBundleInfo.BundleSize,
+                    BundleFormatBytes = subBundleInfo.BundleFormatBytes,
+                };
+                newBundleInfo.ObjectInfoList.AddRange(subBundleInfo.ObjectInfoList);
+                newBundleInfo.DependentBundleKeyList.AddRange(subBundleInfo.DependentBundleKeyList);
+                infoList.Add(newBundleInfo);
             }
         }
     }

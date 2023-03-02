@@ -3,25 +3,23 @@ using System;
 
 namespace Quark.Networking
 {
-    public class QuarkDownloadStartEventArgs : EventArgs, IRecyclable
+    public class QuarkDownloadStartEventArgs : QuarkEventArgsBase
     {
-        public string Url { get; private set; }
-        public string DownloadPath { get; private set; }
-        public void Clear()
+        public QuarkDownloadNode CurrentDownloadNode { get; private set; }
+        public override void Clear()
         {
-            Url = string.Empty;
-            DownloadPath = string.Empty;
+            CurrentDownloadNode = default;
         }
-        internal static QuarkDownloadStartEventArgs Create(string url,string downloadPath)
+        internal QuarkDownloadStartEventArgs() { }
+        internal static QuarkDownloadStartEventArgs Create(QuarkDownloadNode node)
         {
-            var eventArgs= QuarkPool.Acquire<QuarkDownloadStartEventArgs>();
-            eventArgs.Url= url;
-            eventArgs.DownloadPath = downloadPath;
+            var eventArgs = QuarkEventArgsPool.Acquire<QuarkDownloadStartEventArgs>();
+            eventArgs.CurrentDownloadNode = node;
             return eventArgs;
         }
         internal static void Release(QuarkDownloadStartEventArgs eventArgs)
         {
-            QuarkPool.Release(eventArgs);
+            QuarkEventArgsPool.Release(eventArgs);
         }
     }
 }

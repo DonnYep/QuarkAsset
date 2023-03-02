@@ -4,11 +4,7 @@ using UnityEngine;
 
 namespace Quark.Asset
 {
-    /// <summary>
-    /// Editor模式下在dataset中显示信息使用的数据结构
-    /// </summary>
-    [Serializable]
-    public class QuarkBundleInfo : IEquatable<QuarkBundleInfo>
+    public class QuarkSubBundleInfo : IEquatable<QuarkSubBundleInfo>
     {
         [SerializeField]
         string bundleName;
@@ -24,10 +20,6 @@ namespace Quark.Asset
         List<QuarkObjectInfo> objectInfoList;
         [SerializeField]
         List<string> dependentBundleKeyList;
-        [SerializeField]
-        bool splittable;
-        [SerializeField]
-        List<QuarkSubBundleInfo> subBundleInfoList;
         /// <summary>
         /// AB包的名称；
         /// </summary>
@@ -96,23 +88,7 @@ namespace Quark.Asset
             }
             set { dependentBundleKeyList = value; }
         }
-        public bool Splittable
-        {
-            get { return splittable; }
-            set { splittable = value; }
-        }
-        public List<QuarkSubBundleInfo> SubBundleInfoList
-        {
-            get
-            {
-                if (subBundleInfoList == null)
-                    subBundleInfoList = new List<QuarkSubBundleInfo>();
-                return subBundleInfoList;
-            }
-            set { subBundleInfoList = value; }
-        }
-
-        public bool Equals(QuarkBundleInfo other)
+        public bool Equals(QuarkSubBundleInfo other)
         {
             return other.bundleName == this.bundleName || other.bundlePath == bundlePath;
         }

@@ -13,6 +13,7 @@ namespace Quark
         bool running = false;
         public bool Running { get { return running; } }
         Coroutine coroutine;
+        internal QuarkManifestRequester() { }
         /// <summary>
         /// 从本地下载文件清单；
         /// </summary>

@@ -25,6 +25,7 @@ namespace Quark.Verify
         {
             get { return verificationInProgress; }
         }
+        internal QuarkManifestVerifier() { }
         /// <summary>
         /// 校验文件清单；
         /// </summary>
@@ -56,7 +57,7 @@ namespace Quark.Verify
             for (int i = 0; i < length; i++)
             {
                 var task = tasks[i];
-                verificationFailureInfos.Add(new QuarkManifestVerifyInfo(task.Url, task.ResourceBundleName, false, 0));
+                verificationFailureInfos.Add(new QuarkManifestVerifyInfo(task.Url, task.ResourceBundleName, task.ResourceBundleSize, false, 0));
             }
             var result = new QuarkManifestVerifyResult()
             {
@@ -103,11 +104,11 @@ namespace Quark.Verify
                     {
                         bundleLengthMatched = true;
                     }
-                    verificationSuccessInfos.Add(new QuarkManifestVerifyInfo(task.Url, task.ResourceBundleName, bundleLengthMatched, bundleLength));
+                    verificationSuccessInfos.Add(new QuarkManifestVerifyInfo(task.Url, task.ResourceBundleName, task.ResourceBundleSize, bundleLengthMatched, bundleLength));
                 }
                 else
                 {
-                    verificationFailureInfos.Add(new QuarkManifestVerifyInfo(task.Url, task.ResourceBundleName, false, 0));
+                    verificationFailureInfos.Add(new QuarkManifestVerifyInfo(task.Url, task.ResourceBundleName, task.ResourceBundleSize, false, 0));
                 }
             }
         }

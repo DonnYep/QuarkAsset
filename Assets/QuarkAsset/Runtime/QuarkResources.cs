@@ -74,10 +74,10 @@ namespace Quark
         /// <summary>
         /// launch quark assetBundle mode, local file only!
         /// </summary>
-        /// <param name="dirPath">directory path</param>
+        /// <param name="path">directory path</param>
         /// <param name="manifestAesKey">ase key for manifest file</param>
         /// <param name="encryptionOffset">bundle encryption offset</param>
-        public static void LaunchAssetBundleMode(string dirPath, Action onSuccess, Action<string> onFailure, string manifestAesKey = "", ulong encryptionOffset = 0)
+        public static void LaunchAssetBundleMode(string path, Action onSuccess, Action<string> onFailure, string manifestAesKey = "", ulong encryptionOffset = 0)
         {
             QuarkLoadMode = QuarkLoadMode.AssetBundle;
             QuarkDataProxy.QuarkEncrytionData.QuarkEncryptionOffset = encryptionOffset;
@@ -89,24 +89,24 @@ namespace Quark
             if (!string.IsNullOrEmpty(QuarkUtility.PlatformPerfix))
             {
                 //若平台宏字符串不为空，则判断是否以平台宏前缀开始
-                if (!dirPath.StartsWith(QuarkUtility.PlatformPerfix))
+                if (!path.StartsWith(QuarkUtility.PlatformPerfix))
                 {
-                    manifestPerfixPath = QuarkUtility.PlatformPerfix + dirPath;
-                    persistentPath = dirPath;
+                    manifestPerfixPath = QuarkUtility.PlatformPerfix + path;
+                    persistentPath = path;
                 }
                 else
                 {
                     //若dirPath包含了平台宏
-                    manifestPerfixPath = dirPath;
+                    manifestPerfixPath = path;
                     //持久化路径需要移除平台宏前缀
-                    persistentPath = dirPath.Remove(0, QuarkUtility.PlatformPerfix.Length);
+                    persistentPath = path.Remove(0, QuarkUtility.PlatformPerfix.Length);
                 }
             }
             else
             {
                 //若平台宏字符串为空，则直接使用地址
-                manifestPerfixPath = dirPath;
-                persistentPath = dirPath;
+                manifestPerfixPath = path;
+                persistentPath = path;
             }
 
             uri = Path.Combine(manifestPerfixPath, QuarkConstant.MANIFEST_NAME);

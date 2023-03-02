@@ -5,6 +5,8 @@ namespace Quark.Compare
 {
     public class QuarlManifestComparer
     {
+        internal QuarlManifestComparer() { }
+
         public void CompareManifest(QuarkManifest sourceManifest, QuarkManifest comparisonManifest, out QuarkManifestCompareResult result)
         {
             result = new QuarkManifestCompareResult();

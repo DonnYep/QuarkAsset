@@ -3,28 +3,29 @@ using System;
 
 namespace Quark.Networking
 {
-    public class QuarkAllDownloadCompletedEventArgs : EventArgs, IRecyclable
+    public class QuarkAllDownloadCompletedEventArgs : QuarkEventArgsBase
     {
-        public QuarkDownloadCompletedInfo[] DownloadSuccessedInfos { get; private set; }
-        public QuarkDownloadCompletedInfo[] DownloadFailedInfos { get; private set; }
+        public QuarkDownloadNode[] DownloadSuccessedNodes { get; private set; }
+        public QuarkDownloadNode[] DownloadFailedNodes { get; private set; }
         public TimeSpan AllDownloadCompletedTimeSpan { get; private set; }
-        public void Clear()
+        public override void Clear()
         {
-            DownloadSuccessedInfos = null;
-            DownloadFailedInfos = null;
+            DownloadSuccessedNodes = null;
+            DownloadFailedNodes = null;
             AllDownloadCompletedTimeSpan = TimeSpan.Zero;
         }
-        public static QuarkAllDownloadCompletedEventArgs Create(QuarkDownloadCompletedInfo[] successedInfos, QuarkDownloadCompletedInfo[] failedInfos, TimeSpan timeSpan)
+        internal QuarkAllDownloadCompletedEventArgs() { }
+        public static QuarkAllDownloadCompletedEventArgs Create(QuarkDownloadNode[] successedNodes, QuarkDownloadNode[] failedNodes, TimeSpan timeSpan)
         {
-            var eventArgs = QuarkPool.Acquire<QuarkAllDownloadCompletedEventArgs>();
-            eventArgs.DownloadSuccessedInfos = successedInfos;
-            eventArgs.DownloadFailedInfos = failedInfos;
+            var eventArgs = QuarkEventArgsPool.Acquire<QuarkAllDownloadCompletedEventArgs>();
+            eventArgs.DownloadSuccessedNodes = successedNodes;
+            eventArgs.DownloadFailedNodes = failedNodes;
             eventArgs.AllDownloadCompletedTimeSpan = timeSpan;
             return eventArgs;
         }
         public static void Release(QuarkAllDownloadCompletedEventArgs eventArgs)
         {
-            QuarkPool.Release(eventArgs);
+            QuarkEventArgsPool.Release(eventArgs);
         }
     }
 }
