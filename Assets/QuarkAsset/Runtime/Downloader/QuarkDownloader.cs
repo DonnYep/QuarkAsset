@@ -195,7 +195,7 @@ namespace Quark.Networking
                 {
                     var now = DateTime.Now;
                     var timeSpan = now - fileDownloadStartTime;
-                    var downloadNode = new QuarkDownloadNode(downloadUri, downloadPath, (long)request.downloadedBytes, timeSpan);
+                    var downloadNode = new QuarkDownloadNode(downloadUri, downloadPath, (long)request.downloadedBytes,0, timeSpan);
                     var startEventArgs = QuarkDownloadStartEventArgs.Create(downloadNode);
                     onDownloadStart?.Invoke(startEventArgs);
                     QuarkDownloadStartEventArgs.Release(startEventArgs);
@@ -211,7 +211,7 @@ namespace Quark.Networking
                 {
                     var now = DateTime.Now;
                     var timeSpan = now - fileDownloadStartTime;
-                    var downloadNode = new QuarkDownloadNode(downloadUri, downloadPath, (long)request.downloadedBytes, timeSpan);
+                    var downloadNode = new QuarkDownloadNode(downloadUri, downloadPath, (long)request.downloadedBytes, operation.progress,timeSpan);
                     OnDownloading(downloadNode, completedDownloadSize + downloadNode.DownloadedBytes);
                     yield return null;
                 }
@@ -225,7 +225,7 @@ namespace Quark.Networking
                     {
                         var fileDownloadEndTime = DateTime.Now;
                         var timeSpan = fileDownloadEndTime - fileDownloadStartTime;
-                        var downloadNode = new QuarkDownloadNode(downloadUri, downloadPath, (long)request.downloadedBytes, timeSpan);
+                        var downloadNode = new QuarkDownloadNode(downloadUri, downloadPath, (long)request.downloadedBytes, 1,timeSpan);
                         completedDownloadSize += downloadNode.DownloadedBytes;
                         var successEventArgs = QuarkDownloadSuccessEventArgs.Create(downloadNode);
                         onDownloadSuccess?.Invoke(successEventArgs);
@@ -238,7 +238,7 @@ namespace Quark.Networking
                 {
                     var fileDownloadEndTime = DateTime.Now;
                     var timeSpan = fileDownloadEndTime - fileDownloadStartTime;
-                    var downloadNode = new QuarkDownloadNode(downloadUri, downloadPath, (long)request.downloadedBytes, timeSpan);
+                    var downloadNode = new QuarkDownloadNode(downloadUri, downloadPath, (long)request.downloadedBytes, operation.progress,timeSpan);
                     completedDownloadSize += downloadNode.DownloadedBytes;
                     var failureEventArgs = QuarkDownloadFailureEventArgs.Create(downloadNode, request.error);
                     onDownloadFailure?.Invoke(failureEventArgs);

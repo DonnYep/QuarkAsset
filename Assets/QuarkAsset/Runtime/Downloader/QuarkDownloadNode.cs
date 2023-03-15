@@ -6,11 +6,12 @@ namespace Quark.Networking
     [StructLayout(LayoutKind.Auto)]
     public struct QuarkDownloadNode:IEquatable<QuarkDownloadNode>
     {
-        public QuarkDownloadNode(string downloadUri, string downloadPath, long downloadedLength, TimeSpan downloadTimeSpan)
+        public QuarkDownloadNode(string downloadUri, string downloadPath, long downloadedLength, float downloadProgress,TimeSpan downloadTimeSpan)
         {
             DownloadUri = downloadUri;
             DownloadPath = downloadPath;
             DownloadedBytes = downloadedLength;
+            DownloadProgress= downloadProgress;
             DownloadTimeSpan = downloadTimeSpan;
         }
         public string DownloadUri { get; private set; }
@@ -19,6 +20,7 @@ namespace Quark.Networking
         /// length of downloaded file
         /// </summary>
         public long DownloadedBytes { get; private set; }
+        public float DownloadProgress{ get; private set; }
         /// <summary>
         /// Length of time spent downloading
         /// </summary>

@@ -116,7 +116,6 @@ namespace Quark.Editor
             {
                 GUILayout.BeginVertical();
                 {
-
                     using (new EditorGUILayout.HorizontalScope(EditorStyles.toolbar))
                     {
                         GUILayout.Label($"Bundle", EditorStyles.label);

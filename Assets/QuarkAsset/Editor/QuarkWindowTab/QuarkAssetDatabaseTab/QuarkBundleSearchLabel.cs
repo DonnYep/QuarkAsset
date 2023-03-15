@@ -4,8 +4,8 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
-using Object=UnityEngine.Object;
- namespace Quark.Editor
+using Object = UnityEngine.Object;
+namespace Quark.Editor
 {
     public class QuarkBundleSearchLabel
     {
@@ -26,7 +26,7 @@ using Object=UnityEngine.Object;
         }
         public event Action<IList<int>> OnBundleSort
         {
-            add { treeView.onBundleSort+= value; }
+            add { treeView.onBundleSort += value; }
             remove { treeView.onBundleSort -= value; }
         }
         public event Action OnAllDelete
@@ -45,16 +45,20 @@ using Object=UnityEngine.Object;
         public void OnGUI(Rect rect)
         {
             lableRect = rect;
-            GUILayout.BeginVertical();
+            var dragRect = EditorGUILayout.BeginVertical();
             {
-                DrawDragRect();
+                DrawDragRect(dragRect);
                 DrawTreeView(rect);
             }
-            GUILayout.EndVertical();
+            EditorGUILayout.EndVertical();
         }
-        void DrawDragRect()
+        void DrawDragRect(Rect dragRect)
         {
-            if (QuarkEditorDataProxy.QuarkAssetDataset== null)
+            if (QuarkEditorDataProxy.QuarkAssetDataset == null)
+                return;
+            var mousePositon = Event.current.mousePosition;
+            var overlapDragRect = mousePositon.x > 0 && mousePositon.x < dragRect.width && mousePositon.y > 128 && mousePositon.y < dragRect.height + 56;
+            if (!overlapDragRect)
                 return;
             if (Event.current.type == EventType.DragUpdated)
             {
@@ -126,11 +130,12 @@ using Object=UnityEngine.Object;
         }
         void DrawTreeView(Rect rect)
         {
-            GUILayout.BeginVertical(GUILayout.MaxWidth(rect.width * 0.38f));
+            EditorGUILayout.BeginVertical(GUILayout.MaxWidth(rect.width * 0.38f));
             treeView.searchString = searchField.OnToolbarGUI(treeView.searchString);
             Rect viewRect = GUILayoutUtility.GetRect(32, 8192, 32, 8192);
             treeView.OnGUI(viewRect);
-            GUILayout.EndVertical();
+
+            EditorGUILayout.EndVertical();
         }
     }
 }
