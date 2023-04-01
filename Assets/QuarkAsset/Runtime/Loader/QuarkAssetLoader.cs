@@ -62,18 +62,6 @@ namespace Quark.Loader
         /// 重置清空寻址信息；
         /// </summary>
         public abstract void ResetLoader();
-        public bool GetInfo(string assetName, Type type, out QuarkObjectState info)
-        {
-            info = QuarkObjectState.None;
-            var hasWapper = GetQuarkObject(assetName, type, out var wapper);
-            if (hasWapper)
-            {
-                var referenceCount = objectWarpperDict[wapper.ObjectPath].ReferenceCount;
-                info = QuarkObjectState.Create(wapper.ObjectName, wapper.ObjectPath, wapper.BundleName, wapper.ObjectExtension, wapper.ObjectType, referenceCount);
-                return true;
-            }
-            return false;
-        }
         public bool GetInfo(string assetName, out QuarkObjectState info)
         {
             info = QuarkObjectState.None;

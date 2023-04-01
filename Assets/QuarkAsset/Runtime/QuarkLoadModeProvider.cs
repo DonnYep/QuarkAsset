@@ -164,13 +164,6 @@ where T : UnityEngine.Object
                 return loader.UnloadAllSceneAsync(progress, callback);
             return null;
         }
-        internal bool GetInfo(string assetName, Type type, out QuarkObjectState info)
-        {
-            info = QuarkObjectState.None;
-            if (quarkLoaderDict.TryGetValue(QuarkDataProxy.QuarkAssetLoadMode, out var loader))
-                return loader.GetInfo(assetName, type, out info);
-            return false;
-        }
         internal bool GetInfo(string assetName, out QuarkObjectState info)
         {
             info = QuarkObjectState.None;

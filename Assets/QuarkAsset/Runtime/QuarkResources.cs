@@ -245,14 +245,6 @@ where T : Object
         {
             quarkLoadModeProvider.ResetLoader(loadMode);
         }
-        public static bool GetInfo<T>(string assetName, out QuarkObjectState info) where T : Object
-        {
-            return quarkLoadModeProvider.GetInfo(assetName, typeof(T), out info);
-        }
-        public static bool GetInfo(string assetName, Type type, out QuarkObjectState info)
-        {
-            return quarkLoadModeProvider.GetInfo(assetName, type, out info);
-        }
         public static bool GetInfo(string assetName, out QuarkObjectState info)
         {
             return quarkLoadModeProvider.GetInfo(assetName, out info);
