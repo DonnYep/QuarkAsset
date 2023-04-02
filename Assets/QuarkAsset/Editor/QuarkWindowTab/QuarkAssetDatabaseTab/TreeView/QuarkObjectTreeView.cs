@@ -10,13 +10,18 @@ namespace Quark.Editor
     public class QuarkObjectTreeView : TreeView
     {
         List<QuarkObjectInfo> objectInfoList = new List<QuarkObjectInfo>();
+        public float TreeViewRowHeight
+        {
+            get { return rowHeight; }
+            set { rowHeight = value; }
+        }
         public QuarkObjectTreeView(TreeViewState treeViewState, MultiColumnHeader multiColumnHeader)
     : base(treeViewState, multiColumnHeader)
         {
             Reload();
             showAlternatingRowBackgrounds = true;
             showBorder = true;
-            multiColumnHeader.sortingChanged += OnMultiColumnHeaderSortingChanged; ;
+            multiColumnHeader.sortingChanged += OnMultiColumnHeaderSortingChanged;
         }
         public void AddPath(QuarkObjectInfo info)
         {

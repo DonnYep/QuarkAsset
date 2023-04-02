@@ -131,17 +131,20 @@ namespace Quark.Editor
                         tabData.LabelTabIndex = EditorGUILayout.Popup(tabData.LabelTabIndex, tabArray, EditorStyles.toolbarPopup, GUILayout.MaxWidth(128));
                         using (new EditorGUILayout.HorizontalScope(EditorStyles.toolbar))
                         {
-                            GUILayout.Label($"Detail", EditorStyles.label);
+                            GUILayout.Label($"PreviewSize", EditorStyles.label);
+                            tabData.LabelRowHeight = EditorGUILayout.IntSlider(tabData.LabelRowHeight, 18, 100);
                         }
                     }
                     GUILayout.EndHorizontal();
 
                     if (tabData.LabelTabIndex == 0)
                     {
+                        objectSearchLabel.TreeView.TreeViewRowHeight = tabData.LabelRowHeight;
                         objectSearchLabel.OnGUI(rect);
                     }
                     else if (tabData.LabelTabIndex == 1)
                     {
+                        bundleDetailLabel.TreeView.TreeViewRowHeight = tabData.LabelRowHeight;
                         bundleDetailLabel.OnGUI(rect);
                     }
                 }

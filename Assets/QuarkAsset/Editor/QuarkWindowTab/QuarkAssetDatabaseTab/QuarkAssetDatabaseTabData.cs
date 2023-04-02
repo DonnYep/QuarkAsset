@@ -7,6 +7,7 @@ namespace Quark.Editor
     internal class QuarkAssetDatabaseTabData
     {
         public int LabelTabIndex;
+        public int LabelRowHeight;
 
         List<int> selectedBundleIds;
         /// <summary>
