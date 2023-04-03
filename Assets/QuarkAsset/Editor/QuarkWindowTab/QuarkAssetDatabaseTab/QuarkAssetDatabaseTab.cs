@@ -131,8 +131,23 @@ namespace Quark.Editor
                         tabData.LabelTabIndex = EditorGUILayout.Popup(tabData.LabelTabIndex, tabArray, EditorStyles.toolbarPopup, GUILayout.MaxWidth(128));
                         using (new EditorGUILayout.HorizontalScope(EditorStyles.toolbar))
                         {
-                            GUILayout.Label($"PreviewSize", EditorStyles.label);
-                            tabData.LabelRowHeight = EditorGUILayout.IntSlider(tabData.LabelRowHeight, 18, 100);
+                            if (tabData.LabelTabIndex == 0)
+                            {
+                                GUILayout.Label($"PreviewSize", EditorStyles.label, GUILayout.MaxWidth(92));
+                                if (GUILayout.Button("-", GUILayout.MaxWidth(24)))
+                                {
+                                    tabData.LabelRowHeight -= 2;
+                                }
+                                tabData.LabelRowHeight = EditorGUILayout.IntSlider(tabData.LabelRowHeight, 18, 100);
+                                if (GUILayout.Button("+", GUILayout.MaxWidth(24)))
+                                {
+                                    tabData.LabelRowHeight += 2;
+                                }
+                            }
+                            else if (tabData.LabelTabIndex == 1)
+                            {
+                                GUILayout.Label($"Detail", EditorStyles.label);
+                            }
                         }
                     }
                     GUILayout.EndHorizontal();
@@ -140,11 +155,18 @@ namespace Quark.Editor
                     if (tabData.LabelTabIndex == 0)
                     {
                         objectSearchLabel.TreeView.TreeViewRowHeight = tabData.LabelRowHeight;
+                        if (objectSearchLabel.TreeView.TreeViewRowHeight >= QuarkEditorConstant.DetailIconPreviewSize)
+                        {
+                            objectSearchLabel.TreeView.OnDetailPreview();
+                        }
+                        else
+                        {
+                            objectSearchLabel.TreeView.OnCachedIconPreview();
+                        }
                         objectSearchLabel.OnGUI(rect);
                     }
                     else if (tabData.LabelTabIndex == 1)
                     {
-                        bundleDetailLabel.TreeView.TreeViewRowHeight = tabData.LabelRowHeight;
                         bundleDetailLabel.OnGUI(rect);
                     }
                 }

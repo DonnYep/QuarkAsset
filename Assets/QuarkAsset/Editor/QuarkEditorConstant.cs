@@ -17,5 +17,6 @@
             ".xls",".xlsx",".docx",".doc",".mov",".renderTexture",".csv",".fbx",".mixer",
             ".flare",".playable",".physicMaterial",".signal",".guiskin",".dds",".otf"
         };
+        public const int DetailIconPreviewSize = 34;
     }
 }

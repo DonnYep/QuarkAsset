@@ -12,7 +12,6 @@ namespace Quark.Editor
         TreeViewState treeViewState;
         QuarkBundleDetailTreeView treeView;
         public int BundleDetailCount { get { return treeView.BundleDetailCount; } }
-        public QuarkBundleDetailTreeView TreeView { get { return treeView; } }
         public void OnEnable()
         {
             searchField = new SearchField();

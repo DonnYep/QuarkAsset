@@ -322,6 +322,17 @@ namespace Quark.Editor
                     maxWidth=192,
                     autoResize = true,
                 },
+                 new MultiColumnHeaderState.Column
+                {
+                   headerContent = new GUIContent("Type"),
+                    headerTextAlignment = TextAlignment.Left,
+                    sortingArrowAlignment = TextAlignment.Left,
+                    sortedAscending = false,
+                    minWidth=92,
+                    width=160,
+                    maxWidth=320,
+                    autoResize = true,
+                },
                 new MultiColumnHeaderState.Column
                 {
                     headerContent = new GUIContent("BundleName"),

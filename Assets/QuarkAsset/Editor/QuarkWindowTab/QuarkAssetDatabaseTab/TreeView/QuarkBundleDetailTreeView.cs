@@ -7,11 +7,6 @@ namespace Quark.Editor
     public class QuarkBundleDetailTreeView : TreeView
     {
         readonly List<QuarkBundleInfo> bundleInfoList = new List<QuarkBundleInfo>();
-        public float TreeViewRowHeight
-        {
-            get { return rowHeight; }
-            set { rowHeight = value; }
-        }
         public int BundleDetailCount { get { return bundleInfoList.Count; } }
         public QuarkBundleDetailTreeView(TreeViewState state) : base(state)
         {
