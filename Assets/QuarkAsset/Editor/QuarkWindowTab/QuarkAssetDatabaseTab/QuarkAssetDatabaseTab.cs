@@ -138,7 +138,7 @@ namespace Quark.Editor
                                 {
                                     tabData.LabelRowHeight -= 2;
                                 }
-                                tabData.LabelRowHeight = EditorGUILayout.IntSlider(tabData.LabelRowHeight, 18, 100);
+                                tabData.LabelRowHeight = EditorGUILayout.IntSlider(tabData.LabelRowHeight, 18, 160);
                                 if (GUILayout.Button("+", GUILayout.MaxWidth(24)))
                                 {
                                     tabData.LabelRowHeight += 2;
