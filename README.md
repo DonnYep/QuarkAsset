@@ -17,6 +17,9 @@ QuarkAsset是一套轻量级的插件化Unity资源加载方案。 内置AssetDa
   - [QuarkEditor编辑器](#quarkeditor编辑器)
     - [AssetDatabaseTab](#assetdatabasetab)
       - [设置AssetBundle](#设置assetbundle)
+      - [查看AssetBundle中的资源](#查看assetbundle中的资源)
+      - [查看AssetBundle依赖](#查看assetbundle依赖)
+      - [拆分AssetBundle](#拆分assetbundle)
     - [AssetBundleTab](#assetbundletab)
     - [AssetDatasetTab](#assetdatasettab)
   - [QuarkRuntime入口-QuarkConfig](#quarkruntime入口-quarkconfig)
@@ -81,6 +84,30 @@ QuarkAsset是一套轻量级的插件化Unity资源加载方案。 内置AssetDa
 #### 设置AssetBundle
 
 * 将需要被打包为ab的文件夹或资源拖拽入bundle label窗口，被拖入的资源会自动生成ab名称。点击上方Build按钮，完成dataset资源识别。
+  
+<a name="查看AssetBundle中的资源"></a>
+
+#### 查看AssetBundle中的资源
+![Quark_AssetDatabaseTab_Preview](Docs/Images/Quark_AssetDatabaseTab_Preview.png)
+
+* 选中需要查看的bundle，在右侧label中可缩放查看缩略图信息。
+
+<a name="查看AssetBundle依赖"></a>
+
+#### 查看AssetBundle依赖
+![Quark_AssetDatabaseTab_Dependent](Docs/Images/Quark_AssetDatabaseTab_Dependent.png)
+
+* 如图所示，选择显示区类别，可查看bundle的依赖关系以及subbundle信息。
+
+<a name="拆分AssetBundle"></a>
+
+#### 拆分AssetBundle
+![Quark_AssetDatabaseTab_SplitBundle](Docs/Images/Quark_AssetDatabaseTab_SplitBundle.png)
+
+* 选择bundle，点击右键显示菜单，点击"Mark as splittable"选项，被选中的bundle会被标记为可分割的bundle，点击"Build"按钮，刷新信息。
+  
+* 分割bundle的逻辑为，若bundle存在子文件夹，则第一级的子文件夹被标记为新的bundle，在构建bundle时会生成新的bundle，同时父级bundle则不会再构建。
+
 
 <a name="QuarkEditor-AssetBundleTab"></a>
 
