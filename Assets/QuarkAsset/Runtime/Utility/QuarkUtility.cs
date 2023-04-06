@@ -20,6 +20,25 @@ namespace Quark
         static StringBuilder stringBuilderCache = new StringBuilder(1024);
         #endregion
 
+        #region 
+        public static Type GetTypeFromAllAssemblies(string typeName)
+        {
+            Type dstType = null;
+            var asms= AppDomain.CurrentDomain.GetAssemblies();
+            var length = asms.Length;
+            for (int i = 0; i < length; i++)
+            {
+                var asm = asms[i];
+                dstType=asm.GetType(typeName);
+                if (dstType != null)
+                {
+                    break;
+                }
+            }
+            return dstType;
+        }
+        #endregion
+
         #region String
         public static string Append(params object[] args)
         {

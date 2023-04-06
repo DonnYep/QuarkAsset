@@ -84,6 +84,8 @@ namespace Quark.Editor
 
                     var objectInfo = objectInfoList[i];
                     Texture2D objectIcon = null;
+                    Texture2D objectTypeIcon = null;
+                    var objectType = QuarkUtility.GetTypeFromAllAssemblies(objectInfo.ObjectType);
                     if (objectInfo.ObjectValid)
                     {
                         if (detailPreview)
@@ -98,13 +100,16 @@ namespace Quark.Editor
                     }
                     else
                         objectIcon = EditorGUIUtility.FindTexture("console.erroricon");
+                    if (objectType != null)
+                        objectTypeIcon = AssetPreview.GetMiniTypeThumbnail(objectType);
                     var item = new QuarkObjectTreeViewItem(i, 1, objectInfo.ObjectName, objectIcon)
                     {
                         BundleName = objectInfo.BundleName,
                         AssetPath = objectInfo.ObjectPath,
                         AssetExtension = objectInfo.ObjectExtension,
                         FormatBytes = objectInfo.ObjectFormatBytes,
-                        AssetType = objectInfo.ObjectType
+                        AssetType = objectInfo.ObjectType,
+                        ObjectTypeIcon=objectTypeIcon
                     };
                     allItems.Add(item);
                 }
@@ -213,7 +218,12 @@ namespace Quark.Editor
                     break;
                 case 4:
                     {
-                        DefaultGUI.Label(cellRect, treeView.AssetType, args.selected, args.focused);
+                        var iconRect = new Rect(cellRect.x + 4, cellRect.y, cellRect.height, cellRect.height);
+                        if (treeView.icon != null)
+                            GUI.DrawTexture(iconRect, treeView.ObjectTypeIcon, ScaleMode.ScaleToFit);
+                        var lablCellRect = new Rect(cellRect.x + iconRect.width + 4, cellRect.y, cellRect.width - iconRect.width, cellRect.height);
+                        DefaultGUI.Label(lablCellRect, treeView.AssetType, args.selected, args.focused);
+                        //DefaultGUI.Label(cellRect, treeView.AssetType, args.selected, args.focused);
                     }
                     break;
                 case 5:
