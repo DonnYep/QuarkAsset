@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace Quark.Asset
 {
+    [Serializable]
     public class QuarkSubBundleInfo : IEquatable<QuarkSubBundleInfo>
     {
         [SerializeField]

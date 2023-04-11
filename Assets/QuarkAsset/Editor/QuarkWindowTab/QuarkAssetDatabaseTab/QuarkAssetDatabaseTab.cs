@@ -320,6 +320,7 @@ namespace Quark.Editor
                         }
                         var subImporter = AssetImporter.GetAtPath(subBundleInfo.BundlePath);
                         subImporter.assetBundleName = subBundleInfo.BundleName;
+                        // Directory.GetFiles的path参数可以传入相对路径以及绝对路径，若传入相对路径，则将解释为相对于当前工作目录。若要获取当前工作目录，请参阅 GetCurrentDirectory。
                         var subFilePaths = Directory.GetFiles(subBundlePath, ".", SearchOption.AllDirectories);
                         var subFileLength = subFilePaths.Length;
                         for (int j = 0; j < subFileLength; j++)
