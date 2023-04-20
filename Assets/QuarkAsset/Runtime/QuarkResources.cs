@@ -111,12 +111,12 @@ namespace Quark
 
             uri = Path.Combine(manifestPerfixPath, QuarkConstant.MANIFEST_NAME);
             QuarkDataProxy.PersistentPath = persistentPath;
-            QuarkManifestRequester.OnManifestAcquireSuccess((manifest) =>
-            {
-                SetAssetBundleModeManifest(manifest);
-                onSuccess?.Invoke();
-            });
-            QuarkManifestRequester.OnManifestAcquireFailure(onFailure);
+            QuarkManifestRequester.onManifestAcquireSuccess = ((manifest) =>
+              {
+                  SetAssetBundleModeManifest(manifest);
+                  onSuccess?.Invoke();
+              });
+            QuarkManifestRequester.onManifestAcquireFailure = onFailure;
             QuarkManifestRequester.RequestManifestAsync(uri, aesKeyBytes);
         }
         /// <summary>

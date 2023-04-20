@@ -8,8 +8,8 @@ namespace Quark
 {
     public class QuarkManifestRequester
     {
-        Action<QuarkManifest> onManifestAcquireSuccess;
-        Action<string> onManifestAcquireFailure;
+        public Action<QuarkManifest> onManifestAcquireSuccess;
+        public Action<string> onManifestAcquireFailure;
         bool running = false;
         public bool Running { get { return running; } }
         Coroutine coroutine;
@@ -25,16 +25,6 @@ namespace Quark
                 return coroutine;
             coroutine = QuarkUtility.Unity.StartCoroutine(RequestManifest(url, aesKeyBytes));
             return coroutine;
-        }
-        public QuarkManifestRequester OnManifestAcquireSuccess(Action<QuarkManifest> onSuccess)
-        {
-            onManifestAcquireSuccess = onSuccess;
-            return this;
-        }
-        public QuarkManifestRequester OnManifestAcquireFailure(Action<string> onFailure)
-        {
-            onManifestAcquireFailure = onFailure;
-            return this;
         }
         /// <summary>
         /// 停止请求文件清单；

@@ -13,13 +13,13 @@ namespace Quark
         {
             var aesKeyBytes = QuarkUtility.GenerateBytesAESKey(manifestAesKey);
             QuarkDataProxy.PersistentPath = manifestUrl;
-            string uri = QuarkUtility.PlatformPerfix+ manifestUrl;
+            string uri = QuarkUtility.PlatformPerfix + manifestUrl;
             if (!manifestUrl.EndsWith(QuarkConstant.MANIFEST_NAME))
             {
                 uri = Path.Combine(manifestUrl, QuarkConstant.MANIFEST_NAME);
             }
-            QuarkResources.QuarkManifestRequester.OnManifestAcquireSuccess(OnManifestAcquireSuccess);
-            QuarkResources.QuarkManifestRequester.OnManifestAcquireFailure(OnManifestAcquireFailure);
+            QuarkResources.QuarkManifestRequester.onManifestAcquireSuccess = OnManifestAcquireSuccess;
+            QuarkResources.QuarkManifestRequester.onManifestAcquireFailure = OnManifestAcquireFailure;
             QuarkResources.QuarkManifestRequester.RequestManifestAsync(uri, aesKeyBytes);
         }
         public void OnCompleted(Action continuation)

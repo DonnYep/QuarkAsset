@@ -110,8 +110,6 @@ namespace Quark
                     break;
             }
         }
-
-
         void Awake()
         {
             instance = this;
