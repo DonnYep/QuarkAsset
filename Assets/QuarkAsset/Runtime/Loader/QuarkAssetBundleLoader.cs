@@ -14,6 +14,8 @@ namespace Quark.Loader
         /// bundleKey===bundleName
         /// </summary>
         readonly Dictionary<string, string> nameBundleKeyDict = new Dictionary<string, string>();
+
+        readonly Dictionary<string, AssetBundleCreateRequest> abCreateReqDict = new Dictionary<string, AssetBundleCreateRequest>();
         string PersistentPath { get { return QuarkDataProxy.PersistentPath; } }
         public override void SetLoaderData(IQuarkLoaderData loaderData)
         {
@@ -150,33 +152,33 @@ namespace Quark.Loader
         public override Coroutine LoadPrefabAsync(string assetName, Action<GameObject> callback, bool instantiate)
         {
             return QuarkUtility.Unity.StartCoroutine(EnumLoadAssetAsync(assetName, typeof(GameObject), (resGo) =>
-             {
-                 var gameobject = resGo as GameObject;
-                 if (instantiate)
-                 {
-                     GameObject go = null;
-                     if (gameobject != null)
-                         go = GameObject.Instantiate(gameobject);
-                     callback.Invoke(go);
-                 }
-                 else
-                 {
-                     callback.Invoke(gameobject);
-                 }
-             }));
+            {
+                var gameobject = resGo as GameObject;
+                if (instantiate)
+                {
+                    GameObject go = null;
+                    if (gameobject != null)
+                        go = GameObject.Instantiate(gameobject);
+                    callback.Invoke(go);
+                }
+                else
+                {
+                    callback.Invoke(gameobject);
+                }
+            }));
         }
         public override Coroutine LoadMainAndSubAssetsAsync<T>(string assetName, Action<T[]> callback)
         {
             return QuarkUtility.Unity.StartCoroutine(EnumLoadAssetWithSubAssetsAsync(assetName, typeof(T), assets =>
-             {
-                 T[] rstAssets = new T[assets.Length];
-                 var length = rstAssets.Length;
-                 for (int i = 0; i < length; i++)
-                 {
-                     rstAssets[i] = assets[i] as T;
-                 }
-                 callback?.Invoke(rstAssets);
-             }));
+            {
+                T[] rstAssets = new T[assets.Length];
+                var length = rstAssets.Length;
+                for (int i = 0; i < length; i++)
+                {
+                    rstAssets[i] = assets[i] as T;
+                }
+                callback?.Invoke(rstAssets);
+            }));
         }
         public override Coroutine LoadMainAndSubAssetsAsync(string assetName, Type type, Action<Object[]> callback)
         {
@@ -433,9 +435,22 @@ namespace Quark.Loader
                 if (bundleWarpper.AssetBundle == null)
                 {
                     var abPath = Path.Combine(PersistentPath, bundleWarpper.QuarkAssetBundle.BundleKey);
-                    var abReq = AssetBundle.LoadFromFileAsync(abPath, 0, QuarkDataProxy.QuarkEncrytionData.QuarkEncryptionOffset);
-                    yield return abReq;
-                    bundleWarpper.AssetBundle = abReq.assetBundle;
+                    //判断是否正在加载
+                    if (abCreateReqDict.TryGetValue(abPath, out var req))
+                    {
+                        yield return new WaitUntil(() => { return req.isDone; });
+                    }
+                    else
+                    {
+                        var abReq = AssetBundle.LoadFromFileAsync(abPath, 0, QuarkDataProxy.QuarkEncrytionData.QuarkEncryptionOffset);
+                        abCreateReqDict.Add(abPath, abReq);
+                        req = abReq;
+
+                        yield return abReq;
+                    }
+                    abCreateReqDict.Remove(abPath);
+                    bundleWarpper.AssetBundle = req.assetBundle;
+
                     if (bundleWarpper.AssetBundle != null)
                     {
                         bundleWarpper.ReferenceCount++;//AB包引用计数增加
@@ -454,9 +469,19 @@ namespace Quark.Loader
                         if (dependentBundleWarpper.AssetBundle == null)
                         {
                             var abPath = Path.Combine(PersistentPath, dependentBundleKey);
-                            var abReq = AssetBundle.LoadFromFileAsync(abPath, 0, QuarkDataProxy.QuarkEncrytionData.QuarkEncryptionOffset);
-                            yield return abReq;
-                            dependentBundleWarpper.AssetBundle = abReq.assetBundle;
+                            if (abCreateReqDict.TryGetValue(abPath, out var req))
+                            {
+                                yield return new WaitUntil(() => { return req.isDone; });
+                            }
+                            else
+                            {
+                                var abReq = AssetBundle.LoadFromFileAsync(abPath, 0, QuarkDataProxy.QuarkEncrytionData.QuarkEncryptionOffset);
+                                abCreateReqDict.Add(abPath, abReq);
+                                req = abReq;
+                                yield return abReq;
+                            }
+                            abCreateReqDict.Remove(abPath);
+                            dependentBundleWarpper.AssetBundle = req.assetBundle;
                             if (dependentBundleWarpper.AssetBundle != null)
                             {
                                 dependentBundleWarpper.ReferenceCount++;//AB包引用计数增加
