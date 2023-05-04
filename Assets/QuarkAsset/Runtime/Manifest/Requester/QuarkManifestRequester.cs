@@ -4,7 +4,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace Quark
+namespace Quark.Manifest
 {
     public class QuarkManifestRequester
     {

@@ -1,9 +1,7 @@
-﻿using System.Runtime.InteropServices;
-using System;
+﻿using System;
 
-namespace Quark.Verify
+namespace Quark.Manifest
 {
-    [StructLayout(LayoutKind.Auto)]
     public struct QuarkManifestVerifyInfo : IEquatable<QuarkManifestVerifyInfo>
     {
         /// <summary>

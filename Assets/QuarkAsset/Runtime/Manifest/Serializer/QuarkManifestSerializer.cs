@@ -1,6 +1,6 @@
 ﻿using Quark.Asset;
 
-namespace Quark
+namespace Quark.Manifest
 {
     public class QuarkManifestSerializer
     {

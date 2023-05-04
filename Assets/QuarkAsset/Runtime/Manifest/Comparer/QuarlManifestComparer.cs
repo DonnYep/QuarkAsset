@@ -1,7 +1,7 @@
 ﻿using Quark.Asset;
 using System.Collections.Generic;
 
-namespace Quark.Compare
+namespace Quark.Manifest
 {
     public class QuarlManifestComparer
     {

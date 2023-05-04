@@ -1,8 +1,7 @@
 ﻿using Quark.Asset;
-using Quark.Compare;
 using Quark.Loader;
+using Quark.Manifest;
 using Quark.Networking;
-using Quark.Verify;
 using System;
 using System.IO;
 using System.Threading.Tasks;

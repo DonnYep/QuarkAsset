@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Runtime.InteropServices;
-namespace Quark.Compare
+namespace Quark.Manifest
 {
     [Serializable]
-    [StructLayout(LayoutKind.Auto)]
     public class QuarkManifestCompareInfo : IEquatable<QuarkManifestCompareInfo>
     {
         public string BundleName;

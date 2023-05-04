@@ -6,7 +6,7 @@ using System.IO;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace Quark.Verify
+namespace Quark.Manifest
 {
     public class QuarkManifestVerifier
     {

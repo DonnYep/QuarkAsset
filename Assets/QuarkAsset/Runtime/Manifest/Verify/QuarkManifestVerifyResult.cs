@@ -1,4 +1,4 @@
-﻿namespace Quark.Verify
+﻿namespace Quark.Manifest
 {
     public class QuarkManifestVerifyResult
     {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Quark.Verify
+namespace Quark.Manifest
 {
     /// <summary>
     /// 校验的任务；

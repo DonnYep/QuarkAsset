@@ -1,4 +1,4 @@
-﻿namespace Quark.Asset
+﻿namespace Quark
 {
     /// <summary>
     /// Quark常量；

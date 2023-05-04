@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Quark.Compare
+namespace Quark.Manifest
 {
     [Serializable]
     public class QuarkManifestCompareResult
