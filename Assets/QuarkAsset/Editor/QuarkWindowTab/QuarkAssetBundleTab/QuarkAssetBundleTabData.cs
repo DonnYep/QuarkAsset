@@ -13,6 +13,7 @@ namespace Quark.Editor
     {
         public BuildTarget BuildTarget;
         public string BuildVersion;
+        public int InternalBuildVersion;
         public string BuildPath;
         public string AssetBundleBuildPath;
         public bool ClearOutputFolders;

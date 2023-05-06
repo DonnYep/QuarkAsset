@@ -17,7 +17,6 @@ namespace Quark.Editor
         QuarkBundleDetailLabel bundleDetailLabel = new QuarkBundleDetailLabel();
 
         QuarkDataset dataset;
-        EditorCoroutine dataAssignCoroutine;
         /// <summary>
         /// 选中的协程；
         /// </summary>
@@ -56,8 +55,6 @@ namespace Quark.Editor
         public void OnDisable()
         {
             QuarkEditorUtility.SaveData(QuarkAssetDatabaseTabDataFileName, tabData);
-            if (dataAssignCoroutine != null)
-                QuarkEditorUtility.StopCoroutine(dataAssignCoroutine);
             if (selectionCoroutine != null)
                 QuarkEditorUtility.StopCoroutine(selectionCoroutine);
         }
@@ -85,8 +82,6 @@ namespace Quark.Editor
         }
         public void OnDatasetUnassign()
         {
-            if (dataAssignCoroutine != null)
-                QuarkEditorUtility.StopCoroutine(dataAssignCoroutine);
             objectSearchLabel.TreeView.Clear();
             objectSearchLabel.TreeView.Reload();
             bundleSearchLabel.TreeView.Clear();
@@ -440,7 +435,7 @@ namespace Quark.Editor
 #endif
             AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
 
-            bundleSearchLabel.TreeView.Reload();
+            OnDatasetRefresh();
 
             QuarkUtility.LogInfo("Quark asset  build done ");
             OnSelectionChanged(tabData.SelectedBundleIds);

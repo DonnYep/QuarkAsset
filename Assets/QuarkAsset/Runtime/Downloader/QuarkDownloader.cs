@@ -17,43 +17,28 @@ namespace Quark.Networking
         Action<QuarkDownloadStartEventArgs> onDownloadStart;
         Action<QuarkDownloadSuccessEventArgs> onDownloadSuccess;
         Action<QuarkDownloadFailureEventArgs> onDownloadFailure;
-        Action<QuarkDownloadingEventArgs> onDownloadOverall;
+        Action<QuarkDownloadingEventArgs> onDownloading;
         Action<QuarkAllDownloadCompletedEventArgs> onAllDownloadFinish;
-        /// <summary>
-        /// URL---DownloadPath
-        /// </summary>
         public event Action<QuarkDownloadStartEventArgs> OnDownloadStart
         {
             add { onDownloadStart += value; }
             remove { onDownloadStart -= value; }
         }
-        /// <summary>
-        /// URL---DownloadPath
-        /// </summary>
         public event Action<QuarkDownloadSuccessEventArgs> OnDownloadSuccess
         {
             add { onDownloadSuccess += value; }
             remove { onDownloadSuccess -= value; }
         }
-        /// <summary>
-        /// URL---DownloadPath---ErrorMessage
-        /// </summary>
         public event Action<QuarkDownloadFailureEventArgs> OnDownloadFailure
         {
             add { onDownloadFailure += value; }
             remove { onDownloadFailure -= value; }
         }
-        /// <summary>
-        /// URL---DownloadPath---OverallProgress(0~100%)---IndividualProgress(0~100%)
-        /// </summary>
-        public event Action<QuarkDownloadingEventArgs> OnDownloadOverall
+        public event Action<QuarkDownloadingEventArgs> OnDownloading
         {
-            add { onDownloadOverall += value; }
-            remove { onDownloadOverall -= value; }
+            add { onDownloading += value; }
+            remove { onDownloading -= value; }
         }
-        /// <summary>
-        /// SuccessURIs---FailureURIs---TimeSpan
-        /// </summary>
         public event Action<QuarkAllDownloadCompletedEventArgs> OnAllDownloadFinish
         {
             add { onAllDownloadFinish += value; }
@@ -162,7 +147,7 @@ namespace Quark.Networking
             onDownloadStart = null;
             onDownloadSuccess = null;
             onDownloadFailure = null;
-            onDownloadOverall = null;
+            onDownloading = null;
             onAllDownloadFinish = null;
             downloadCount = 0;
         }
@@ -176,7 +161,7 @@ namespace Quark.Networking
                 yield return EnumDownloadSingleFile(task.DownloadUri, task.DownloadPath);
                 pendingTaskDict.Remove(task.DownloadUri);
             }
-            OnDownloadedPendingFiles();
+            OnAllPendingFilesDownloaded();
             Downloading = false;
         }
         IEnumerator EnumDownloadSingleFile(string downloadUri, string downloadPath)
@@ -195,7 +180,7 @@ namespace Quark.Networking
                 {
                     var now = DateTime.Now;
                     var timeSpan = now - fileDownloadStartTime;
-                    var downloadNode = new QuarkDownloadNode(downloadUri, downloadPath, (long)request.downloadedBytes,0, timeSpan);
+                    var downloadNode = new QuarkDownloadNode(downloadUri, downloadPath, (long)request.downloadedBytes, 0, timeSpan);
                     var startEventArgs = QuarkDownloadStartEventArgs.Create(downloadNode);
                     onDownloadStart?.Invoke(startEventArgs);
                     QuarkDownloadStartEventArgs.Release(startEventArgs);
@@ -211,8 +196,8 @@ namespace Quark.Networking
                 {
                     var now = DateTime.Now;
                     var timeSpan = now - fileDownloadStartTime;
-                    var downloadNode = new QuarkDownloadNode(downloadUri, downloadPath, (long)request.downloadedBytes, operation.progress,timeSpan);
-                    OnDownloading(downloadNode, completedDownloadSize + downloadNode.DownloadedBytes);
+                    var downloadNode = new QuarkDownloadNode(downloadUri, downloadPath, (long)request.downloadedBytes, operation.progress, timeSpan);
+                    OnDownloadingHandler(downloadNode, completedDownloadSize + downloadNode.DownloadedBytes);
                     yield return null;
                 }
 #if UNITY_2020_1_OR_NEWER
@@ -225,26 +210,26 @@ namespace Quark.Networking
                     {
                         var fileDownloadEndTime = DateTime.Now;
                         var timeSpan = fileDownloadEndTime - fileDownloadStartTime;
-                        var downloadNode = new QuarkDownloadNode(downloadUri, downloadPath, (long)request.downloadedBytes, 1,timeSpan);
+                        var downloadNode = new QuarkDownloadNode(downloadUri, downloadPath, (long)request.downloadedBytes, 1, timeSpan);
                         completedDownloadSize += downloadNode.DownloadedBytes;
                         var successEventArgs = QuarkDownloadSuccessEventArgs.Create(downloadNode);
                         onDownloadSuccess?.Invoke(successEventArgs);
                         QuarkDownloadSuccessEventArgs.Release(successEventArgs);
                         successedNodeList.Add(downloadNode);
-                        OnDownloading(downloadNode, completedDownloadSize);
+                        OnDownloadingHandler(downloadNode, completedDownloadSize);
                     }
                 }
                 else
                 {
                     var fileDownloadEndTime = DateTime.Now;
                     var timeSpan = fileDownloadEndTime - fileDownloadStartTime;
-                    var downloadNode = new QuarkDownloadNode(downloadUri, downloadPath, (long)request.downloadedBytes, operation.progress,timeSpan);
+                    var downloadNode = new QuarkDownloadNode(downloadUri, downloadPath, (long)request.downloadedBytes, operation.progress, timeSpan);
                     completedDownloadSize += downloadNode.DownloadedBytes;
                     var failureEventArgs = QuarkDownloadFailureEventArgs.Create(downloadNode, request.error);
                     onDownloadFailure?.Invoke(failureEventArgs);
                     QuarkDownloadFailureEventArgs.Release(failureEventArgs);
                     failedNodeList.Add(downloadNode);
-                    OnDownloading(downloadNode, completedDownloadSize);
+                    OnDownloadingHandler(downloadNode, completedDownloadSize);
                     if (DeleteFailureFile)
                     {
                         QuarkUtility.DeleteFile(downloadPath);
@@ -253,13 +238,13 @@ namespace Quark.Networking
                 unityWebRequest = null;
             }
         }
-        void OnDownloading(QuarkDownloadNode node, long downloadedSize)
+        void OnDownloadingHandler(QuarkDownloadNode node, long downloadedSize)
         {
             var eventArgs = QuarkDownloadingEventArgs.Create(node, currentDownloadIndex, downloadCount, downloadedSize, totalRequiredDownloadSize);
-            onDownloadOverall?.Invoke(eventArgs);
+            onDownloading?.Invoke(eventArgs);
             QuarkDownloadingEventArgs.Release(eventArgs);
         }
-        void OnDownloadedPendingFiles()
+        void OnAllPendingFilesDownloaded()
         {
             canDownload = false;
             Downloading = false;

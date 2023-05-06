@@ -100,7 +100,7 @@ namespace Quark.Editor
             else
                 tabData.AssetBundleNameType = AssetBundleNameType.DefaultName;
             tabData.CopyToStreamingAssets = copyToStreamingAssets;
-            tabData.AssetBundleBuildPath = Path.Combine(tabData.BuildPath, tabData.BuildTarget.ToString(), tabData.BuildVersion).Replace("\\", "/");
+            tabData.AssetBundleBuildPath = Path.Combine(tabData.BuildPath, tabData.BuildTarget.ToString(), $"{tabData.BuildVersion}_{tabData.InternalBuildVersion}").Replace("\\", "/");
             tabData.StreamingRelativePath = buildTarget.ToString().ToLower();
             OnBuildAssetBundle(dataset, tabData);
             return tabData.AssetBundleBuildPath;
@@ -148,7 +148,7 @@ namespace Quark.Editor
             else
                 tabData.AssetBundleNameType = AssetBundleNameType.DefaultName;
             tabData.CopyToStreamingAssets = copyToStreamingAssets;
-            tabData.AssetBundleBuildPath = Path.Combine(tabData.BuildPath, tabData.BuildTarget.ToString(), tabData.BuildVersion).Replace("\\", "/");
+            tabData.AssetBundleBuildPath = Path.Combine(tabData.BuildPath, tabData.BuildTarget.ToString(), $"{tabData.BuildVersion}_{tabData.InternalBuildVersion}").Replace("\\", "/");
             tabData.StreamingRelativePath = buildTarget.ToString().ToLower();
             OnBuildAssetBundle(dataset, tabData);
             return tabData.AssetBundleBuildPath;
@@ -376,7 +376,7 @@ namespace Quark.Editor
                 QuarkUtility.DeleteFile(bundleManifestPath);
             }
             quarkManifest.BuildTime = System.DateTime.Now.ToString();
-            quarkManifest.BuildVersion = tabData.BuildVersion;
+            quarkManifest.BuildVersion = $"{tabData.BuildVersion}_{tabData.InternalBuildVersion}";
             var manifestJson = QuarkUtility.ToJson(quarkManifest);
             var manifestContext = manifestJson;
             var manifestWritePath = Path.Combine(tabData.AssetBundleBuildPath, QuarkConstant.MANIFEST_NAME);
@@ -388,7 +388,7 @@ namespace Quark.Editor
             QuarkUtility.WriteTextFile(manifestWritePath, manifestContext);
 
             //删除生成文对应的主manifest文件
-            var buildMainPath = Path.Combine(tabData.AssetBundleBuildPath, tabData.BuildVersion);
+            var buildMainPath = Path.Combine(tabData.AssetBundleBuildPath, $"{tabData.BuildVersion}_{tabData.InternalBuildVersion}");
             var buildMainManifestPath = QuarkUtility.Append(buildMainPath, ".manifest");
             QuarkUtility.DeleteFile(buildMainPath);
             QuarkUtility.DeleteFile(buildMainManifestPath);

@@ -110,13 +110,16 @@ namespace Quark
 
             uri = Path.Combine(manifestPerfixPath, QuarkConstant.MANIFEST_NAME);
             QuarkDataProxy.PersistentPath = persistentPath;
-            QuarkManifestRequester.onManifestAcquireSuccess = ((manifest) =>
-              {
-                  SetAssetBundleModeManifest(manifest);
-                  onSuccess?.Invoke();
-              });
-            QuarkManifestRequester.onManifestAcquireFailure = onFailure;
-            QuarkManifestRequester.RequestManifestAsync(uri, aesKeyBytes);
+            QuarkManifestRequester.AddTask(uri, aesKeyBytes, (manifest) =>
+             {
+                 SetAssetBundleModeManifest(manifest);
+                 onSuccess?.Invoke();
+             },
+            (error) =>
+            {
+                onFailure?.Invoke(error);
+            });
+            QuarkManifestRequester.StartRequestManifest();
         }
         /// <summary>
         /// launch quark assetDatabase mode, editor only!
@@ -153,7 +156,7 @@ namespace Quark
         }
         public static string GetBuildVersion()
         {
-            return QuarkDataProxy.QuarkManifest != null ? QuarkDataProxy.QuarkManifest.BuildVersion : "<NONE>";
+            return quarkLoadModeProvider.GetBuildVersion();
         }
         public static T LoadAsset<T>(string assetName)
 where T : Object

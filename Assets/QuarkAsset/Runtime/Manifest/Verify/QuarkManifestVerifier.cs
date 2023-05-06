@@ -8,14 +8,15 @@ using UnityEngine.Networking;
 
 namespace Quark.Manifest
 {
+    //Integrity
     public class QuarkManifestVerifier
     {
         Coroutine coroutine;
-        Action<QuarkManifestVerifyResult> onVerified;
-        public event Action<QuarkManifestVerifyResult> OnVerified
+        Action<QuarkManifestVerifyResult> onVerifyDone;
+        public event Action<QuarkManifestVerifyResult> OnVerifyDone
         {
-            add { onVerified += value; }
-            remove { onVerified -= value; }
+            add { onVerifyDone += value; }
+            remove { onVerifyDone -= value; }
         }
         List<QuarkManifestVerifyTask> tasks = new List<QuarkManifestVerifyTask>();
         List<QuarkManifestVerifyInfo> verificationSuccessInfos = new List<QuarkManifestVerifyInfo>();
@@ -65,7 +66,7 @@ namespace Quark.Manifest
                 VerificationSuccessInfos = verificationSuccessInfos.ToArray()
             };
             verificationInProgress = false;
-            onVerified?.Invoke(result);
+            onVerifyDone?.Invoke(result);
             tasks.Clear();
             verificationSuccessInfos.Clear();
             verificationFailureInfos.Clear();
@@ -84,7 +85,7 @@ namespace Quark.Manifest
                 VerificationSuccessInfos = verificationSuccessInfos.ToArray()
             };
             verificationInProgress = false;
-            onVerified?.Invoke(result);
+            onVerifyDone?.Invoke(result);
         }
         IEnumerator VerifyContentLength(QuarkManifestVerifyTask task)
         {

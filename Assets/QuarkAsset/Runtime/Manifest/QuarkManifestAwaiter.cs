@@ -18,9 +18,8 @@ namespace Quark
             {
                 uri = Path.Combine(manifestUrl, QuarkConstant.MANIFEST_NAME);
             }
-            QuarkResources.QuarkManifestRequester.onManifestAcquireSuccess = OnManifestAcquireSuccess;
-            QuarkResources.QuarkManifestRequester.onManifestAcquireFailure = OnManifestAcquireFailure;
-            QuarkResources.QuarkManifestRequester.RequestManifestAsync(uri, aesKeyBytes);
+            QuarkResources.QuarkManifestRequester.AddTask(uri, aesKeyBytes, OnManifestAcquireSuccess, OnManifestAcquireFailure);
+            QuarkResources.QuarkManifestRequester.StartRequestManifest();
         }
         public void OnCompleted(Action continuation)
         {

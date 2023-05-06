@@ -2,28 +2,28 @@
 namespace Quark.Manifest
 {
     [Serializable]
-    public class QuarkManifestCompareInfo : IEquatable<QuarkManifestCompareInfo>
+    public struct QuarkManifestCompareInfo : IEquatable<QuarkManifestCompareInfo>
     {
-        public string BundleName;
+        public string BundleName { get; private set; }
         /// <summary>
         /// 用于寻址的文件名；
         /// </summary>
-        public string BundleKey;
-        public long BundleSize;
-        public string BundleHash;
-        public QuarkManifestCompareInfo(string bundleName, string bundleKey, long bundleSize, string bundleHash)
+        public string BundleKey { get; private set; }
+        public string BundleHash { get; private set; }
+        public long BundleSize { get; private set; }
+        public QuarkManifestCompareInfo(string bundleName, string bundleKey, string bundleHash, long bundleSize)
         {
             BundleName = bundleName;
             BundleKey = bundleKey;
-            BundleSize = bundleSize;
             BundleHash = bundleHash;
+            BundleSize = bundleSize;
         }
         public bool Equals(QuarkManifestCompareInfo other)
         {
             return other.BundleName == this.BundleName &&
                         other.BundleKey == this.BundleKey &&
-                        other.BundleSize == this.BundleSize &&
-                        other.BundleHash == this.BundleHash;
+                        other.BundleHash == this.BundleHash &&
+                        other.BundleSize == this.BundleSize;
         }
     }
 }

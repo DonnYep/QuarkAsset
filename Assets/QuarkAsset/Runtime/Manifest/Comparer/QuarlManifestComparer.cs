@@ -6,9 +6,9 @@ namespace Quark.Manifest
     public class QuarlManifestComparer
     {
         internal QuarlManifestComparer() { }
-
         public void CompareManifest(QuarkManifest sourceManifest, QuarkManifest comparisonManifest, out QuarkManifestCompareResult result)
         {
+            //time complexity O=n
             result = new QuarkManifestCompareResult();
             List<QuarkManifestCompareInfo> expired = new List<QuarkManifestCompareInfo>();
             List<QuarkManifestCompareInfo> changed = new List<QuarkManifestCompareInfo>();
@@ -18,12 +18,11 @@ namespace Quark.Manifest
             foreach (var srcBundleInfoKeyValue in sourceManifest.BundleInfoDict)
             {
                 var srcBundleInfo = srcBundleInfoKeyValue.Value;
-                var info = new QuarkManifestCompareInfo(srcBundleInfo.QuarkAssetBundle.BundleName, srcBundleInfo.QuarkAssetBundle.BundleKey, srcBundleInfo.BundleSize, srcBundleInfo.Hash);
-
                 if (!comparisonManifest.BundleInfoDict.TryGetValue(srcBundleInfoKeyValue.Key, out var cmpBundleInfo))
                 {
                     //如果comparison中不存在，表示资源已经过期，加入到移除的列表中；
-                    expired.Add(info);
+                    var expiredInfo = new QuarkManifestCompareInfo(srcBundleInfo.QuarkAssetBundle.BundleName, srcBundleInfo.QuarkAssetBundle.BundleKey, srcBundleInfo.Hash, srcBundleInfo.BundleSize);
+                    expired.Add(expiredInfo);
                 }
                 else
                 {
@@ -31,12 +30,15 @@ namespace Quark.Manifest
                     if (srcBundleInfo.Hash != cmpBundleInfo.Hash)
                     {
                         //Hash不一致，表示需要更新；
-                        changed.Add(info);
+                        var changedInfo = new QuarkManifestCompareInfo(cmpBundleInfo.QuarkAssetBundle.BundleName, cmpBundleInfo.QuarkAssetBundle.BundleKey, cmpBundleInfo.Hash, cmpBundleInfo.BundleSize);
+                        changed.Add(changedInfo);
                     }
                     else
                     {
                         //Hash一致，无需更新；
-                        unchanged.Add(info);
+                        var unchangedInfo=new QuarkManifestCompareInfo(srcBundleInfo.QuarkAssetBundle.BundleName, srcBundleInfo.QuarkAssetBundle.BundleKey, srcBundleInfo.Hash, srcBundleInfo.BundleSize);
+                        unchanged.Add(unchangedInfo);
+
                     }
                 }
             }
@@ -46,7 +48,8 @@ namespace Quark.Manifest
                 if (!sourceManifest.BundleInfoDict.ContainsKey(cmpBundleInfoKeyValue.Key))
                 {
                     //source中不存在，表示为新增资源；
-                    newlyAdded.Add(new QuarkManifestCompareInfo(cmpBundleInfo.QuarkAssetBundle.BundleName, cmpBundleInfo.QuarkAssetBundle.BundleKey, cmpBundleInfo.BundleSize, cmpBundleInfo.Hash));
+                    var newlyAddedInfo = new QuarkManifestCompareInfo(cmpBundleInfo.QuarkAssetBundle.BundleName, cmpBundleInfo.QuarkAssetBundle.BundleKey, cmpBundleInfo.Hash, cmpBundleInfo.BundleSize);
+                    newlyAdded.Add(newlyAddedInfo);
                 }
             }
             result.ChangedInfos = changed.ToArray();

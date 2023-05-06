@@ -1,31 +1,31 @@
 ﻿using System;
-using System.Runtime.InteropServices;
 
 namespace Quark.Networking
 {
-    [StructLayout(LayoutKind.Auto)]
     public struct QuarkDownloadNode:IEquatable<QuarkDownloadNode>
     {
-        public QuarkDownloadNode(string downloadUri, string downloadPath, long downloadedLength, float downloadProgress,TimeSpan downloadTimeSpan)
-        {
-            DownloadUri = downloadUri;
-            DownloadPath = downloadPath;
-            DownloadedBytes = downloadedLength;
-            DownloadProgress= downloadProgress;
-            DownloadTimeSpan = downloadTimeSpan;
-        }
         public string DownloadUri { get; private set; }
         public string DownloadPath { get; private set; }
         /// <summary>
         /// length of downloaded file
         /// </summary>
         public long DownloadedBytes { get; private set; }
+        /// <summary>
+        /// 0~1
+        /// </summary>
         public float DownloadProgress{ get; private set; }
         /// <summary>
         /// Length of time spent downloading
         /// </summary>
         public TimeSpan DownloadTimeSpan { get; private set; }
-
+        public QuarkDownloadNode(string downloadUri, string downloadPath, long downloadedLength, float downloadProgress, TimeSpan downloadTimeSpan)
+        {
+            DownloadUri = downloadUri;
+            DownloadPath = downloadPath;
+            DownloadedBytes = downloadedLength;
+            DownloadProgress = downloadProgress;
+            DownloadTimeSpan = downloadTimeSpan;
+        }
         public bool Equals(QuarkDownloadNode other)
         {
             return this.DownloadUri == other.DownloadUri &&
