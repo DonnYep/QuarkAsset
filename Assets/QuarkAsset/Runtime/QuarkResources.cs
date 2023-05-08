@@ -11,6 +11,7 @@ namespace Quark
 {
     public static class QuarkResources
     {
+        static QuarkAssetDownloader quarkAssetDownloader;
         static QuarkDownloader quarkDownloader;
         static QuarkManifestVerifier quarkManifestVerifier;
         static QuarkManifestRequester quarkManifestRequester;
@@ -22,6 +23,16 @@ namespace Quark
             get { return QuarkDataProxy.QuarkAssetLoadMode; }
             set { QuarkDataProxy.QuarkAssetLoadMode = value; }
         }
+        public static QuarkAssetDownloader QuarkAssetDownloader
+        {
+            get
+            {
+                if (quarkAssetDownloader == null)
+                    quarkAssetDownloader = new QuarkAssetDownloader();
+                return quarkAssetDownloader;
+            }
+        }
+        [Obsolete("Use QuarkAssetDownloader instead")]
         /// <summary>
         /// 文件下载器；
         /// </summary>
@@ -111,10 +122,10 @@ namespace Quark
             uri = Path.Combine(manifestPerfixPath, QuarkConstant.MANIFEST_NAME);
             QuarkDataProxy.PersistentPath = persistentPath;
             QuarkManifestRequester.AddTask(uri, aesKeyBytes, (manifest) =>
-             {
-                 SetAssetBundleModeManifest(manifest);
-                 onSuccess?.Invoke();
-             },
+            {
+                quarkLoadModeProvider.SetAssetBundleModeManifest(manifest);
+                onSuccess?.Invoke();
+            },
             (error) =>
             {
                 onFailure?.Invoke(error);
@@ -141,8 +152,10 @@ namespace Quark
         /// 用于assetbundle模式；
         /// </summary>
         /// <param name="manifest">Manifest文件</param>
-        public static void SetAssetBundleModeManifest(QuarkManifest manifest)
+        /// <param name="persistentPath">local persistent path</param>
+        public static void SetAssetBundleModeManifest(QuarkManifest manifest, string persistentPath)
         {
+            QuarkDataProxy.PersistentPath = persistentPath;
             quarkLoadModeProvider.SetAssetBundleModeManifest(manifest);
         }
         /// <summary>

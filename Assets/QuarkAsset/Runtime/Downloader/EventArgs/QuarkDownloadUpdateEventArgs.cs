@@ -1,9 +1,8 @@
 ﻿using Quark.Recyclable;
-using System;
 
 namespace Quark.Networking
 {
-    public class QuarkDownloadingEventArgs : QuarkEventArgsBase
+    public class QuarkDownloadUpdateEventArgs : QuarkEventArgsBase
     {
         public QuarkDownloadNode CurrentDownloadNode { get; private set; }
         /// <summary>
@@ -30,10 +29,10 @@ namespace Quark.Networking
             CompletedDownloadSize = 0;
             TotalRequiredDownloadSize = 0;
         }
-        internal QuarkDownloadingEventArgs() { }
-        public static QuarkDownloadingEventArgs Create(QuarkDownloadNode node, int currentDownloadIndex, int downloadCount, long completedDownloadSize, long totalRequiredDownloadSize)
+        internal QuarkDownloadUpdateEventArgs() { }
+        public static QuarkDownloadUpdateEventArgs Create(QuarkDownloadNode node, int currentDownloadIndex, int downloadCount, long completedDownloadSize, long totalRequiredDownloadSize)
         {
-            var eventArgs = QuarkEventArgsPool.Acquire<QuarkDownloadingEventArgs>();
+            var eventArgs = QuarkEventArgsPool.Acquire<QuarkDownloadUpdateEventArgs>();
             eventArgs.CurrentDownloadNode = node;
             eventArgs.CurrentDownloadIndex = currentDownloadIndex;
             eventArgs.DownloadCount = downloadCount;
@@ -41,7 +40,7 @@ namespace Quark.Networking
             eventArgs.TotalRequiredDownloadSize = totalRequiredDownloadSize;
             return eventArgs;
         }
-        public static void Release(QuarkDownloadingEventArgs eventArgs)
+        public static void Release(QuarkDownloadUpdateEventArgs eventArgs)
         {
             QuarkEventArgsPool.Release(eventArgs);
         }

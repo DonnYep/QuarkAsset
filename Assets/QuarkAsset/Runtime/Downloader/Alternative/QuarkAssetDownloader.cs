@@ -4,21 +4,19 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using UnityEngine.Networking;
-
 namespace Quark.Networking
 {
     /// <summary>
-    /// Quark资源下载器；
-    /// 资源被下载到本地持久化路径后，再由Qurk加载器进行资源加载；
+    /// QuarkDownloader的替代方案
     /// </summary>
-    public class QuarkDownloader
+    public class QuarkAssetDownloader
     {
         #region events
         Action<QuarkDownloadStartEventArgs> onDownloadStart;
         Action<QuarkDownloadSuccessEventArgs> onDownloadSuccess;
         Action<QuarkDownloadFailureEventArgs> onDownloadFailure;
-        Action<QuarkDownloadingEventArgs> onDownloading;
-        Action<QuarkAllDownloadCompletedEventArgs> onAllDownloadFinish;
+        Action<QuarkDownloadUpdateEventArgs> onDownloadUpdate;
+        Action<QuarkDownloadAllTasksCompletedEventArgs> onDownloadAllTasksFinish;
         public event Action<QuarkDownloadStartEventArgs> OnDownloadStart
         {
             add { onDownloadStart += value; }
@@ -34,17 +32,18 @@ namespace Quark.Networking
             add { onDownloadFailure += value; }
             remove { onDownloadFailure -= value; }
         }
-        public event Action<QuarkDownloadingEventArgs> OnDownloading
+        public event Action<QuarkDownloadUpdateEventArgs> OnDownloadUpdate
         {
-            add { onDownloading += value; }
-            remove { onDownloading -= value; }
+            add { onDownloadUpdate += value; }
+            remove { onDownloadUpdate -= value; }
         }
-        public event Action<QuarkAllDownloadCompletedEventArgs> OnAllDownloadFinish
+        public event Action<QuarkDownloadAllTasksCompletedEventArgs> OnDownloadAllTasksFinish
         {
-            add { onAllDownloadFinish += value; }
-            remove { onAllDownloadFinish -= value; }
+            add { onDownloadAllTasksFinish += value; }
+            remove { onDownloadAllTasksFinish -= value; }
         }
         #endregion
+
         int downloadTimeout = 30;
         public int DownloadTimeout
         {
@@ -57,26 +56,26 @@ namespace Quark.Networking
             }
         }
         public bool DeleteFailureFile { get; set; }
-        /// <summary>
-        /// 是否正在下载；
-        /// </summary>
-        public bool Downloading { get; private set; }
-        /// <summary>
-        /// 下载中的资源总数；
-        /// </summary>
-        public int DownloadingCount { get { return pendingTasks.Count; } }
-
         List<QuarkDownloadTask> pendingTasks = new List<QuarkDownloadTask>();
         Dictionary<string, QuarkDownloadTask> pendingTaskDict = new Dictionary<string, QuarkDownloadTask>();
+
         List<QuarkDownloadNode> successedNodeList = new List<QuarkDownloadNode>();
         List<QuarkDownloadNode> failedNodeList = new List<QuarkDownloadNode>();
+
+        List<QuarkDownloadTask> successedTaskList = new List<QuarkDownloadTask>();
+        List<QuarkDownloadTask> failedTaskList = new List<QuarkDownloadTask>();
 
         DateTime downloadStartTime;
         DateTime downloadEndTime;
 
-        UnityWebRequest unityWebRequest;
+        QuarkDownloadTask downloadingTask;
 
+        UnityWebRequest unityWebRequest;
         Coroutine coroutine;
+        /// <summary>
+        /// 是否正在下载；
+        /// </summary>
+        public bool Downloading { get; private set; }
         /// <summary>
         /// 总共需要下载的文件大小
         /// </summary>
@@ -97,26 +96,7 @@ namespace Quark.Networking
         /// 下载任务数量；
         /// </summary>
         int downloadCount = 0;
-        internal QuarkDownloader() { }
-        /// <summary>
-        /// 添加下载文件；
-        /// </summary>
-        public void AddDownload(QuarkDownloadInfo info)
-        {
-            if (Downloading)
-                return;
-            if (!pendingTaskDict.ContainsKey(info.DownloadUri))
-            {
-                var task = new QuarkDownloadTask(info.DownloadUri, info.DownloadPath, info.RequiredDownloadSize);
-                pendingTaskDict.Add(task.DownloadUri, task);
-                pendingTasks.Add(task);
-                downloadCount++;
-                totalRequiredDownloadSize += info.RequiredDownloadSize;
-            }
-        }
-        /// <summary>
-        /// 启动下载；
-        /// </summary>
+        internal QuarkAssetDownloader() { }
         public void StartDownload()
         {
             if (Downloading)
@@ -128,49 +108,82 @@ namespace Quark.Networking
                 return;
             }
             Downloading = true;
-            downloadStartTime = DateTime.Now;
-            coroutine = QuarkUtility.Unity.StartCoroutine(EnumDownloadMultipleFiles());
+            coroutine = QuarkUtility.Unity.StartCoroutine(RunDownloadMultipleFiles());
+        }
+        public void AddDownload(IEnumerable<QuarkDownloadTask> tasks)
+        {
+            if (Downloading)
+                return;
+            foreach (var task in tasks)
+            {
+                AddDownload(task);
+            }
+        }
+        public void AddDownload(QuarkDownloadTask task)
+        {
+            if (Downloading)
+                return;
+            if (!pendingTaskDict.ContainsKey(task.DownloadUri))
+            {
+                pendingTaskDict.Add(task.DownloadUri, task);
+                pendingTasks.Add(task);
+                downloadCount++;
+                var remainSize = task.RecordedBundleSize - task.LocalBundleSize;
+                if (remainSize < 0)
+                    remainSize = 0;
+                totalRequiredDownloadSize += remainSize;
+            }
+        }
+        public void RemoveDownload(string downloadUri)
+        {
+            if (pendingTaskDict.TryGetValue(downloadUri, out var task))
+            {
+                if (downloadingTask.DownloadUri == downloadUri)
+                {
+                    unityWebRequest?.Abort();
+                    downloadCount--;
+                }
+                else
+                {
+                    pendingTaskDict.Remove(downloadUri);
+                    pendingTasks.Remove(task);
+                    downloadCount--;
+                    var remainSize = task.RecordedBundleSize - task.LocalBundleSize;
+                    if (remainSize < 0)
+                        remainSize = 0;
+                    totalRequiredDownloadSize -= remainSize;
+                }
+            }
         }
         public void StopDownload()
         {
+            downloadCount = 0;
+            pendingTaskDict.Clear();
+            pendingTasks.Clear();
+            unityWebRequest?.Abort();
             if (coroutine != null)
                 QuarkUtility.Unity.StopCoroutine(coroutine);
-            unityWebRequest?.Abort();
-            downloadCount = 0;
-            pendingTasks.Clear();
-            failedNodeList.Clear();
-            successedNodeList.Clear();
-            canDownload = false;
         }
-        public void ClearEvents()
+        IEnumerator RunDownloadMultipleFiles()
         {
-            onDownloadStart = null;
-            onDownloadSuccess = null;
-            onDownloadFailure = null;
-            onDownloading = null;
-            onAllDownloadFinish = null;
-            downloadCount = 0;
-        }
-        IEnumerator EnumDownloadMultipleFiles()
-        {
+            downloadStartTime = DateTime.Now;
             while (pendingTasks.Count > 0)
             {
-                var task = pendingTasks[0];
+                downloadingTask = pendingTasks[0];
                 pendingTasks.RemoveAt(0);
                 currentDownloadIndex = downloadCount - pendingTasks.Count - 1;
-                yield return EnumDownloadSingleFile(task.DownloadUri, task.DownloadPath);
-                pendingTaskDict.Remove(task.DownloadUri);
+                yield return RunDownloadSingleFile(downloadingTask);
+                pendingTaskDict.Remove(downloadingTask.DownloadUri);
             }
-            OnAllPendingFilesDownloaded();
-            Downloading = false;
+            OnAllPendingTasksCompleted();
         }
-        IEnumerator EnumDownloadSingleFile(string downloadUri, string downloadPath)
+        IEnumerator RunDownloadSingleFile(QuarkDownloadTask task)
         {
-            using (UnityWebRequest request = UnityWebRequest.Get(downloadUri))
+            using (UnityWebRequest request = UnityWebRequest.Get(task.DownloadUri))
             {
                 var fileDownloadStartTime = DateTime.Now;
 #if UNITY_2019_1_OR_NEWER
-                request.downloadHandler = new DownloadHandlerFile(downloadPath, true);
+                request.downloadHandler = new DownloadHandlerFile(task.DownloadPath, true);
 #elif UNITY_2018_1_OR_NEWER
                 request.downloadHandler = new DownloadHandlerFile(downloadPath);
 #endif
@@ -180,7 +193,7 @@ namespace Quark.Networking
                 {
                     var now = DateTime.Now;
                     var timeSpan = now - fileDownloadStartTime;
-                    var downloadNode = new QuarkDownloadNode(downloadUri, downloadPath, (long)request.downloadedBytes, 0, timeSpan);
+                    var downloadNode = new QuarkDownloadNode(task.DownloadUri, task.DownloadPath, (long)request.downloadedBytes, 0, timeSpan);
                     var startEventArgs = QuarkDownloadStartEventArgs.Create(downloadNode);
                     onDownloadStart?.Invoke(startEventArgs);
                     QuarkDownloadStartEventArgs.Release(startEventArgs);
@@ -188,7 +201,7 @@ namespace Quark.Networking
 
                 //增量下载实现
                 //下载的路径是可IO的
-                var fileInfo = new FileInfo(downloadPath);
+                var fileInfo = new FileInfo(task.DownloadPath);
                 request.SetRequestHeader("Range", "bytes=" + fileInfo.Length + "-");
 
                 var operation = request.SendWebRequest();
@@ -196,7 +209,7 @@ namespace Quark.Networking
                 {
                     var now = DateTime.Now;
                     var timeSpan = now - fileDownloadStartTime;
-                    var downloadNode = new QuarkDownloadNode(downloadUri, downloadPath, (long)request.downloadedBytes, operation.progress, timeSpan);
+                    var downloadNode = new QuarkDownloadNode(task.DownloadUri, task.DownloadPath, (long)request.downloadedBytes, operation.progress, timeSpan);
                     OnDownloadingHandler(downloadNode, completedDownloadSize + downloadNode.DownloadedBytes);
                     yield return null;
                 }
@@ -210,12 +223,13 @@ namespace Quark.Networking
                     {
                         var fileDownloadEndTime = DateTime.Now;
                         var timeSpan = fileDownloadEndTime - fileDownloadStartTime;
-                        var downloadNode = new QuarkDownloadNode(downloadUri, downloadPath, (long)request.downloadedBytes, 1, timeSpan);
+                        var downloadNode = new QuarkDownloadNode(task.DownloadUri, task.DownloadPath, (long)request.downloadedBytes, 1, timeSpan);
                         completedDownloadSize += downloadNode.DownloadedBytes;
                         var successEventArgs = QuarkDownloadSuccessEventArgs.Create(downloadNode);
                         onDownloadSuccess?.Invoke(successEventArgs);
                         QuarkDownloadSuccessEventArgs.Release(successEventArgs);
                         successedNodeList.Add(downloadNode);
+                        successedTaskList.Add(task);
                         OnDownloadingHandler(downloadNode, completedDownloadSize);
                     }
                 }
@@ -223,39 +237,53 @@ namespace Quark.Networking
                 {
                     var fileDownloadEndTime = DateTime.Now;
                     var timeSpan = fileDownloadEndTime - fileDownloadStartTime;
-                    var downloadNode = new QuarkDownloadNode(downloadUri, downloadPath, (long)request.downloadedBytes, operation.progress, timeSpan);
-                    completedDownloadSize += downloadNode.DownloadedBytes;
+                    QuarkDownloadNode downloadNode;
+                    if (DeleteFailureFile)
+                    {
+                        QuarkUtility.DeleteFile(task.DownloadPath);
+                        downloadNode = new QuarkDownloadNode(task.DownloadUri, task.DownloadPath, 0, operation.progress, timeSpan);
+                    }
+                    else
+                    {
+                        downloadNode = new QuarkDownloadNode(task.DownloadUri, task.DownloadPath, (long)request.downloadedBytes, operation.progress, timeSpan);
+                        completedDownloadSize += downloadNode.DownloadedBytes;
+                    }
                     var failureEventArgs = QuarkDownloadFailureEventArgs.Create(downloadNode, request.error);
                     onDownloadFailure?.Invoke(failureEventArgs);
                     QuarkDownloadFailureEventArgs.Release(failureEventArgs);
                     failedNodeList.Add(downloadNode);
+                    failedTaskList.Add(task);
                     OnDownloadingHandler(downloadNode, completedDownloadSize);
-                    if (DeleteFailureFile)
-                    {
-                        QuarkUtility.DeleteFile(downloadPath);
-                    }
                 }
                 unityWebRequest = null;
             }
         }
         void OnDownloadingHandler(QuarkDownloadNode node, long downloadedSize)
         {
-            var eventArgs = QuarkDownloadingEventArgs.Create(node, currentDownloadIndex, downloadCount, downloadedSize, totalRequiredDownloadSize);
-            onDownloading?.Invoke(eventArgs);
-            QuarkDownloadingEventArgs.Release(eventArgs);
+            var eventArgs = QuarkDownloadUpdateEventArgs.Create(node, currentDownloadIndex, downloadCount, downloadedSize, totalRequiredDownloadSize);
+            onDownloadUpdate?.Invoke(eventArgs);
+            QuarkDownloadUpdateEventArgs.Release(eventArgs);
         }
-        void OnAllPendingFilesDownloaded()
+        void OnAllPendingTasksCompleted()
         {
             canDownload = false;
             Downloading = false;
             downloadEndTime = DateTime.Now;
-            var eventArgs = QuarkAllDownloadCompletedEventArgs.Create(successedNodeList.ToArray(), failedNodeList.ToArray(), downloadEndTime - downloadStartTime);
-            onAllDownloadFinish?.Invoke(eventArgs);
-            QuarkAllDownloadCompletedEventArgs.Release(eventArgs);
+            var successedTaskArray = successedTaskList.ToArray();
+            var failedTaskArray = failedTaskList.ToArray();
+            var successedNodeArray = successedNodeList.ToArray();
+            var failedNodeArray = failedNodeList.ToArray();
+            var downloadTimeSpan = downloadEndTime - downloadStartTime;
+            var eventArgs = QuarkDownloadAllTasksCompletedEventArgs.Create(successedTaskArray, failedTaskArray, successedNodeArray, failedNodeArray, completedDownloadSize, downloadTimeSpan);
+            onDownloadAllTasksFinish?.Invoke(eventArgs);
+            QuarkDownloadAllTasksCompletedEventArgs.Release(eventArgs);
             pendingTasks.Clear();
-            failedNodeList.Clear();
+            successedTaskList.Clear();
+            failedTaskList.Clear();
             successedNodeList.Clear();
+            failedNodeList.Clear();
             downloadCount = 0;
         }
+
     }
 }

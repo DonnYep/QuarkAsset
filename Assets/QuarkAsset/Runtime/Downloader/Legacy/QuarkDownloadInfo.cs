@@ -1,8 +1,7 @@
 ﻿using System;
-
 namespace Quark.Networking
 {
-    internal class QuarkDownloadTask : IEquatable<QuarkDownloadTask>
+    public struct QuarkDownloadInfo : IEquatable<QuarkDownloadInfo>
     {
         /// <summary>
         /// URI绝对路径；
@@ -16,23 +15,17 @@ namespace Quark.Networking
         /// 需要下载的大小
         /// </summary>
         public long RequiredDownloadSize { get; private set; }
-        public QuarkDownloadTask(string downloadUri, string downloadPath, long requiredDownloadSize)
+        public QuarkDownloadInfo(string downloadUri, string downloadPath, long requiredDownloadSize)
         {
             DownloadUri = downloadUri;
             DownloadPath = downloadPath;
             RequiredDownloadSize = requiredDownloadSize;
         }
-        public bool Equals(QuarkDownloadTask other)
+        public bool Equals(QuarkDownloadInfo other)
         {
-            bool result = false;
-            if (this.GetType() == other.GetType())
-            {
-                result = this.DownloadUri == other.DownloadUri &&
-                    this.DownloadPath == other.DownloadPath &&
-                    RequiredDownloadSize == other.RequiredDownloadSize;
-
-            }
-            return result;
+            return this.DownloadUri == other.DownloadUri &&
+                       this.DownloadPath == other.DownloadPath &&
+                       this.RequiredDownloadSize == other.RequiredDownloadSize;
         }
     }
 }

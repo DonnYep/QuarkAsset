@@ -6,8 +6,8 @@ namespace Quark
 {
     internal class QuarkEventArgsPool
     {
-        static readonly Dictionary<Type, Pool<QuarkEventArgsBase>> poolDict
-    = new Dictionary<Type, Pool<QuarkEventArgsBase>>();
+        static readonly Dictionary<Type, QuarkPool<QuarkEventArgsBase>> poolDict
+    = new Dictionary<Type, QuarkPool<QuarkEventArgsBase>>();
         public static T Acquire<T>() where T :  QuarkEventArgsBase
         {
             return GetPool(typeof(T)).Spawn() as T;
@@ -18,13 +18,13 @@ namespace Quark
             var type = typeof(T);
             GetPool(type).Despawn(eventArgs);
         }
-        static Pool<QuarkEventArgsBase> GetPool(Type type)
+        static QuarkPool<QuarkEventArgsBase> GetPool(Type type)
         {
             if (type == null)
                 throw new ArgumentNullException("Type is invalid !");
             if (!poolDict.TryGetValue(type, out var pool))
             {
-                pool = new Pool<QuarkEventArgsBase>(() => { return Activator.CreateInstance(type) as QuarkEventArgsBase; }, (t) => { t.Clear(); });
+                pool = new QuarkPool<QuarkEventArgsBase>(() => { return Activator.CreateInstance(type) as QuarkEventArgsBase; }, (t) => { t.Clear(); });
                 poolDict.Add(type, pool);
             }
             return pool;
