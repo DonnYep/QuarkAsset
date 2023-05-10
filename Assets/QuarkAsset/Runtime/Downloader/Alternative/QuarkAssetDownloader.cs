@@ -96,6 +96,8 @@ namespace Quark.Networking
         /// 下载任务数量；
         /// </summary>
         int downloadCount = 0;
+        public int DownloadCount { get { return downloadCount; } }
+
         internal QuarkAssetDownloader() { }
         public void StartDownload()
         {
@@ -283,7 +285,9 @@ namespace Quark.Networking
             successedNodeList.Clear();
             failedNodeList.Clear();
             downloadCount = 0;
+            currentDownloadIndex = 0;
+            totalRequiredDownloadSize = 0;
+            completedDownloadSize = 0;
         }
-
     }
 }

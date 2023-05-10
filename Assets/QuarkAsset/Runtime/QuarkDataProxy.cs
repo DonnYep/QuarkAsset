@@ -1,6 +1,4 @@
 ﻿using Quark.Asset;
-using Quark.Encrypt;
-
 namespace Quark
 {
     /// <summary>
@@ -8,17 +6,39 @@ namespace Quark
     /// </summary>
     internal class QuarkDataProxy
     {
-        static QuarkEncrytionData quarkEncrytionData;
+        static string quarkAesEncryptionKey;
+        static byte[] quarkAesEncryptionKeyBytes;
         /// <summary>
-        /// 加密数据；
+        /// AssetBundle加密偏移量；
         /// </summary>
-        public static QuarkEncrytionData QuarkEncrytionData
+        public static ulong QuarkEncryptionOffset { get; set; }
+        /// <summary>
+        /// manifest对称加密密钥bytes；
+        /// </summary>
+        public static byte[] QuarkAesEncryptionKeyBytes
         {
             get
             {
-                if (quarkEncrytionData == null)
-                    quarkEncrytionData = new QuarkEncrytionData();
-                return quarkEncrytionData;
+                if (quarkAesEncryptionKeyBytes == null)
+                {
+                    quarkAesEncryptionKeyBytes = new byte[0];
+                }
+                return quarkAesEncryptionKeyBytes;
+            }
+        }
+        /// <summary>
+        /// manifest对称加密密钥
+        /// </summary>
+        public static string QuarkAesEncryptionKey
+        {
+            get { return quarkAesEncryptionKey; }
+            set
+            {
+                if (!string.IsNullOrEmpty(value))
+                {
+                    quarkAesEncryptionKeyBytes = QuarkUtility.GenerateBytesAESKey(value);
+                    quarkAesEncryptionKey = value;
+                }
             }
         }
         /// <summary>

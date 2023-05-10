@@ -84,42 +84,17 @@ namespace Quark
         /// <summary>
         /// launch quark assetBundle mode, local file only!
         /// </summary>
-        /// <param name="path">directory path</param>
+        /// <param name="persistentPath">directory path</param>
         /// <param name="manifestAesKey">ase key for manifest file</param>
         /// <param name="encryptionOffset">bundle encryption offset</param>
-        public static void LaunchAssetBundleMode(string path, Action onSuccess, Action<string> onFailure, string manifestAesKey = "", ulong encryptionOffset = 0)
+        public static void LaunchAssetBundleMode(string persistentPath, Action onSuccess, Action<string> onFailure, string manifestAesKey = "", ulong encryptionOffset = 0)
         {
             QuarkLoadMode = QuarkLoadMode.AssetBundle;
-            QuarkDataProxy.QuarkEncrytionData.QuarkEncryptionOffset = encryptionOffset;
-            QuarkDataProxy.QuarkEncrytionData.QuarkAesEncryptionKey = manifestAesKey;
+            QuarkDataProxy.QuarkEncryptionOffset = encryptionOffset;
+            QuarkDataProxy.QuarkAesEncryptionKey = manifestAesKey;
             var aesKeyBytes = QuarkUtility.GenerateBytesAESKey(manifestAesKey);
-            string manifestPerfixPath = string.Empty;
-            string persistentPath = string.Empty;
             string uri = string.Empty;
-            if (!string.IsNullOrEmpty(QuarkUtility.PlatformPerfix))
-            {
-                //若平台宏字符串不为空，则判断是否以平台宏前缀开始
-                if (!path.StartsWith(QuarkUtility.PlatformPerfix))
-                {
-                    manifestPerfixPath = QuarkUtility.PlatformPerfix + path;
-                    persistentPath = path;
-                }
-                else
-                {
-                    //若dirPath包含了平台宏
-                    manifestPerfixPath = path;
-                    //持久化路径需要移除平台宏前缀
-                    persistentPath = path.Remove(0, QuarkUtility.PlatformPerfix.Length);
-                }
-            }
-            else
-            {
-                //若平台宏字符串为空，则直接使用地址
-                manifestPerfixPath = path;
-                persistentPath = path;
-            }
-
-            uri = Path.Combine(manifestPerfixPath, QuarkConstant.MANIFEST_NAME);
+            uri = Path.Combine(persistentPath, QuarkConstant.MANIFEST_NAME);
             QuarkDataProxy.PersistentPath = persistentPath;
             QuarkManifestRequester.AddTask(uri, aesKeyBytes, (manifest) =>
             {
@@ -131,6 +106,21 @@ namespace Quark
                 onFailure?.Invoke(error);
             });
             QuarkManifestRequester.StartRequestManifest();
+        }
+        /// <summary>
+        /// launch quark assetBundle mode, local file only!
+        /// </summary>
+        /// <param name="manifest">quark manifest</param>
+        /// <param name="persistentPath">directory path</param>
+        /// <param name="manifestAesKey">ase key for manifest file</param>
+        /// <param name="encryptionOffset">bundle encryption offset</param>
+        public static void LaunchAssetBundleMode(QuarkManifest manifest, string persistentPath, string manifestAesKey = "", ulong encryptionOffset = 0)
+        {
+            QuarkLoadMode = QuarkLoadMode.AssetBundle;
+            QuarkDataProxy.QuarkEncryptionOffset = encryptionOffset;
+            QuarkDataProxy.QuarkAesEncryptionKey = manifestAesKey;
+            QuarkDataProxy.PersistentPath = persistentPath;
+            quarkLoadModeProvider.SetAssetBundleModeManifest(manifest);
         }
         /// <summary>
         /// launch quark assetDatabase mode, editor only!

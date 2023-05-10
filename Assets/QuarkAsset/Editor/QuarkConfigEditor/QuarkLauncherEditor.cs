@@ -2,7 +2,7 @@
 using Quark.Asset;
 namespace Quark.Editor
 {
-    [CustomEditor(typeof(QuarkLauncher), true)]
+    [CustomEditor(typeof(QuarkLauncher), false)]
     public class QuarkLauncherEditor : UnityEditor.Editor
     {
         SerializedObject targetObject;

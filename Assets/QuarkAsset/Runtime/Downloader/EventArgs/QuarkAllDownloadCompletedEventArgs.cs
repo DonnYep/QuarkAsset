@@ -14,7 +14,7 @@ namespace Quark.Networking
             DownloadFailedNodes = null;
             AllDownloadCompletedTimeSpan = TimeSpan.Zero;
         }
-        internal QuarkAllDownloadCompletedEventArgs() { }
+        //internal QuarkAllDownloadCompletedEventArgs() { }
         public static QuarkAllDownloadCompletedEventArgs Create(QuarkDownloadNode[] successedNodes, QuarkDownloadNode[] failedNodes, TimeSpan timeSpan)
         {
             var eventArgs = QuarkEventArgsPool.Acquire<QuarkAllDownloadCompletedEventArgs>();

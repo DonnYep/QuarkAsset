@@ -29,7 +29,7 @@ namespace Quark.Networking
             CompletedDownloadSize = 0;
             TotalRequiredDownloadSize = 0;
         }
-        internal QuarkDownloadUpdateEventArgs() { }
+        //internal QuarkDownloadUpdateEventArgs() { }
         public static QuarkDownloadUpdateEventArgs Create(QuarkDownloadNode node, int currentDownloadIndex, int downloadCount, long completedDownloadSize, long totalRequiredDownloadSize)
         {
             var eventArgs = QuarkEventArgsPool.Acquire<QuarkDownloadUpdateEventArgs>();

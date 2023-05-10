@@ -12,8 +12,13 @@ namespace Quark.Manifest
         public static string Serialize(QuarkManifest manifest, byte[] aesKeyBytes)
         {
             var manifestJson = QuarkUtility.ToJson(manifest);
-            var encryptedManifestJson = QuarkUtility.AESEncryptStringToString(manifestJson, aesKeyBytes);
-            return encryptedManifestJson;
+            var encrypt = aesKeyBytes != null && aesKeyBytes.Length > 0;
+            string serializedContext = string.Empty;
+            if (encrypt)
+                serializedContext = QuarkUtility.AESEncryptStringToString(manifestJson, aesKeyBytes);
+            else
+                serializedContext = manifestJson;
+            return serializedContext;
         }
         /// <summary>
         /// 使用配置的aesKey反序列化manifest；
@@ -22,7 +27,7 @@ namespace Quark.Manifest
         /// <returns>反序列化后的内容</returns>
         public static QuarkManifest Deserialize(string manifestContext)
         {
-            return Deserialize(manifestContext, QuarkDataProxy.QuarkEncrytionData.QuarkAesEncryptionKey);
+            return Deserialize(manifestContext, QuarkDataProxy.QuarkAesEncryptionKey);
         }
         /// <summary>
         /// 使用自定义的aesKey反序列化manifest；

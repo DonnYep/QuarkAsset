@@ -20,7 +20,7 @@ namespace Quark.Networking
             DownloadAllTasksCompletedTimeSpan = TimeSpan.Zero;
             DownloadedSize =0;
         }
-        internal QuarkDownloadAllTasksCompletedEventArgs() { }
+        //internal QuarkDownloadAllTasksCompletedEventArgs() { }
         public static QuarkDownloadAllTasksCompletedEventArgs Create(QuarkDownloadTask[] successedTasks, QuarkDownloadTask[] failedTasks, QuarkDownloadNode[] successedNodes, QuarkDownloadNode[] failedNodes, long downloadedSize, TimeSpan timeSpan)
         {
             var eventArgs = QuarkEventArgsPool.Acquire<QuarkDownloadAllTasksCompletedEventArgs>();

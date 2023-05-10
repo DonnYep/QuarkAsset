@@ -10,7 +10,7 @@ namespace Quark.Networking
         {
             CurrentDownloadNode = default;
         }
-        internal QuarkDownloadSuccessEventArgs() { }
+        //internal QuarkDownloadSuccessEventArgs() { }
         internal static QuarkDownloadSuccessEventArgs Create(QuarkDownloadNode node)
         {
             var eventArgs = QuarkEventArgsPool.Acquire<QuarkDownloadSuccessEventArgs>();

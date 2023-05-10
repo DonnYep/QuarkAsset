@@ -36,7 +36,6 @@ namespace Quark.Manifest
             {
                 return;
             }
-            Downloading = true;
             coroutine = QuarkUtility.Unity.StartCoroutine(DownloadManifests());
         }
         public long AddTask(string url, byte[] aesKeyBytes, Action<QuarkManifest> onSuccess, Action<string> onFailure)
@@ -89,6 +88,7 @@ namespace Quark.Manifest
         }
         IEnumerator DownloadManifests()
         {
+            Downloading = true;
             while (reqTaskList.Count > 0)
             {
                 var reqTask = reqTaskList[0];
@@ -126,7 +126,6 @@ namespace Quark.Manifest
                         catch (Exception e)
                         {
                             requestTask.OnFailure?.Invoke(e.ToString());
-                            yield break;
                         }
                     }
                 }
@@ -134,7 +133,7 @@ namespace Quark.Manifest
                 {
                     requestTask.OnFailure?.Invoke(request.error);
                 }
-                onTaskDone.Invoke(requestTask.TaskId);
+                onTaskDone?.Invoke(requestTask.TaskId);
                 running = false;
             }
         }

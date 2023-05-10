@@ -13,7 +13,7 @@ namespace Quark.Networking
             CurrentDownloadNode = default;
             ErrorMessage = string.Empty;
         }
-        internal QuarkDownloadFailureEventArgs() { }
+        //internal QuarkDownloadFailureEventArgs() { }
         internal static QuarkDownloadFailureEventArgs Create(QuarkDownloadNode node, string errorMessage)
         {
             var eventArgs = QuarkEventArgsPool.Acquire<QuarkDownloadFailureEventArgs>();

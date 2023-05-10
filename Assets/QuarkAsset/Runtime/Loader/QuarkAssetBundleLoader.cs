@@ -442,7 +442,7 @@ namespace Quark.Loader
                     }
                     else
                     {
-                        var abReq = AssetBundle.LoadFromFileAsync(abPath, 0, QuarkDataProxy.QuarkEncrytionData.QuarkEncryptionOffset);
+                        var abReq = AssetBundle.LoadFromFileAsync(abPath, 0, QuarkDataProxy.QuarkEncryptionOffset);
                         abCreateReqDict.Add(abPath, abReq);
                         req = abReq;
 
@@ -475,7 +475,7 @@ namespace Quark.Loader
                             }
                             else
                             {
-                                var abReq = AssetBundle.LoadFromFileAsync(abPath, 0, QuarkDataProxy.QuarkEncrytionData.QuarkEncryptionOffset);
+                                var abReq = AssetBundle.LoadFromFileAsync(abPath, 0, QuarkDataProxy.QuarkEncryptionOffset);
                                 abCreateReqDict.Add(abPath, abReq);
                                 req = abReq;
                                 yield return abReq;
@@ -571,7 +571,7 @@ namespace Quark.Loader
                 {
                     //同步加载AssetBundle
                     var abPath = Path.Combine(PersistentPath, bundleWarpper.QuarkAssetBundle.BundleKey);
-                    assetBundle = AssetBundle.LoadFromFile(abPath, 0, QuarkDataProxy.QuarkEncrytionData.QuarkEncryptionOffset);
+                    assetBundle = AssetBundle.LoadFromFile(abPath, 0, QuarkDataProxy.QuarkEncryptionOffset);
                     if (assetBundle != null)
                     {
                         bundleWarpper.AssetBundle = assetBundle;
@@ -594,7 +594,7 @@ namespace Quark.Loader
                         if (dependAssetBundle == null)
                         {
                             var abPath = Path.Combine(PersistentPath, dependBundleKey);
-                            dependAssetBundle = AssetBundle.LoadFromFile(abPath, 0, QuarkDataProxy.QuarkEncrytionData.QuarkEncryptionOffset);
+                            dependAssetBundle = AssetBundle.LoadFromFile(abPath, 0, QuarkDataProxy.QuarkEncryptionOffset);
                             if (dependAssetBundle != null)
                             {
                                 dependBundleWarpper.AssetBundle = dependAssetBundle;
