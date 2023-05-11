@@ -40,6 +40,10 @@ namespace Quark.Editor
 
         public BuildAssetBundleOptions BuildAssetBundleOptions;
 
+        public string QuarkBuildHandlerName;
+
+        public int QuarkBuildHandlerIndex;
+
         public QuarkAssetBundleTabData()
         {
             BuildTarget = BuildTarget.StandaloneWindows;
@@ -54,6 +58,8 @@ namespace Quark.Editor
             BuildAssetBundleOptions = BuildAssetBundleOptions.ChunkBasedCompression;
             BuildVersion = "0_0_1";
             StreamingRelativePath = BuildVersion;
+            QuarkBuildHandlerName = QuarkConstant.NONE;
+            QuarkBuildHandlerIndex = 0;
         }
     }
 }

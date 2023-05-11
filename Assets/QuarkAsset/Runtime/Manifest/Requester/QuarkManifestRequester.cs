@@ -116,9 +116,9 @@ namespace Quark.Manifest
                         QuarkManifest manifest = null;
                         try
                         {
-                            var isEncrypted = requestTask.AesKeyBytes != null && requestTask.AesKeyBytes.Length > 0;
+                            var decrypt = requestTask.AesKeyBytes != null && requestTask.AesKeyBytes.Length > 0;
                             string srcJson = context;
-                            if (isEncrypted)
+                            if (decrypt)
                                 srcJson = QuarkUtility.AESDecryptStringToString(context, requestTask.AesKeyBytes);
                             manifest = QuarkUtility.ToObject<QuarkManifest>(srcJson);
                             requestTask.OnSuccess?.Invoke(manifest);

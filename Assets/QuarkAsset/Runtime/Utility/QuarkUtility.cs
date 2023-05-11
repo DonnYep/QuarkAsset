@@ -20,22 +20,65 @@ namespace Quark
         static StringBuilder stringBuilderCache = new StringBuilder(1024);
         #endregion
 
-        #region 
+        #region Assembly
+        public static object GetTypeInstance(string typeName)
+        {
+            var domainAssemblies = AppDomain.CurrentDomain.GetAssemblies();
+            object inst = null;
+            foreach (var a in domainAssemblies)
+            {
+                var dstType = a.GetType(typeName);
+                if (dstType != null)
+                {
+                    inst = Activator.CreateInstance(dstType);
+                    break;
+                }
+            }
+            return inst;
+        }
         public static Type GetTypeFromAllAssemblies(string typeName)
         {
             Type dstType = null;
-            var asms= AppDomain.CurrentDomain.GetAssemblies();
+            var asms = AppDomain.CurrentDomain.GetAssemblies();
             var length = asms.Length;
             for (int i = 0; i < length; i++)
             {
                 var asm = asms[i];
-                dstType=asm.GetType(typeName);
+                dstType = asm.GetType(typeName);
                 if (dstType != null)
                 {
                     break;
                 }
             }
             return dstType;
+        }
+
+        public static string[] GetDerivedTypeNames<T>()
+    where T : class
+        {
+            return GetDerivedTypeNames(typeof(T), AppDomain.CurrentDomain.GetAssemblies());
+        }
+        /// <summary>
+        /// 获取某类型在指定程序集的所有派生类完全限定名数组；
+        /// </summary>
+        /// <param name="type">基类</param>
+        /// <param name="assemblies">查询的程序集集合</param>
+        /// <returns>非抽象派生类完全限定名</returns>
+        public static string[] GetDerivedTypeNames(Type type, params System.Reflection.Assembly[] assemblies)
+        {
+            List<string> types;
+            if (assemblies == null)
+                return type.Assembly.GetTypes().Where(t => { return type.IsAssignableFrom(t) && t.IsClass && !t.IsAbstract; }).Select(t => t.FullName).ToArray();
+            else
+            {
+                types = new List<string>();
+                foreach (var a in assemblies)
+                {
+                    var dstTypes = a.GetTypes().Where(t => { return type.IsAssignableFrom(t) && t.IsClass && !t.IsAbstract; }).Select(t => t.FullName);
+                    types.AddRange(dstTypes);
+                }
+            }
+            return types.ToArray();
         }
         #endregion
 

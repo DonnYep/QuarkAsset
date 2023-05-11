@@ -177,10 +177,70 @@ namespace Quark.Editor
             }
             var quarkManifest = new QuarkManifest();
             OnBuildDataset(dataset);
-            OnSetAssetBundleName(quarkManifest, dataset);
+            ProcessBundleInfos(quarkManifest, out var bundleInfos);
+            OnSetAssetBundleName(quarkManifest, bundleInfos);
             var assetBundleManifest = BuildPipeline.BuildAssetBundles(assetBundleBuildPath, tabData.BuildAssetBundleOptions, tabData.BuildTarget);
-            OnFinishBuild(assetBundleManifest, quarkManifest, dataset);
+            OnFinishBuild(assetBundleManifest, quarkManifest, bundleInfos);
             QuarkUtility.LogInfo("Quark build pipeline done");
+        }
+      static  void ProcessBundleInfos(QuarkManifest quarkManifest, out List<QuarkBundleInfo> bundleInfos)
+        {
+            bundleInfos = dataset.GetBundleInfos();
+            foreach (var bundleInfo in bundleInfos)
+            {
+                //过滤空包。若文件夹被标记为bundle，且不包含内容，则unity会过滤。因此遵循unity的规范；
+                if (bundleInfo.ObjectInfoList.Count <= 0)
+                {
+                    continue;
+                }
+                var bundlePath = bundleInfo.BundlePath;
+                var importer = AssetImporter.GetAtPath(bundlePath);
+                var nameType = tabData.AssetBundleNameType;
+                var bundleName = bundleInfo.BundleName;
+                var path = Path.Combine(QuarkEditorUtility.ApplicationPath, bundlePath);
+                var hash = QuarkEditorUtility.CreateDirectoryMd5(path);
+                switch (nameType)
+                {
+                    case AssetBundleNameType.DefaultName:
+                        bundleInfo.BundleKey = bundleInfo.BundleName;
+                        break;
+                    case AssetBundleNameType.HashInstead:
+                        {
+                            bundleName = hash;
+                            bundleInfo.BundleKey = hash;
+                        }
+                        break;
+                }
+                importer.assetBundleName = bundleName;
+                var bundle = new QuarkBundle()
+                {
+                    BundleKey = bundleInfo.BundleKey,
+                    BundleName = bundleInfo.BundleName,
+                    BundlePath = bundleInfo.BundlePath
+                };
+                var objectInfoList = bundleInfo.ObjectInfoList;
+                var objectInfoLength = objectInfoList.Count;
+                for (int j = 0; j < objectInfoLength; j++)
+                {
+                    var objectInfo = objectInfoList[j];
+                    var quarkObject = new QuarkObject()
+                    {
+                        ObjectName = objectInfo.ObjectName,
+                        ObjectPath = objectInfo.ObjectPath,
+                        BundleName = objectInfo.BundleName,
+                        ObjectExtension = objectInfo.ObjectExtension,
+                        ObjectType = objectInfo.ObjectType
+                    };
+                    bundle.ObjectList.Add(quarkObject);
+                }
+                var quarkBundleInfo = new QuarkManifest.QuarkBundleInfo()
+                {
+                    Hash = hash,
+                    QuarkAssetBundle = bundle,
+                    BundleName = bundleInfo.BundleName
+                };
+                quarkManifest.BundleInfoDict.Add(bundleName, quarkBundleInfo);
+            }
         }
         static void OnBuildDataset(QuarkDataset dataset)
         {
@@ -252,9 +312,8 @@ namespace Quark.Editor
             EditorUtility.SetDirty(dataset);
             AssetDatabase.SaveAssets();
         }
-        static void OnSetAssetBundleName(QuarkManifest quarkManifest, QuarkDataset dataset)
+        static void OnSetAssetBundleName(QuarkManifest quarkManifest, List<QuarkBundleInfo> bundleInfos)
         {
-            var bundleInfos = dataset.GetBundleInfos();
             foreach (var bundleInfo in bundleInfos)
             {
                 //过滤空包。若文件夹被标记为bundle，且不包含内容，则unity会过滤。因此遵循unity的规范；
@@ -324,14 +383,14 @@ namespace Quark.Editor
                 }
             }
         }
-        static void OnFinishBuild(AssetBundleManifest manifest, QuarkManifest quarkManifest, QuarkDataset dataset)
+        static void OnFinishBuild(AssetBundleManifest manifest, QuarkManifest quarkManifest,  List<QuarkBundleInfo> srcBundleInfos)
         {
             var assetBundleBuildPath = tabData.AssetBundleBuildPath;
             if (manifest == null)
                 return;
             Dictionary<string, QuarkBundleInfo> bundleKeyDict = null;
             if (tabData.AssetBundleNameType == AssetBundleNameType.HashInstead)
-                bundleKeyDict = dataset.GetBundleInfos().ToDictionary(b => b.BundleKey);
+                bundleKeyDict = srcBundleInfos.ToDictionary(b => b.BundleKey);
             var bundleKeys = manifest.GetAllAssetBundles();
             var bundleKeyLength = bundleKeys.Length;
             for (int i = 0; i < bundleKeyLength; i++)
@@ -392,7 +451,7 @@ namespace Quark.Editor
             var buildMainManifestPath = QuarkUtility.Append(buildMainPath, ".manifest");
             QuarkUtility.DeleteFile(buildMainPath);
             QuarkUtility.DeleteFile(buildMainManifestPath);
-            var bundleInfos = dataset.QuarkBundleInfoList;
+            var bundleInfos = srcBundleInfos;
             var bundleInfoLength = bundleInfos.Count;
 
             //这段还原dataset在editor模式的依赖

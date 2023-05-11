@@ -95,7 +95,6 @@ namespace Quark.Asset
         }
         void GetSubBundleInfo(QuarkBundleInfo bundleInfo, ref List<QuarkBundleInfo> infoList)
         {
-            //quark不支持二次拆包
             //多次拆包不在此版本考虑范围内
             var subBundleInfos = bundleInfo.SubBundleInfoList;
             var length = subBundleInfos.Count;
