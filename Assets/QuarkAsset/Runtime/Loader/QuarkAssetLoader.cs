@@ -38,7 +38,6 @@ namespace Quark.Loader
         /// 主动加载的场景列表；
         /// </summary>
         protected List<string> loadSceneList = new List<string>();
-        public abstract void SetLoaderData(IQuarkLoaderData loaderData);
         public abstract T LoadAsset<T>(string assetName) where T : Object;
         public abstract Object LoadAsset(string assetName, Type type);
         public abstract GameObject LoadPrefab(string assetName, bool instantiate);

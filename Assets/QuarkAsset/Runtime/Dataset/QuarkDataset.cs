@@ -16,7 +16,19 @@ namespace Quark.Asset
         [SerializeField]
         List<string> quarkAssetExts;
         List<QuarkObjectInfo> quarkSceneList;
-        Dictionary<string, QuarkBundleInfo> bundleInfoDict;
+        List<IQuarkBundleInfo> allCachedBundleInfos;
+        /// <summary>
+        /// 包含subbundle的所有bundle
+        /// </summary>
+        public List<IQuarkBundleInfo> AllCachedBundleInfos
+        {
+            get
+            {
+                if (allCachedBundleInfos == null)
+                    allCachedBundleInfos = new List<IQuarkBundleInfo>();
+                return allCachedBundleInfos;
+            }
+        }
         /// <summary>
         /// 可识别的文件后缀名
         /// </summary>
@@ -51,29 +63,10 @@ namespace Quark.Asset
                 return quarkSceneList;
             }
         }
-        public Dictionary<string, QuarkBundleInfo> BundleInfoDict
+        public void  CacheAllBundleInfos()
         {
-            get
-            {
-                if (bundleInfoDict == null)
-                {
-                    bundleInfoDict = GetBundleInfos().ToDictionary((b) => b.BundleName);
-                }
-                return bundleInfoDict;
-            }
-        }
-        public bool PeekBundleInfo(string displayName, out QuarkBundleInfo bundleInfo)
-        {
-            return BundleInfoDict.TryGetValue(displayName, out bundleInfo);
-        }
-        public void RegenerateBundleInfoDict()
-        {
-            bundleInfoDict?.Clear();
-            bundleInfoDict = GetBundleInfos().ToDictionary((b) => b.BundleName);
-        }
-        public List<QuarkBundleInfo> GetBundleInfos()
-        {
-            List<QuarkBundleInfo> infoList = new List<QuarkBundleInfo>();
+            var infoList = AllCachedBundleInfos;
+            infoList.Clear();
             var length = QuarkBundleInfoList.Count;
             for (int i = 0; i < length; i++)
             {
@@ -87,13 +80,12 @@ namespace Quark.Asset
                     infoList.Add(bundleInfo);
                 }
             }
-            return infoList;
         }
         public void Dispose()
         {
             quarkBundleInfoList?.Clear();
         }
-        void GetSubBundleInfo(QuarkBundleInfo bundleInfo, ref List<QuarkBundleInfo> infoList)
+        void GetSubBundleInfo(QuarkBundleInfo bundleInfo, ref List<IQuarkBundleInfo> infoList)
         {
             //多次拆包不在此版本考虑范围内
             var subBundleInfos = bundleInfo.SubBundleInfoList;
@@ -101,18 +93,7 @@ namespace Quark.Asset
             for (int i = 0; i < length; i++)
             {
                 var subBundleInfo = subBundleInfos[i];
-
-                var newBundleInfo = new QuarkBundleInfo()
-                {
-                    BundleName = subBundleInfo.BundleName,
-                    BundlePath = subBundleInfo.BundlePath,
-                    BundleKey = subBundleInfo.BundleKey,
-                    BundleSize = subBundleInfo.BundleSize,
-                    BundleFormatBytes = subBundleInfo.BundleFormatBytes,
-                };
-                newBundleInfo.ObjectInfoList.AddRange(subBundleInfo.ObjectInfoList);
-                newBundleInfo.DependentBundleKeyList.AddRange(subBundleInfo.DependentBundleKeyList);
-                infoList.Add(newBundleInfo);
+                infoList.Add(subBundleInfo);
             }
         }
     }

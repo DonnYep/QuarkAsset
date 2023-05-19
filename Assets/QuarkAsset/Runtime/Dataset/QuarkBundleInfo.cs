@@ -8,7 +8,7 @@ namespace Quark.Asset
     /// Editor模式下在dataset中显示信息使用的数据结构
     /// </summary>
     [Serializable]
-    public class QuarkBundleInfo : IEquatable<QuarkBundleInfo>
+    public class QuarkBundleInfo : IEquatable<QuarkBundleInfo>, IQuarkBundleInfo
     {
         [SerializeField]
         string bundleName;

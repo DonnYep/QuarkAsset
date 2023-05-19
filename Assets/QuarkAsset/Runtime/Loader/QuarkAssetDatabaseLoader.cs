@@ -13,11 +13,14 @@ namespace Quark.Loader
         /// bundleKey===bundleName
         /// </summary>
         readonly Dictionary<string, string> nameBundleKeyDict = new Dictionary<string, string>();
-        public override void SetLoaderData(IQuarkLoaderData loaderData)
+        public QuarkAssetDatabaseLoader()
         {
             SceneManager.sceneUnloaded += OnSceneUnloaded;
             SceneManager.sceneLoaded += OnSceneLoaded;
-            InitDataset(loaderData as QuarkDataset);
+        }
+        public void SetDataset(QuarkDataset dataset)
+        {
+            InitDataset(dataset);
         }
         public override T LoadAsset<T>(string assetName)
         {
@@ -424,7 +427,7 @@ namespace Quark.Loader
                 var bundleName = bundleInfo.BundleName;
                 if (!bundleWarpperDict.ContainsKey(bundleName))
                 {
-                    var bundleWarpper = new QuarkBundleWarpper(bundle);
+                    var bundleWarpper = new QuarkBundleWarpper(bundle, string.Empty);
                     bundleWarpperDict.Add(bundleName, bundleWarpper);
                 }
                 if (!nameBundleKeyDict.ContainsKey(bundleInfo.BundleKey))

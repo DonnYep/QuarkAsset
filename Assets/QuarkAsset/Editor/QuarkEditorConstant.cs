@@ -18,5 +18,9 @@
             ".flare",".playable",".physicMaterial",".signal",".guiskin",".dds",".otf",".ttf"
         };
         public const int DetailIconPreviewSize = 34;
+        /// <summary>
+        /// 打包构建缓存文件
+        /// </summary>
+        public const string BUILD_CACHE_NAME = "BuildCache.json";
     }
 }

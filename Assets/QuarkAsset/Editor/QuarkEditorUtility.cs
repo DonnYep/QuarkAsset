@@ -8,7 +8,6 @@ using System.Text;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
-using UnityEngine.Networking;
 
 namespace Quark.Editor
 {
@@ -140,22 +139,31 @@ namespace Quark.Editor
         /// <summary>
         /// 获取文件夹的MD5；
         /// </summary>
-        /// <param name="srcPath">文件夹路径</param>
+        /// <param name="dirPath">文件夹路径</param>
         /// <returns>MD5</returns>
-        public static string CreateDirectoryMd5(string srcPath)
+        public static string CreateDirectoryMd5(string dirPath)
         {
-            var filePaths = Directory.GetFiles(srcPath, "*", SearchOption.AllDirectories).OrderBy(p => p).ToArray();
-            using (var md5 = MD5.Create())
+            var filePaths = Directory.GetFiles(dirPath, "*", SearchOption.AllDirectories).OrderBy(p => p).ToArray();
+
+            using (var ms = new MemoryStream())
             {
                 foreach (var filePath in filePaths)
                 {
-                    byte[] pathBytes = Encoding.UTF8.GetBytes(filePath);
-                    md5.TransformBlock(pathBytes, 0, pathBytes.Length, pathBytes, 0);
-                    byte[] contentBytes = File.ReadAllBytes(filePath);
-                    md5.TransformBlock(contentBytes, 0, contentBytes.Length, contentBytes, 0);
+                    using (var file = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+                    {
+                        file.CopyTo(ms);
+                    }
                 }
-                md5.TransformFinalBlock(new byte[0], 0, 0);
-                return BitConverter.ToString(md5.Hash).Replace("-", "").ToLower();
+                using (var hash = MD5Cng.Create())
+                {
+                    byte[] data = hash.ComputeHash(ms.ToArray());
+                    var sBuilder = new StringBuilder();
+                    for (int i = 0; i < data.Length; i++)
+                    {
+                        sBuilder.Append(data[i].ToString("x2"));
+                    }
+                    return sBuilder.ToString();
+                }
             }
         }
         /// <summary>

@@ -9,11 +9,20 @@ namespace Quark.Loader
     internal class QuarkLoadModeProvider
     {
         Dictionary<QuarkLoadMode, QuarkAssetLoader> quarkLoaderDict;
+        QuarkAssetDatabaseLoader assetDatabaseLoader;
+        QuarkAssetBundleLoader assetBundleLoader;
         public QuarkLoadModeProvider()
         {
             quarkLoaderDict = new Dictionary<QuarkLoadMode, QuarkAssetLoader>();
-            quarkLoaderDict[QuarkLoadMode.AssetDatabase] = new QuarkAssetDatabaseLoader();
-            quarkLoaderDict[QuarkLoadMode.AssetBundle] = new QuarkAssetBundleLoader();
+            assetDatabaseLoader = new QuarkAssetDatabaseLoader();
+            assetBundleLoader = new QuarkAssetBundleLoader();
+            quarkLoaderDict[QuarkLoadMode.AssetDatabase] = assetDatabaseLoader;
+            quarkLoaderDict[QuarkLoadMode.AssetBundle] = assetBundleLoader;
+        }
+        internal void SetAssetBundleModeMergedManifest(QuarkManifest manifest, QuarkDiffManifest diffManifest)
+        {
+            QuarkDiffManifestMerger.MergeDiffManifest(manifest, diffManifest, out var mergeManifest);
+            assetBundleLoader.SetMergedManifest(mergeManifest);
         }
         /// <summary>
         /// 设置Manifest；
@@ -22,18 +31,16 @@ namespace Quark.Loader
         /// <param name="manifest">Manifest文件</param>
         internal void SetAssetBundleModeManifest(QuarkManifest manifest)
         {
-            if (quarkLoaderDict.TryGetValue(QuarkLoadMode.AssetBundle, out var loader))
-                loader.SetLoaderData(manifest);
+            assetBundleLoader.SetManifest(manifest);
         }
         /// <summary>
         /// 用于Editor开发模式；
         /// 对QuarkAssetDataset进行编码
         /// </summary>
-        /// <param name="assetData">QuarkAssetDataset对象</param>
-        internal void SetAssetDatabaseModeDataset(QuarkDataset assetData)
+        /// <param name="dataset">QuarkAssetDataset对象</param>
+        internal void SetAssetDatabaseModeDataset(QuarkDataset dataset)
         {
-            if (quarkLoaderDict.TryGetValue(QuarkLoadMode.AssetDatabase, out var loader))
-                loader.SetLoaderData(assetData);
+            assetDatabaseLoader.SetDataset(dataset);
         }
         internal string GetBuildVersion()
         {
@@ -47,7 +54,7 @@ namespace Quark.Loader
                     version = QuarkDataProxy.QuarkAssetDataset == null ? QuarkConstant.NO_ASSET_DATASET : QuarkConstant.ASSET_DATASET;
                     break;
                 case QuarkLoadMode.AssetBundle:
-                    version = QuarkDataProxy.QuarkManifest == null ? QuarkConstant.NO_MANIFEST : QuarkDataProxy.QuarkManifest.BuildVersion;
+                    version = $"{ QuarkDataProxy.BuildVersion}_{QuarkDataProxy.InternalBuildVersion}";
                     break;
             }
             return version;

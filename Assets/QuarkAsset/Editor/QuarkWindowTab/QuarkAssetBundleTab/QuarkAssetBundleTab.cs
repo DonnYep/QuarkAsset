@@ -51,9 +51,23 @@ namespace Quark.Editor
         public void OnGUI()
         {
             tabData.BuildTarget = (BuildTarget)EditorGUILayout.EnumPopup("Build target", tabData.BuildTarget);
-            tabData.BuildAssetBundleOptions = (BuildAssetBundleOptions)EditorGUILayout.EnumPopup("Compression", tabData.BuildAssetBundleOptions);
+            tabData.AssetBundleCompressType = (AssetBundleCompressType)EditorGUILayout.EnumPopup("Build compression type", tabData.AssetBundleCompressType);
 
             DrawBuildHanlder();
+
+            tabData.ForceRebuildAssetBundle = EditorGUILayout.ToggleLeft("Force rebuild assetBundle", tabData.ForceRebuildAssetBundle);
+            tabData.DisableWriteTypeTree = EditorGUILayout.ToggleLeft("Disable write type tree", tabData.DisableWriteTypeTree);
+            if (tabData.DisableWriteTypeTree)
+                tabData.IgnoreTypeTreeChanges = false;
+
+            tabData.DeterministicAssetBundle = EditorGUILayout.ToggleLeft("Deterministic assetBundle", tabData.DeterministicAssetBundle);
+            tabData.IgnoreTypeTreeChanges = EditorGUILayout.ToggleLeft("Ignore type tree changes", tabData.IgnoreTypeTreeChanges);
+            if (tabData.IgnoreTypeTreeChanges)
+                tabData.DisableWriteTypeTree = false;
+
+            var buildOptions = QuarkBuildController.GetBuildAssetBundleOptions(tabData.AssetBundleCompressType,
+                tabData.DisableWriteTypeTree, tabData.DeterministicAssetBundle, tabData.ForceRebuildAssetBundle, tabData.IgnoreTypeTreeChanges);
+            tabData.BuildAssetBundleOptions = buildOptions;
 
             GUILayout.Space(16);
 
@@ -72,15 +86,18 @@ namespace Quark.Editor
             if (tabData.InternalBuildVersion < 0)
                 tabData.InternalBuildVersion = 0;
 
-            tabData.AssetBundleBuildPath = Path.Combine(tabData.BuildPath, tabData.BuildTarget.ToString(), $"{tabData.BuildVersion}_{tabData.InternalBuildVersion}").Replace("\\", "/");
-            EditorGUILayout.LabelField("Build full path", tabData.AssetBundleBuildPath);
+            //tabData.AssetBundleOutputPath = Path.Combine(tabData.BuildPath, tabData.BuildVersion, tabData.BuildTarget.ToString(), $"{tabData.InternalBuildVersion}").Replace("\\", "/");
+            tabData.AssetBundleOutputPath = Path.Combine(tabData.BuildPath, tabData.BuildVersion, tabData.BuildTarget.ToString(), $"{tabData.BuildVersion}_{tabData.InternalBuildVersion}").Replace("\\", "/");
+            EditorGUILayout.LabelField("Build full path", tabData.AssetBundleOutputPath);
+
+            DrawIncrementalBuild();
 
             GUILayout.BeginHorizontal();
             {
                 GUILayout.FlexibleSpace();
                 if (GUILayout.Button("Open build Path", GUILayout.MaxWidth(128f)))
                 {
-                    var path = tabData.AssetBundleBuildPath;
+                    var path = tabData.AssetBundleOutputPath;
                     if (!Directory.Exists(path))
                     {
                         EditorUtility.RevealInFinder(Application.dataPath);
@@ -92,7 +109,6 @@ namespace Quark.Editor
                 }
             }
             GUILayout.EndHorizontal();
-
 
             GUILayout.Space(32);
 
@@ -110,7 +126,6 @@ namespace Quark.Editor
                 }
             }
             GUILayout.EndVertical();
-
 
 
             GUILayout.Space(16);
@@ -181,6 +196,10 @@ namespace Quark.Editor
                 tabData.QuarkBuildHandlerName = buildHandlers[index];
             }
         }
+        void DrawIncrementalBuild()
+        {
+            tabData.IncrementalBuild = EditorGUILayout.ToggleLeft("Incremental build", tabData.IncrementalBuild);
+        }
         void DrawAESEncryptionForBuildInfoLable()
         {
             tabData.UseAesEncryptionForManifest = EditorGUILayout.ToggleLeft("Aes encryption for buildInfo and manifest", tabData.UseAesEncryptionForManifest);
@@ -220,218 +239,159 @@ namespace Quark.Editor
         }
         IEnumerator EnumBuildAssetBundle()
         {
-            var assetBundleBuildPath = tabData.AssetBundleBuildPath;
-            if (tabData.ClearOutputFolders)
+            var assetBundleBuildPath = tabData.AssetBundleOutputPath;
+            //if (tabData.ClearOutputFolders)
+            //{
+            if (Directory.Exists(assetBundleBuildPath))
             {
-                if (Directory.Exists(assetBundleBuildPath))
-                {
-                    QuarkUtility.DeleteFolder(assetBundleBuildPath);
-                }
+                QuarkUtility.DeleteFolder(assetBundleBuildPath);
             }
+            //}
             if (!Directory.Exists(assetBundleBuildPath))
             {
                 Directory.CreateDirectory(assetBundleBuildPath);
             }
+            var buildParams = new QuarkBuildParams()
+            {
+                AesEncryptionKeyForManifest = tabData.AesEncryptionKeyForManifest,
+                AssetBundleOutputPath = tabData.AssetBundleOutputPath,
+                BuildPath = tabData.BuildPath,
+                AssetBundleCompressType = tabData.AssetBundleCompressType,
+                AssetBundleNameType = tabData.AssetBundleNameType,
+                BuildAssetBundleOptions = tabData.BuildAssetBundleOptions,
+                BuildTarget = tabData.BuildTarget,
+                BuildVersion = tabData.BuildVersion,
+                ClearOutputFolders = tabData.ClearOutputFolders,
+                CopyToStreamingAssets = tabData.CopyToStreamingAssets,
+                EncryptionOffsetForAssetBundle = tabData.EncryptionOffsetForAssetBundle,
+                InternalBuildVersion = tabData.InternalBuildVersion,
+                StreamingRelativePath = tabData.StreamingRelativePath,
+                UseAesEncryptionForManifest = tabData.UseAesEncryptionForManifest,
+                UseOffsetEncryptionForAssetBundle = tabData.UseOffsetEncryptionForAssetBundle
+            };
+            yield return assetDatabaseTab.BuildDataset();
+            if (tabData.IncrementalBuild)
+            {
+                IncrementalBuild(buildParams);
+            }
+            else
+            {
+                FullBuild(buildParams);
+            }
+            QuarkUtility.LogInfo("Quark assetbundle build done ");
+        }
+        /// <summary>
+        /// 全量构建
+        /// </summary>
+        void FullBuild(QuarkBuildParams buildParams)
+        {
             var buildHanlder = GetBuildHandler();
             var hasBuildHandler = buildHanlder != null;
+            if (hasBuildHandler)
+            {
+                buildHanlder.OnBuildStart(tabData.BuildTarget, buildParams.AssetBundleOutputPath);
+            }
+            dataset.CacheAllBundleInfos();
             var quarkManifest = new QuarkManifest();
-            yield return assetDatabaseTab.BuildDataset();
+            QuarkBuildController.ProcessBundleInfos(dataset, quarkManifest, buildParams);
+            QuarkBuildController.SetBundleDependent(dataset, quarkManifest);
+            var assetBundleManifest = BuildPipeline.BuildAssetBundles(buildParams.AssetBundleOutputPath, tabData.BuildAssetBundleOptions, tabData.BuildTarget);
+            QuarkBuildController.FinishBuild(assetBundleManifest, dataset, quarkManifest, buildParams);
             if (hasBuildHandler)
             {
-                buildHanlder.OnBuildStart(tabData.BuildTarget, assetBundleBuildPath);
+                buildHanlder.OnBuildComplete(tabData.BuildTarget, buildParams.AssetBundleOutputPath);
             }
-            ProcessBundleInfos(quarkManifest, out var bundleInfos);
-            yield return SetAssetBundleName(quarkManifest, bundleInfos);
-            var assetBundleManifest = BuildPipeline.BuildAssetBundles(assetBundleBuildPath, tabData.BuildAssetBundleOptions, tabData.BuildTarget);
-            yield return FinishBuild(assetBundleManifest, quarkManifest, bundleInfos);
-            if (hasBuildHandler)
-            {
-                buildHanlder.OnBuildComplete(tabData.BuildTarget, assetBundleBuildPath);
-            }
+            QuarkBuildController.GenerateBuildCache(quarkManifest, buildParams);
         }
-        void ProcessBundleInfos(QuarkManifest quarkManifest, out List<QuarkBundleInfo> bundleInfos)
+        /// <summary>
+        /// 增量构建
+        /// </summary>
+        void IncrementalBuild(QuarkBuildParams buildParams)
         {
-            bundleInfos = dataset.GetBundleInfos();
-            foreach (var bundleInfo in bundleInfos)
+            var buildHanlder = GetBuildHandler();
+            var hasBuildHandler = buildHanlder != null;
+            if (hasBuildHandler)
             {
-                //过滤空包。若文件夹被标记为bundle，且不包含内容，则unity会过滤。因此遵循unity的规范；
-                if (bundleInfo.ObjectInfoList.Count <= 0)
+                buildHanlder.OnBuildStart(tabData.BuildTarget, buildParams.AssetBundleOutputPath);
+            }
+            dataset.CacheAllBundleInfos();
+            var quarkManifest = new QuarkManifest();
+
+            QuarkBuildController.ProcessBundleInfos(dataset, quarkManifest, buildParams);
+            QuarkBuildController.SetBundleDependent(dataset, quarkManifest);
+
+            QuarkBuildCache buildCache = default;
+            try
+            {
+                var buildCacheWritePath = Path.Combine(buildParams.BuildPath, buildParams.BuildVersion, buildParams.BuildTarget.ToString(), QuarkEditorConstant.BUILD_CACHE_NAME);
+                var cacheJson = QuarkUtility.ReadTextFileContent(buildCacheWritePath);
+                buildCache = QuarkUtility.ToObject<QuarkBuildCache>(cacheJson);
+            }
+            catch
+            {
+                buildCache = new QuarkBuildCache()
                 {
-                    continue;
-                }
-                var bundlePath = bundleInfo.BundlePath;
-                var importer = AssetImporter.GetAtPath(bundlePath);
-                var nameType = tabData.AssetBundleNameType;
-                var bundleName = bundleInfo.BundleName;
-                var path = Path.Combine(QuarkEditorUtility.ApplicationPath, bundlePath);
-                var hash = QuarkEditorUtility.CreateDirectoryMd5(path);
-                switch (nameType)
-                {
-                    case AssetBundleNameType.DefaultName:
-                        bundleInfo.BundleKey = bundleInfo.BundleName;
-                        break;
-                    case AssetBundleNameType.HashInstead:
-                        {
-                            bundleName = hash;
-                            bundleInfo.BundleKey = hash;
-                        }
-                        break;
-                }
-                importer.assetBundleName = bundleName;
-                var bundle = new QuarkBundle()
-                {
-                    BundleKey = bundleInfo.BundleKey,
-                    BundleName = bundleInfo.BundleName,
-                    BundlePath = bundleInfo.BundlePath
+                    BundleCacheList = new List<AssetCache>()
                 };
-                var objectInfoList = bundleInfo.ObjectInfoList;
-                var objectInfoLength = objectInfoList.Count;
-                for (int j = 0; j < objectInfoLength; j++)
+            }
+
+            QuarkBuildController.CompareAndUpdateBuildCache(buildCache, dataset, out var newBundleCacheList, out var changed);
+            if (changed.Count > 0)
+            {
+                QuarkUtility.LogInfo($"{changed.Count} bundles has changed !");
+
+                var abBuild = new List<AssetBundleBuild>();
+                var length = changed.Count;
+                for (int i = 0; i < length; i++)
                 {
-                    var objectInfo = objectInfoList[j];
-                    var quarkObject = new QuarkObject()
+                    AssetBundleBuild assetBundleBuild = default;
+                    switch (buildParams.AssetBundleNameType)
                     {
-                        ObjectName = objectInfo.ObjectName,
-                        ObjectPath = objectInfo.ObjectPath,
-                        BundleName = objectInfo.BundleName,
-                        ObjectExtension = objectInfo.ObjectExtension,
-                        ObjectType = objectInfo.ObjectType
-                    };
-                    bundle.ObjectList.Add(quarkObject);
+                        case AssetBundleNameType.DefaultName:
+                            {
+                                var cache = changed[i];
+                                assetBundleBuild = new AssetBundleBuild()
+                                {
+                                    assetBundleName = cache.BundleName,
+                                    assetNames = cache.AssetNames
+                                };
+                            }
+                            break;
+                        case AssetBundleNameType.HashInstead:
+                            {
+                                var cache = changed[i];
+                                assetBundleBuild = new AssetBundleBuild()
+                                {
+                                    assetBundleName = cache.BundleHash,
+                                    assetNames = cache.AssetNames
+                                };
+                            }
+                            break;
+                    }
+                    abBuild.Add(assetBundleBuild);
                 }
-                var quarkBundleInfo = new QuarkManifest.QuarkBundleInfo()
+                var assetBundleManifest = BuildPipeline.BuildAssetBundles(buildParams.AssetBundleOutputPath, abBuild.ToArray(), buildParams.BuildAssetBundleOptions, buildParams.BuildTarget);
+                QuarkBuildController.FinishBuild(assetBundleManifest, dataset, quarkManifest, buildParams);
+                if (hasBuildHandler)
                 {
-                    Hash = hash,
-                    QuarkAssetBundle = bundle,
-                    BundleName = bundleInfo.BundleName
+                    buildHanlder.OnBuildComplete(tabData.BuildTarget, buildParams.AssetBundleOutputPath);
+                }
+                var newBuildCache = new QuarkBuildCache
+                {
+                    BundleCacheList = newBundleCacheList,
+                    BuildVerison = buildParams.BuildVersion,
+                    InternalBuildVerison = buildParams.InternalBuildVersion
                 };
-                quarkManifest.BundleInfoDict.Add(bundleName, quarkBundleInfo);
-            }
-        }
-        IEnumerator SetAssetBundleName(QuarkManifest quarkManifest, List<QuarkBundleInfo> bundleInfos)
-        {
-            QuarkUtility.LogInfo("Start build asset bundle");
-            yield return null;
-            AssetDatabase.Refresh();
-            for (int i = 0; i < bundleInfos.Count; i++)
-            {
-                var bundleInfo = bundleInfos[i];
-                bundleInfo.DependentBundleKeyList.Clear();
-                var importer = AssetImporter.GetAtPath(bundleInfo.BundlePath);
-                bundleInfo.DependentBundleKeyList.AddRange(AssetDatabase.GetAssetBundleDependencies(importer.assetBundleName, true));
-                if (quarkManifest.BundleInfoDict.TryGetValue(bundleInfo.BundleKey, out var manifestBundleInfo))
-                {
-                    manifestBundleInfo.QuarkAssetBundle.DependentBundleKeyList.Clear();
-                    manifestBundleInfo.QuarkAssetBundle.DependentBundleKeyList.AddRange(bundleInfo.DependentBundleKeyList);
-                }
-            }
-        }
-        IEnumerator FinishBuild(AssetBundleManifest manifest, QuarkManifest quarkManifest, List<QuarkBundleInfo> srcBundleInfos)
-        {
-            var assetBundleBuildPath = tabData.AssetBundleBuildPath;
-            if (manifest == null)
-                yield break;
-            Dictionary<string, QuarkBundleInfo> bundleKeyDict = null;
-            if (tabData.AssetBundleNameType == AssetBundleNameType.HashInstead)
-                bundleKeyDict = srcBundleInfos.ToDictionary(b => b.BundleKey);
-            var bundleKeys = manifest.GetAllAssetBundles();
-            var bundleKeyLength = bundleKeys.Length;
-            for (int i = 0; i < bundleKeyLength; i++)
-            {
-                var bundleKey = bundleKeys[i];
+                QuarkBuildController.FinishBuild(assetBundleManifest, dataset, quarkManifest, buildParams);
 
-                var bundlePath = Path.Combine(assetBundleBuildPath, bundleKey);
-                long bundleSize = 0;
-                if (tabData.UseOffsetEncryptionForAssetBundle)
-                {
-                    var bundleBytes = File.ReadAllBytes(bundlePath);
-                    var offset = tabData.EncryptionOffsetForAssetBundle;
-                    QuarkUtility.AppendAndWriteAllBytes(bundlePath, new byte[offset], bundleBytes);
-                    bundleSize = offset + bundleBytes.Length;
-                }
-                else
-                {
-                    var bundleBytes = File.ReadAllBytes(bundlePath);
-                    bundleSize = bundleBytes.LongLength;
-                }
+                QuarkBuildController.GenerateDifferenceFile(quarkManifest, changed, buildParams);
 
-                var bundleName = string.Empty;
-                switch (tabData.AssetBundleNameType)
-                {
-                    case AssetBundleNameType.DefaultName:
-                        {
-                            bundleName = bundleKey;
-                        }
-                        break;
-                    case AssetBundleNameType.HashInstead:
-                        {
-                            if (bundleKeyDict.TryGetValue(bundleKey, out var bundleInfo))
-                                bundleName = bundleInfo.BundleKey;
-                        }
-                        break;
-                }
-                if (quarkManifest.BundleInfoDict.TryGetValue(bundleName, out var quarkBundleInfo))
-                {
-                    quarkBundleInfo.BundleSize = bundleSize;
-                }
-                var bundleManifestPath = QuarkUtility.Append(bundlePath, ".manifest");
-                QuarkUtility.DeleteFile(bundleManifestPath);
+                QuarkBuildController.OverwriteBuildCache(newBuildCache, buildParams);
             }
-            quarkManifest.BuildTime = System.DateTime.Now.ToString();
-            quarkManifest.BuildVersion = $"{tabData.BuildVersion}_{tabData.InternalBuildVersion}";
-            var manifestJson = QuarkUtility.ToJson(quarkManifest);
-            var manifestContext = manifestJson;
-            var manifestWritePath = Path.Combine(tabData.AssetBundleBuildPath, QuarkConstant.MANIFEST_NAME);
-            if (tabData.UseAesEncryptionForManifest)
+            else
             {
-                var key = QuarkUtility.GenerateBytesAESKey(tabData.AesEncryptionKeyForManifest);
-                manifestContext = QuarkUtility.AESEncryptStringToString(manifestJson, key);
+                QuarkUtility.LogInfo("No bundle changed !");
             }
-            QuarkUtility.WriteTextFile(manifestWritePath, manifestContext);
-
-            yield return null;
-            //删除生成文对应的主manifest文件
-            var buildMainPath = Path.Combine(tabData.AssetBundleBuildPath, $"{tabData.BuildVersion}_{tabData.InternalBuildVersion}");
-            var buildMainManifestPath = QuarkUtility.Append(buildMainPath, ".manifest");
-            QuarkUtility.DeleteFile(buildMainPath);
-            QuarkUtility.DeleteFile(buildMainManifestPath);
-            var bundleInfos = srcBundleInfos;
-            var bundleInfoLength = bundleInfos.Count;
-
-            //这段还原dataset在editor模式的依赖
-            for (int i = 0; i < bundleInfoLength; i++)
-            {
-                var bundleInfo = bundleInfos[i];
-                var importer = AssetImporter.GetAtPath(bundleInfo.BundlePath);
-                importer.assetBundleName = bundleInfo.BundleName;
-                bundleInfo.BundleKey = bundleInfo.BundleName;
-            }
-            for (int i = 0; i < bundleInfoLength; i++)
-            {
-                var bundleInfo = bundleInfos[i];
-                var importer = AssetImporter.GetAtPath(bundleInfo.BundlePath);
-                bundleInfo.DependentBundleKeyList.Clear();
-                bundleInfo.DependentBundleKeyList.AddRange(AssetDatabase.GetAssetBundleDependencies(importer.assetBundleName, true));
-            }
-
-            for (int i = 0; i < bundleInfoLength; i++)
-            {
-                var bundle = bundleInfos[i];
-                var importer = AssetImporter.GetAtPath(bundle.BundlePath);
-                importer.assetBundleName = string.Empty;
-            }
-            if (tabData.CopyToStreamingAssets)
-            {
-                var buildPath = tabData.AssetBundleBuildPath;
-                if (Directory.Exists(buildPath))
-                {
-                    var streamingAssetPath = Path.Combine(Application.streamingAssetsPath, tabData.StreamingRelativePath);
-                    QuarkUtility.CopyDirectory(buildPath, streamingAssetPath);
-                }
-            }
-            AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
-            AssetDatabase.RemoveUnusedAssetBundleNames();
-            System.GC.Collect();
         }
     }
 }

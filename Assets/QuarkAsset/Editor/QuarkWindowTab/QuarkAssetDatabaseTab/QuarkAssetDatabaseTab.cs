@@ -422,8 +422,6 @@ namespace Quark.Editor
             dataset.QuarkSceneList.Clear();
             dataset.QuarkSceneList.AddRange(quarkSceneList);
 
-            dataset.RegenerateBundleInfoDict();
-
             EditorUtility.SetDirty(dataset);
             QuarkEditorUtility.SaveData(QuarkAssetDatabaseTabDataFileName, tabData);
             yield return null;
@@ -437,7 +435,7 @@ namespace Quark.Editor
 
             OnDatasetRefresh();
 
-            QuarkUtility.LogInfo("Quark asset  build done ");
+            QuarkUtility.LogInfo("Quark dataset build done ");
             OnSelectionChanged(tabData.SelectedBundleIds);
         }
         void OnSelectionChanged(IList<int> selectedIds)

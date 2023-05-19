@@ -16,12 +16,18 @@ namespace Quark.Loader
         readonly Dictionary<string, string> nameBundleKeyDict = new Dictionary<string, string>();
 
         readonly Dictionary<string, AssetBundleCreateRequest> abCreateReqDict = new Dictionary<string, AssetBundleCreateRequest>();
-        string PersistentPath { get { return QuarkDataProxy.PersistentPath; } }
-        public override void SetLoaderData(IQuarkLoaderData loaderData)
+        internal QuarkAssetBundleLoader()
         {
             SceneManager.sceneUnloaded += OnSceneUnloaded;
             SceneManager.sceneLoaded += OnSceneLoaded;
-            InitManifest(loaderData as QuarkManifest);
+        }
+        public void SetMergedManifest(QuarkMergedManifest mergedManifest)
+        {
+            InitMergedManifest(mergedManifest);
+        }
+        public void SetManifest(QuarkManifest manifest)
+        {
+            InitManifest(manifest);
         }
         public override T LoadAsset<T>(string assetName)
         {
@@ -434,7 +440,7 @@ namespace Quark.Loader
             {
                 if (bundleWarpper.AssetBundle == null)
                 {
-                    var abPath = Path.Combine(PersistentPath, bundleWarpper.QuarkAssetBundle.BundleKey);
+                    var abPath = Path.Combine(bundleWarpper.BundlePersistentPath, bundleWarpper.QuarkAssetBundle.BundleKey);
                     //判断是否正在加载
                     if (abCreateReqDict.TryGetValue(abPath, out var req))
                     {
@@ -468,7 +474,7 @@ namespace Quark.Loader
                     {
                         if (dependentBundleWarpper.AssetBundle == null)
                         {
-                            var abPath = Path.Combine(PersistentPath, dependentBundleKey);
+                            var abPath = Path.Combine(bundleWarpper.BundlePersistentPath, dependentBundleKey);
                             if (abCreateReqDict.TryGetValue(abPath, out var req))
                             {
                                 yield return new WaitUntil(() => { return req.isDone; });
@@ -532,7 +538,7 @@ namespace Quark.Loader
         }
         void InitManifest(QuarkManifest manifest)
         {
-            var bundles = manifest.BundleInfoDict.Values; ;
+            var bundles = manifest.BundleInfoDict.Values;
             foreach (var bundle in bundles)
             {
                 var objects = bundle.QuarkAssetBundle.ObjectList;
@@ -552,7 +558,7 @@ namespace Quark.Loader
                 var bundleName = bundle.QuarkAssetBundle.BundleName;
                 if (!bundleWarpperDict.ContainsKey(bundleName))
                 {
-                    var bundleWarpper = new QuarkBundleWarpper(bundle.QuarkAssetBundle);
+                    var bundleWarpper = new QuarkBundleWarpper(bundle.QuarkAssetBundle, QuarkDataProxy.PersistentPath);
                     bundleWarpperDict.Add(bundleName, bundleWarpper);
                 }
                 if (!nameBundleKeyDict.ContainsKey(bundle.QuarkAssetBundle.BundleKey))
@@ -560,7 +566,51 @@ namespace Quark.Loader
                     nameBundleKeyDict.Add(bundle.QuarkAssetBundle.BundleKey, bundleName);
                 }
             }
-            QuarkDataProxy.QuarkManifest = manifest;
+            //QuarkDataProxy.QuarkManifest = manifest;
+            QuarkDataProxy.BuildVersion = manifest.BuildVersion;
+            QuarkDataProxy.InternalBuildVersion = manifest.InternalBuildVersion;
+        }
+        void InitMergedManifest(QuarkMergedManifest mergeResult)
+        {
+            var bundles = mergeResult.MergedBundles;
+            foreach (var bundle in bundles)
+            {
+                var objects = bundle.QuarkBundleAsset.QuarkAssetBundle.ObjectList;
+                foreach (var obj in objects)
+                {
+                    var quarkObject = obj;
+                    QuarkObjectWapper wapper = new QuarkObjectWapper();
+                    wapper.QuarkObject = quarkObject;
+                    if (!objectLnkDict.TryGetValue(quarkObject.ObjectName, out var lnkList))
+                    {
+                        lnkList = new LinkedList<QuarkObject>();
+                        objectLnkDict.Add(quarkObject.ObjectName, lnkList);
+                    }
+                    lnkList.AddLast(obj);
+                    objectWarpperDict[obj.ObjectPath] = wapper;//AssetPath与QuarkObject映射地址。理论上地址不可能重复。
+                }
+                var bundleName = bundle.QuarkBundleAsset.QuarkAssetBundle.BundleName;
+                if (!bundleWarpperDict.ContainsKey(bundleName))
+                {
+                    string bundlePersistentPath = string.Empty;
+                    if (bundle.IsIncremental)
+                    {
+                        bundlePersistentPath = QuarkDataProxy.DiffPersistentPath;
+                    }
+                    else
+                    {
+                        bundlePersistentPath = QuarkDataProxy.PersistentPath;
+                    }
+                    var bundleWarpper = new QuarkBundleWarpper(bundle.QuarkBundleAsset.QuarkAssetBundle, bundlePersistentPath);
+                    bundleWarpperDict.Add(bundleName, bundleWarpper);
+                }
+                if (!nameBundleKeyDict.ContainsKey(bundle.QuarkBundleAsset.QuarkAssetBundle.BundleKey))
+                {
+                    nameBundleKeyDict.Add(bundle.QuarkBundleAsset.QuarkAssetBundle.BundleKey, bundleName);
+                }
+            }
+            QuarkDataProxy.BuildVersion = mergeResult.BuildVersion;
+            QuarkDataProxy.InternalBuildVersion = mergeResult.InternalBuildVersion;
         }
         void LoadAssetBundleWithDependencies(string assetBundleName)
         {
@@ -570,7 +620,7 @@ namespace Quark.Loader
                 if (assetBundle == null)//判断当前warpper是否存在AssetBundle
                 {
                     //同步加载AssetBundle
-                    var abPath = Path.Combine(PersistentPath, bundleWarpper.QuarkAssetBundle.BundleKey);
+                    var abPath = Path.Combine(bundleWarpper.BundlePersistentPath, bundleWarpper.QuarkAssetBundle.BundleKey);
                     assetBundle = AssetBundle.LoadFromFile(abPath, 0, QuarkDataProxy.QuarkEncryptionOffset);
                     if (assetBundle != null)
                     {
@@ -593,7 +643,7 @@ namespace Quark.Loader
                         var dependAssetBundle = dependBundleWarpper.AssetBundle;
                         if (dependAssetBundle == null)
                         {
-                            var abPath = Path.Combine(PersistentPath, dependBundleKey);
+                            var abPath = Path.Combine(bundleWarpper.BundlePersistentPath, dependBundleKey);
                             dependAssetBundle = AssetBundle.LoadFromFile(abPath, 0, QuarkDataProxy.QuarkEncryptionOffset);
                             if (dependAssetBundle != null)
                             {

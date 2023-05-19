@@ -10,6 +10,8 @@ namespace Quark
     {
         int referenceCount;
         QuarkBundle quarkAssetBundle;
+        string bundlePersistentPath;
+        public string BundlePersistentPath { get { return bundlePersistentPath; } }
         public QuarkBundle QuarkAssetBundle { get { return quarkAssetBundle; } }
         public int ReferenceCount
         {
@@ -25,12 +27,13 @@ namespace Quark
         /// AssetBundle 包体对象；
         /// </summary>
         public AssetBundle AssetBundle { get; set; }
-        public QuarkBundleWarpper(QuarkBundle quarkAssetBundle)
+        public QuarkBundleWarpper(QuarkBundle quarkAssetBundle, string bundlePersistentPath)
         {
             this.quarkAssetBundle = quarkAssetBundle;
+            this.bundlePersistentPath = bundlePersistentPath;
         }
         public T LoadAsset<T>(string assetName)
-            where T:UnityEngine.Object
+            where T : UnityEngine.Object
         {
             if (AssetBundle == null)
                 return null;
