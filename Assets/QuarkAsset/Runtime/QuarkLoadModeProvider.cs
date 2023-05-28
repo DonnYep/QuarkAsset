@@ -19,10 +19,9 @@ namespace Quark.Loader
             quarkLoaderDict[QuarkLoadMode.AssetDatabase] = assetDatabaseLoader;
             quarkLoaderDict[QuarkLoadMode.AssetBundle] = assetBundleLoader;
         }
-        internal void SetAssetBundleModeMergedManifest(QuarkManifest manifest, QuarkDiffManifest diffManifest)
+        internal void SetAssetBundleModeMergedManifest(QuarkMergedManifest mergedManifest)
         {
-            QuarkDiffManifestMerger.MergeDiffManifest(manifest, diffManifest, out var mergeManifest);
-            assetBundleLoader.SetMergedManifest(mergeManifest);
+            assetBundleLoader.SetMergedManifest(mergedManifest);
         }
         /// <summary>
         /// 设置Manifest；

@@ -199,6 +199,7 @@ namespace Quark.Editor
             QuarkBuildController.SetBundleDependent(dataset, quarkManifest);
             var assetBundleManifest = BuildPipeline.BuildAssetBundles(assetBundleBuildPath, tabData.BuildAssetBundleOptions, tabData.BuildTarget);
             QuarkBuildController.FinishBuild(assetBundleManifest, dataset, quarkManifest, buildParams);
+            QuarkBuildController.OverwriteManifest( quarkManifest, buildParams);
             QuarkUtility.LogInfo("Quark build pipeline done");
         }
     }

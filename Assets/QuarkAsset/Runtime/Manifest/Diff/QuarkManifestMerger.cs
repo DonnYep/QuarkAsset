@@ -3,9 +3,9 @@ using System.Linq;
 
 namespace Quark.Asset
 {
-    public class QuarkDiffManifestMerger
+    internal class QuarkDiffManifestMerger
     {
-        public static void MergeDiffManifest(QuarkManifest manifest, QuarkDiffManifest diffManifest, out QuarkMergedManifest mergeResult)
+        public static void MergeDiffManifest(QuarkManifest manifest, QuarkManifest diffManifest, out QuarkMergedManifest mergeResult)
         {
             mergeResult = new QuarkMergedManifest();
             var srcBundleInfoDict = manifest.BundleInfoDict.Values.ToDictionary(b => b.QuarkAssetBundle.BundlePath);

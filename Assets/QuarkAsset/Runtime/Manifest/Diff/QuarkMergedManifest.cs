@@ -2,7 +2,7 @@
 
 namespace Quark.Asset
 {
-    public class QuarkMergedManifest
+    internal class QuarkMergedManifest
     {
         public string BuildTime { get; set; }
         public string BuildVersion { get; set; }
