@@ -88,7 +88,7 @@ namespace Quark
             QuarkDataProxy.QuarkAesEncryptionKey = manifestAesKey;
             QuarkDataProxy.PersistentPath = persistentPath;
             QuarkDataProxy.DiffPersistentPath = diffPersistentPath;
-            QuarkDiffManifestMerger.MergeDiffManifest(manifest, diffManifest, out var mergeManifest);
+            QuarkUtility.Manifest.MergeManifest(manifest, diffManifest, out var mergeManifest);
             quarkLoadModeProvider.SetAssetBundleModeMergedManifest(mergeManifest);
         }
         /// <summary>
