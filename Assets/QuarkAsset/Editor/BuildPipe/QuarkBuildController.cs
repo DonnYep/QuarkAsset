@@ -236,6 +236,12 @@ namespace Quark.Editor
                 var importer = AssetImporter.GetAtPath(bundle.BundlePath);
                 importer.assetBundleName = string.Empty;
             }
+            AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
+            AssetDatabase.RemoveUnusedAssetBundleNames();
+            System.GC.Collect();
+        }
+        public static void CopyToStreamingAssets(QuarkBuildParams buildParams)
+        {
             if (buildParams.CopyToStreamingAssets)
             {
                 var buildPath = buildParams.AssetBundleOutputPath;
@@ -245,9 +251,6 @@ namespace Quark.Editor
                     QuarkUtility.CopyDirectory(buildPath, streamingAssetPath);
                 }
             }
-            AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
-            AssetDatabase.RemoveUnusedAssetBundleNames();
-            System.GC.Collect();
         }
         public static void OverwriteManifest(QuarkManifest quarkManifest, QuarkBuildParams buildParams)
         {

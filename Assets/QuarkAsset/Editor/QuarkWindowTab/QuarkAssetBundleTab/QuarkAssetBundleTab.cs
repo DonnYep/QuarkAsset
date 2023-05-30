@@ -298,6 +298,7 @@ namespace Quark.Editor
             var assetBundleManifest = BuildPipeline.BuildAssetBundles(buildParams.AssetBundleOutputPath, tabData.BuildAssetBundleOptions, tabData.BuildTarget);
             QuarkBuildController.FinishBuild(assetBundleManifest, dataset, quarkManifest, buildParams);
             QuarkBuildController.OverwriteManifest(quarkManifest, buildParams);
+            QuarkBuildController.CopyToStreamingAssets(buildParams);
             if (hasBuildHandler)
             {
                 buildHanlder.OnBuildComplete(tabData.BuildTarget, buildParams.AssetBundleOutputPath);
@@ -392,6 +393,7 @@ namespace Quark.Editor
                 QuarkBuildController.OverwriteManifest(quarkManifest, buildParams);
                 QuarkUtility.LogInfo("No bundle changed !");
             }
+            QuarkBuildController.CopyToStreamingAssets(buildParams);
         }
     }
 }

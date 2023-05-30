@@ -81,6 +81,15 @@ namespace Quark
                 return quarlManifestComparer;
             }
         }
+        public static void LaunchAssetBundleMode(QuarkMergedManifest mergedManifest, string persistentPath, string diffPersistentPath, string manifestAesKey = "", ulong encryptionOffset = 0)
+        {
+            QuarkLoadMode = QuarkLoadMode.AssetBundle;
+            QuarkDataProxy.QuarkEncryptionOffset = encryptionOffset;
+            QuarkDataProxy.QuarkAesEncryptionKey = manifestAesKey;
+            QuarkDataProxy.PersistentPath = persistentPath;
+            QuarkDataProxy.DiffPersistentPath = diffPersistentPath;
+            quarkLoadModeProvider.SetAssetBundleModeMergedManifest(mergedManifest);
+        }
         public static void LaunchAssetBundleMode(QuarkManifest manifest, string persistentPath, QuarkManifest diffManifest, string diffPersistentPath, string manifestAesKey = "", ulong encryptionOffset = 0)
         {
             QuarkLoadMode = QuarkLoadMode.AssetBundle;
