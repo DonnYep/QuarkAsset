@@ -474,7 +474,7 @@ namespace Quark.Loader
                     {
                         if (dependentBundleWarpper.AssetBundle == null)
                         {
-                            var abPath = Path.Combine(bundleWarpper.BundlePersistentPath, dependentBundleKey);
+                            var abPath = Path.Combine(dependentBundleWarpper.BundlePersistentPath, dependentBundleKey);
                             var abReq = AssetBundle.LoadFromFileAsync(abPath, 0, QuarkDataProxy.QuarkEncryptionOffset);
                             yield return abReq;
                             dependentBundleWarpper.AssetBundle = abReq.assetBundle;
@@ -633,7 +633,7 @@ namespace Quark.Loader
                         var dependAssetBundle = dependBundleWarpper.AssetBundle;
                         if (dependAssetBundle == null)
                         {
-                            var abPath = Path.Combine(bundleWarpper.BundlePersistentPath, dependBundleKey);
+                            var abPath = Path.Combine(dependBundleWarpper.BundlePersistentPath, dependBundleKey);
                             dependAssetBundle = AssetBundle.LoadFromFile(abPath, 0, QuarkDataProxy.QuarkEncryptionOffset);
                             if (dependAssetBundle != null)
                             {
