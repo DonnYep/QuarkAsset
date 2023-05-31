@@ -1,4 +1,6 @@
 ﻿using Quark.Asset;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Quark
 {
@@ -58,6 +60,59 @@ namespace Quark
                 catch { }
                 return quarkAssetManifest;
             }
+            public static void MergeManifest(QuarkManifest srcManifest, QuarkManifest diffManifest, out QuarkMergedManifest mergeResult)
+            {
+                //取并集
+                mergeResult = new QuarkMergedManifest();
+                var srcBundleInfoDict = srcManifest.BundleInfoDict.Values.ToDictionary(b => b.QuarkAssetBundle.BundlePath);
+                var diffBundleInfoDict = diffManifest.BundleInfoDict.Values.ToDictionary(b => b.QuarkAssetBundle.BundlePath);
+                List<QuarkMergedBundleAsset> mergedBundleList = new List<QuarkMergedBundleAsset>();
+                foreach (var srcBundle in srcBundleInfoDict.Values)
+                {
+                    var srcBundlePath = srcBundle.QuarkAssetBundle.BundlePath;
+                    if (diffBundleInfoDict.TryGetValue(srcBundlePath, out var diffBundle))
+                    {
+                        //在diffmanifest中存在，比较bundlekey
+                        var isIncremental = diffBundle.Hash != srcBundle.Hash;
+                        var mergeInfo = new QuarkMergedBundleAsset
+                        {
+                            IsIncremental = isIncremental,
+                            QuarkBundleAsset = diffBundle
+                        };
+                        mergedBundleList.Add(mergeInfo);
+                    }
+                    else
+                    {
+                        //在diffmanifest中不存在，表示为母包的资源
+                        var mergeInfo = new QuarkMergedBundleAsset
+                        {
+                            IsIncremental = false,
+                            QuarkBundleAsset = srcBundle
+                        };
+                        mergedBundleList.Add(mergeInfo);
+                    }
+                }
+                foreach (var diffBundle in diffBundleInfoDict.Values)
+                {
+                    var diffBundlePath = diffBundle.QuarkAssetBundle.BundlePath;
+                    if (!srcBundleInfoDict.TryGetValue(diffBundlePath, out var srcBundle))
+                    {
+                        //src中不存在，则加入增量
+                        var mergeInfo = new QuarkMergedBundleAsset
+                        {
+                            IsIncremental = true,
+                            QuarkBundleAsset = diffBundle
+                        };
+                        mergedBundleList.Add(mergeInfo);
+                    }
+
+                }
+                mergeResult.BuildTime = diffManifest.BuildTime;
+                mergeResult.BuildVersion = diffManifest.BuildVersion;
+                mergeResult.InternalBuildVersion = diffManifest.InternalBuildVersion;
+                mergeResult.MergedBundles = mergedBundleList;
+            }
+
         }
     }
 }

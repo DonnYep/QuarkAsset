@@ -9,7 +9,10 @@
         /// QuarkAsset打包后的文件清单；
         /// </summary>
         public const string MANIFEST_NAME = "Manifest.json";
-        public const string DIFF_MANIFEST_NAME = "DiffManifest.json";
+        /// <summary>
+        /// 合并后的文件清单
+        /// </summary>
+        public const string MERGED_MANIFEST_NAME = "MergedManifest.json";
         public const string NONE = "<NONE>";
         public const string LOAD_MODE_NONE = "<LOAD_MODE_NONE>";
         public const string NO_MANIFEST = "<NO_MANIFEST>";

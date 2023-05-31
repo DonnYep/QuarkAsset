@@ -158,33 +158,33 @@ namespace Quark.Loader
         public override Coroutine LoadPrefabAsync(string assetName, Action<GameObject> callback, bool instantiate)
         {
             return QuarkUtility.Unity.StartCoroutine(EnumLoadAssetAsync(assetName, typeof(GameObject), (resGo) =>
-             {
-                 var gameobject = resGo as GameObject;
-                 if (instantiate)
-                 {
-                     GameObject go = null;
-                     if (gameobject != null)
-                         go = GameObject.Instantiate(gameobject);
-                     callback.Invoke(go);
-                 }
-                 else
-                 {
-                     callback.Invoke(gameobject);
-                 }
-             }));
+            {
+                var gameobject = resGo as GameObject;
+                if (instantiate)
+                {
+                    GameObject go = null;
+                    if (gameobject != null)
+                        go = GameObject.Instantiate(gameobject);
+                    callback.Invoke(go);
+                }
+                else
+                {
+                    callback.Invoke(gameobject);
+                }
+            }));
         }
         public override Coroutine LoadMainAndSubAssetsAsync<T>(string assetName, Action<T[]> callback)
         {
             return QuarkUtility.Unity.StartCoroutine(EnumLoadAssetWithSubAssetsAsync(assetName, typeof(T), assets =>
-             {
-                 T[] rstAssets = new T[assets.Length];
-                 var length = rstAssets.Length;
-                 for (int i = 0; i < length; i++)
-                 {
-                     rstAssets[i] = assets[i] as T;
-                 }
-                 callback?.Invoke(rstAssets);
-             }));
+            {
+                T[] rstAssets = new T[assets.Length];
+                var length = rstAssets.Length;
+                for (int i = 0; i < length; i++)
+                {
+                    rstAssets[i] = assets[i] as T;
+                }
+                callback?.Invoke(rstAssets);
+            }));
         }
         public override Coroutine LoadMainAndSubAssetsAsync(string assetName, Type type, Action<Object[]> callback)
         {
@@ -560,9 +560,9 @@ namespace Quark.Loader
             QuarkDataProxy.BuildVersion = manifest.BuildVersion;
             QuarkDataProxy.InternalBuildVersion = manifest.InternalBuildVersion;
         }
-        void InitMergedManifest(QuarkMergedManifest mergeResult)
+        void InitMergedManifest(QuarkMergedManifest mergedManifest)
         {
-            var bundles = mergeResult.MergedBundles;
+            var bundles = mergedManifest.MergedBundles;
             foreach (var bundle in bundles)
             {
                 var objects = bundle.QuarkBundleAsset.QuarkAssetBundle.ObjectList;
@@ -599,8 +599,8 @@ namespace Quark.Loader
                     nameBundleKeyDict.Add(bundle.QuarkBundleAsset.QuarkAssetBundle.BundleKey, bundleName);
                 }
             }
-            QuarkDataProxy.BuildVersion = mergeResult.BuildVersion;
-            QuarkDataProxy.InternalBuildVersion = mergeResult.InternalBuildVersion;
+            QuarkDataProxy.BuildVersion = mergedManifest.BuildVersion;
+            QuarkDataProxy.InternalBuildVersion = mergedManifest.InternalBuildVersion;
         }
         void LoadAssetBundleWithDependencies(string assetBundleName)
         {

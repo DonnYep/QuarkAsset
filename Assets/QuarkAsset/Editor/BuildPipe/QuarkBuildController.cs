@@ -204,18 +204,7 @@ namespace Quark.Editor
                 var bundleManifestPath = QuarkUtility.Append(bundlePath, ".manifest");
                 QuarkUtility.DeleteFile(bundleManifestPath);
             }
-            quarkManifest.BuildTime = System.DateTime.Now.ToString();
-            quarkManifest.BuildVersion = buildParams.BuildVersion;
-            quarkManifest.InternalBuildVersion = buildParams.InternalBuildVersion;
-            var manifestJson = QuarkUtility.ToJson(quarkManifest);
-            var manifestContext = manifestJson;
-            var manifestWritePath = Path.Combine(buildParams.AssetBundleOutputPath, QuarkConstant.MANIFEST_NAME);
-            if (buildParams.UseAesEncryptionForManifest)
-            {
-                var key = QuarkUtility.GenerateBytesAESKey(buildParams.AesEncryptionKeyForManifest);
-                manifestContext = QuarkUtility.AESEncryptStringToString(manifestJson, key);
-            }
-            QuarkUtility.WriteTextFile(manifestWritePath, manifestContext);
+            //OverwriteManifest(quarkManifest, buildParams);
 
             //删除生成文对应的主manifest文件
             var buildMainPath = Path.Combine(buildParams.AssetBundleOutputPath, $"{buildParams.BuildVersion}_{buildParams.InternalBuildVersion}");
@@ -247,6 +236,12 @@ namespace Quark.Editor
                 var importer = AssetImporter.GetAtPath(bundle.BundlePath);
                 importer.assetBundleName = string.Empty;
             }
+            AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
+            AssetDatabase.RemoveUnusedAssetBundleNames();
+            System.GC.Collect();
+        }
+        public static void CopyToStreamingAssets(QuarkBuildParams buildParams)
+        {
             if (buildParams.CopyToStreamingAssets)
             {
                 var buildPath = buildParams.AssetBundleOutputPath;
@@ -256,9 +251,21 @@ namespace Quark.Editor
                     QuarkUtility.CopyDirectory(buildPath, streamingAssetPath);
                 }
             }
-            AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
-            AssetDatabase.RemoveUnusedAssetBundleNames();
-            System.GC.Collect();
+        }
+        public static void OverwriteManifest(QuarkManifest quarkManifest, QuarkBuildParams buildParams)
+        {
+            quarkManifest.BuildTime = System.DateTime.Now.ToString();
+            quarkManifest.BuildVersion = buildParams.BuildVersion;
+            quarkManifest.InternalBuildVersion = buildParams.InternalBuildVersion;
+            var manifestJson = QuarkUtility.ToJson(quarkManifest);
+            var manifestContext = manifestJson;
+            var manifestWritePath = Path.Combine(buildParams.AssetBundleOutputPath, QuarkConstant.MANIFEST_NAME);
+            if (buildParams.UseAesEncryptionForManifest)
+            {
+                var key = QuarkUtility.GenerateBytesAESKey(buildParams.AesEncryptionKeyForManifest);
+                manifestContext = QuarkUtility.AESEncryptStringToString(manifestJson, key);
+            }
+            QuarkUtility.OverwriteTextFile(manifestWritePath, manifestContext);
         }
         public static void GenerateBuildCache(QuarkManifest quarkManifest, QuarkBuildParams buildParams)
         {
@@ -356,9 +363,9 @@ namespace Quark.Editor
             }
             QuarkUtility.LogInfo($"{changed.Count} bundles has changed !");
         }
-        public static void GenerateDifferenceFile(QuarkManifest quarkManifest, List<AssetCache> changedAssets, QuarkBuildParams buildParams)
+        public static void OverwriteDiffManifest(QuarkManifest quarkManifest, List<AssetCache> changedAssets, QuarkBuildParams buildParams)
         {
-            var quarkDiffManifest = new QuarkDiffManifest();
+            var quarkDiffManifest = new QuarkManifest();
             var srcPathDict = quarkManifest.BundleInfoDict.Values.ToDictionary(b => b.QuarkAssetBundle.BundlePath);
             var cmpPathDict = changedAssets.ToDictionary(b => b.BundlePath);
             var diffList = new List<QuarkBundleAsset>();
@@ -375,18 +382,7 @@ namespace Quark.Editor
             quarkDiffManifest.InternalBuildVersion = buildParams.InternalBuildVersion;
             quarkDiffManifest.BuildTime = System.DateTime.Now.ToString();
 
-            var diffManifestJson = QuarkUtility.ToJson(quarkDiffManifest);
-            var diffManifestContext = diffManifestJson;
-            var diffManifestWritePath = Path.Combine(buildParams.AssetBundleOutputPath, QuarkConstant.DIFF_MANIFEST_NAME);
-            if (buildParams.UseAesEncryptionForManifest)
-            {
-                var key = QuarkUtility.GenerateBytesAESKey(buildParams.AesEncryptionKeyForManifest);
-                diffManifestContext = QuarkUtility.AESEncryptStringToString(diffManifestJson, key);
-            }
-            QuarkUtility.WriteTextFile(diffManifestWritePath, diffManifestContext);
-
-            var manifestWritePath = Path.Combine(buildParams.AssetBundleOutputPath, QuarkConstant.MANIFEST_NAME);
-            QuarkUtility.DeleteFile(manifestWritePath);
+            OverwriteManifest(quarkDiffManifest, buildParams);
 
         }
         public static void CompareAndUpdateBuildCache(QuarkBuildCache buildCache, QuarkDataset dataset, out List<AssetCache> newBundleCacheList, out List<AssetCache> changed)

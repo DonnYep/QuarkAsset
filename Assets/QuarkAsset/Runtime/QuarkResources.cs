@@ -81,14 +81,24 @@ namespace Quark
                 return quarlManifestComparer;
             }
         }
-        public static void LaunchAssetBundleMode(QuarkManifest manifest, string persistentPath, QuarkDiffManifest diffManifest, string diffPersistentPath, string manifestAesKey = "", ulong encryptionOffset = 0)
+        public static void LaunchAssetBundleMode(QuarkMergedManifest mergedManifest, string persistentPath, string diffPersistentPath, string manifestAesKey = "", ulong encryptionOffset = 0)
         {
             QuarkLoadMode = QuarkLoadMode.AssetBundle;
             QuarkDataProxy.QuarkEncryptionOffset = encryptionOffset;
             QuarkDataProxy.QuarkAesEncryptionKey = manifestAesKey;
             QuarkDataProxy.PersistentPath = persistentPath;
             QuarkDataProxy.DiffPersistentPath = diffPersistentPath;
-            quarkLoadModeProvider.SetAssetBundleModeMergedManifest(manifest, diffManifest);
+            quarkLoadModeProvider.SetAssetBundleModeMergedManifest(mergedManifest);
+        }
+        public static void LaunchAssetBundleMode(QuarkManifest manifest, string persistentPath, QuarkManifest diffManifest, string diffPersistentPath, string manifestAesKey = "", ulong encryptionOffset = 0)
+        {
+            QuarkLoadMode = QuarkLoadMode.AssetBundle;
+            QuarkDataProxy.QuarkEncryptionOffset = encryptionOffset;
+            QuarkDataProxy.QuarkAesEncryptionKey = manifestAesKey;
+            QuarkDataProxy.PersistentPath = persistentPath;
+            QuarkDataProxy.DiffPersistentPath = diffPersistentPath;
+            QuarkUtility.Manifest.MergeManifest(manifest, diffManifest, out var mergeManifest);
+            quarkLoadModeProvider.SetAssetBundleModeMergedManifest(mergeManifest);
         }
         /// <summary>
         /// launch quark assetBundle mode, local file only!

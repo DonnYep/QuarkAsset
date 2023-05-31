@@ -55,6 +55,12 @@ namespace Quark.Networking
                     downloadTimeout = 0;
             }
         }
+        int redirectLimit = 32;
+        public int RedirectLimit
+        {
+            get { return redirectLimit; }
+            set { redirectLimit = value; }
+        }
         public bool DeleteFailureFile { get; set; }
         List<QuarkDownloadTask> pendingTasks = new List<QuarkDownloadTask>();
         Dictionary<string, QuarkDownloadTask> pendingTaskDict = new Dictionary<string, QuarkDownloadTask>();
@@ -191,7 +197,7 @@ namespace Quark.Networking
 #endif
                 unityWebRequest = request;
                 request.timeout = downloadTimeout;
-
+                request.redirectLimit = redirectLimit;
                 {
                     var now = DateTime.Now;
                     var timeSpan = now - fileDownloadStartTime;

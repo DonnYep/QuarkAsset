@@ -38,7 +38,6 @@ namespace Quark.Manifest
                         //Hash一致，无需更新；
                         var unchangedInfo=new QuarkManifestCompareInfo(srcBundleInfo.QuarkAssetBundle.BundleName, srcBundleInfo.QuarkAssetBundle.BundleKey, srcBundleInfo.Hash, srcBundleInfo.BundleSize);
                         unchanged.Add(unchangedInfo);
-
                     }
                 }
             }
