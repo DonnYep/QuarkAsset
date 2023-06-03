@@ -209,8 +209,13 @@ namespace Quark.Networking
 
                 //增量下载实现
                 //下载的路径是可IO的
-                var fileInfo = new FileInfo(task.DownloadPath);
-                request.SetRequestHeader("Range", "bytes=" + fileInfo.Length + "-");
+                long fileInfoLength = 0;
+                if (File.Exists(task.DownloadPath))
+                {
+                    var fileInfo = new FileInfo(task.DownloadPath);
+                    fileInfoLength = fileInfo.Length;
+                }
+                request.SetRequestHeader("Range", "bytes=" + fileInfoLength + "-");
 
                 var operation = request.SendWebRequest();
                 while (!operation.isDone && canDownload)

@@ -1,6 +1,6 @@
 ﻿namespace Quark.Asset
 {
-    public struct QuarkMergedBundleAsset
+    public class QuarkMergedBundleAsset
     {
         public bool IsIncremental;
         public QuarkBundleAsset QuarkBundleAsset;

@@ -73,23 +73,24 @@ namespace Quark
                     if (diffBundleInfoDict.TryGetValue(srcBundlePath, out var diffBundle))
                     {
                         //在diffmanifest中存在，比较bundlekey
-                        var isIncremental = diffBundle.Hash != srcBundle.Hash;
+                        var equal = diffBundle.Hash == srcBundle.Hash;
                         var mergeInfo = new QuarkMergedBundleAsset
                         {
-                            IsIncremental = isIncremental,
+                            IsIncremental = !equal,
                             QuarkBundleAsset = diffBundle
                         };
                         mergedBundleList.Add(mergeInfo);
                     }
                     else
                     {
-                        //在diffmanifest中不存在，表示为母包的资源
-                        var mergeInfo = new QuarkMergedBundleAsset
-                        {
-                            IsIncremental = false,
-                            QuarkBundleAsset = srcBundle
-                        };
-                        mergedBundleList.Add(mergeInfo);
+                        //在diffmanifest中不存在，表示在diff中被抛弃
+
+                        //var mergeInfo = new QuarkMergedBundleAsset
+                        //{
+                        //    IsIncremental = false,
+                        //    QuarkBundleAsset = srcBundle
+                        //};
+                        //mergedBundleList.Add(mergeInfo);
                     }
                 }
                 foreach (var diffBundle in diffBundleInfoDict.Values)
@@ -97,7 +98,7 @@ namespace Quark
                     var diffBundlePath = diffBundle.QuarkAssetBundle.BundlePath;
                     if (!srcBundleInfoDict.TryGetValue(diffBundlePath, out var srcBundle))
                     {
-                        //src中不存在，则加入增量
+                        //src中不存在，diff中存在，则表示为新增的
                         var mergeInfo = new QuarkMergedBundleAsset
                         {
                             IsIncremental = true,
