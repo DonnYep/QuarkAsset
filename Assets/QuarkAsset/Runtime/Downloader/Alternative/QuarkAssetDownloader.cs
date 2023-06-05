@@ -118,7 +118,7 @@ namespace Quark.Networking
             Downloading = true;
             coroutine = QuarkUtility.Unity.StartCoroutine(RunDownloadMultipleFiles());
         }
-        public void AddDownload(IEnumerable<QuarkDownloadTask> tasks)
+        public void AddDownloads(IEnumerable<QuarkDownloadTask> tasks)
         {
             if (Downloading)
                 return;

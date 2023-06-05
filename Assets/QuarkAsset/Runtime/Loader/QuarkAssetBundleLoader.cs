@@ -475,9 +475,8 @@ namespace Quark.Loader
                         if (dependentBundleWarpper.AssetBundle == null)
                         {
                             var abPath = Path.Combine(dependentBundleWarpper.BundlePersistentPath, dependentBundleKey);
-                            var abReq = AssetBundle.LoadFromFileAsync(abPath, 0, QuarkDataProxy.QuarkEncryptionOffset);
-                            yield return abReq;
-                            dependentBundleWarpper.AssetBundle = abReq.assetBundle;
+                            var assetBundle = AssetBundle.LoadFromFile(abPath, 0, QuarkDataProxy.QuarkEncryptionOffset);
+                            dependentBundleWarpper.AssetBundle = assetBundle;
                             if (dependentBundleWarpper.AssetBundle != null)
                             {
                                 dependentBundleWarpper.ReferenceCount++;//AB包引用计数增加
