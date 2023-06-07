@@ -35,6 +35,8 @@ QuarkAsset是一套轻量级的插件化Unity资源加载方案。 内置AssetDa
   - [BuildPipeline](#buildpipeline)
     - [打包配置](#打包配置)
     - [命令行打包](#命令行打包)
+  - [差量更新](#差量更新)
+    - [文件清单合并](#文件清单合并)
   - [注意事项](#注意事项)
 
 
@@ -283,6 +285,25 @@ QuarkBuildPipeline.BuildActivePlatformAssetBundle();
 //打包指定平台的资源
 QuarkBuildPipeline.BuildAssetBundle(BuildTarget buildTarget);
 ```
+
+<a name="差量更新"></a>
+
+## 差量更新
+
+* Quark支持母包内嵌加热更下载。
+
+* 目前支持StreamingAssets与persistentdatapath地址的同时加载。
+
+<a name="文件清单合并"></a>
+
+### 文件清单合并
+
+* 使用如下API，对不同的文件清单进行合并，获得合并的文件清单后即可使用不同路径下的ab资源。
+```csharp
+QuarkUtility.Manifest.MergeManifest(srcManifest,diffManifest,out var mergedManifest);
+```
+
+
 <a name="注意事项"></a>
 
 ## 注意事项
