@@ -27,10 +27,10 @@ namespace Quark.Editor
         }
         public void OnEnable()
         {
+            buildHandlers = GetBuildHandlerNames();
             try
             {
                 tabData = QuarkEditorUtility.GetData<QuarkAssetBundleTabData>(AssetBundleTabDataFileName);
-                buildHandlers = GetBuildHandlerNames();
             }
             catch
             {
