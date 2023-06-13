@@ -251,6 +251,7 @@ namespace Quark.Editor
                     QuarkUtility.CopyDirectory(buildPath, streamingAssetPath);
                 }
             }
+            AssetDatabase.Refresh();
         }
         public static void OverwriteManifest(QuarkManifest quarkManifest, QuarkBuildParams buildParams)
         {

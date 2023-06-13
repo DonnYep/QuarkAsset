@@ -113,7 +113,7 @@ namespace Quark
             QuarkDataProxy.QuarkAesEncryptionKey = manifestAesKey;
             var aesKeyBytes = QuarkUtility.GenerateBytesAESKey(manifestAesKey);
             string uri = string.Empty;
-            uri = Path.Combine(persistentPath, QuarkConstant.MANIFEST_NAME);
+            uri = QuarkUtility.PlatformPerfix + Path.Combine(persistentPath, QuarkConstant.MANIFEST_NAME);
             QuarkDataProxy.PersistentPath = persistentPath;
             QuarkManifestRequester.AddTask(uri, aesKeyBytes, (manifest) =>
             {
