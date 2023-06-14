@@ -15,7 +15,7 @@
             ".unity",".mat",".mask",".overrideController",".tif",".spriteatlas",
             ".mp3",".ogg",".aiff",".tga",".dds",".bytes",".json",".asset",".mp4",
             ".xls",".xlsx",".docx",".doc",".mov",".renderTexture",".csv",".fbx",".mixer",
-            ".flare",".playable",".physicMaterial",".signal",".guiskin",".dds",".otf",".ttf"
+            ".flare",".playable",".physicMaterial",".signal",".guiskin",".otf",".ttf"
         };
         public const int DetailIconPreviewSize = 34;
         /// <summary>
