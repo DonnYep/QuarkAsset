@@ -82,15 +82,27 @@ namespace Quark.Editor
             GUILayout.EndHorizontal();
             tabData.BuildVersion = EditorGUILayout.TextField("Build version", tabData.BuildVersion?.Trim());
 
-            tabData.InternalBuildVersion = EditorGUILayout.IntField("Internal build version", tabData.InternalBuildVersion);
-            if (tabData.InternalBuildVersion < 0)
-                tabData.InternalBuildVersion = 0;
+            tabData.BuildType = (BuildType)EditorGUILayout.EnumPopup("Build type", tabData.BuildType);
+            switch (tabData.BuildType)
+            {
+                case BuildType.Full:
+                    {
+                        tabData.InternalBuildVersion = EditorGUILayout.IntField("Internal build version", tabData.InternalBuildVersion);
+                        if (tabData.InternalBuildVersion < 0)
+                            tabData.InternalBuildVersion = 0;
+                        tabData.AssetBundleOutputPath = Path.Combine(tabData.BuildPath, tabData.BuildVersion, tabData.BuildTarget.ToString(), $"{tabData.BuildVersion}_{tabData.InternalBuildVersion}").Replace("\\", "/");
+                    }
+                    break;
+                case BuildType.Incremental:
+                    {
+                        tabData.AssetBundleOutputPath = Path.Combine(tabData.BuildPath, tabData.BuildVersion, tabData.BuildTarget.ToString(), tabData.BuildVersion).Replace("\\", "/");
+                    }
+                    break;
+            }
 
             //tabData.AssetBundleOutputPath = Path.Combine(tabData.BuildPath, tabData.BuildVersion, tabData.BuildTarget.ToString(), $"{tabData.InternalBuildVersion}").Replace("\\", "/");
-            tabData.AssetBundleOutputPath = Path.Combine(tabData.BuildPath, tabData.BuildVersion, tabData.BuildTarget.ToString(), $"{tabData.BuildVersion}_{tabData.InternalBuildVersion}").Replace("\\", "/");
             EditorGUILayout.LabelField("Build full path", tabData.AssetBundleOutputPath);
 
-            DrawIncrementalBuild();
 
             GUILayout.BeginHorizontal();
             {
@@ -196,10 +208,6 @@ namespace Quark.Editor
                 tabData.QuarkBuildHandlerName = buildHandlers[index];
             }
         }
-        void DrawIncrementalBuild()
-        {
-            tabData.IncrementalBuild = EditorGUILayout.ToggleLeft("Incremental build", tabData.IncrementalBuild);
-        }
         void DrawAESEncryptionForBuildInfoLable()
         {
             tabData.UseAesEncryptionForManifest = EditorGUILayout.ToggleLeft("Aes encryption for buildInfo and manifest", tabData.UseAesEncryptionForManifest);
@@ -240,17 +248,8 @@ namespace Quark.Editor
         IEnumerator EnumBuildAssetBundle()
         {
             var assetBundleBuildPath = tabData.AssetBundleOutputPath;
-            //if (tabData.ClearOutputFolders)
-            //{
-            if (Directory.Exists(assetBundleBuildPath))
-            {
-                QuarkUtility.DeleteFolder(assetBundleBuildPath);
-            }
-            //}
-            if (!Directory.Exists(assetBundleBuildPath))
-            {
-                Directory.CreateDirectory(assetBundleBuildPath);
-            }
+
+
             var buildParams = new QuarkBuildParams()
             {
                 AesEncryptionKeyForManifest = tabData.AesEncryptionKeyForManifest,
@@ -267,16 +266,22 @@ namespace Quark.Editor
                 InternalBuildVersion = tabData.InternalBuildVersion,
                 StreamingRelativePath = tabData.StreamingRelativePath,
                 UseAesEncryptionForManifest = tabData.UseAesEncryptionForManifest,
-                UseOffsetEncryptionForAssetBundle = tabData.UseOffsetEncryptionForAssetBundle
+                UseOffsetEncryptionForAssetBundle = tabData.UseOffsetEncryptionForAssetBundle,
+                BuildType = tabData.BuildType
             };
             yield return assetDatabaseTab.BuildDataset();
-            if (tabData.IncrementalBuild)
+            switch (tabData.BuildType)
             {
-                IncrementalBuild(buildParams);
-            }
-            else
-            {
-                FullBuild(buildParams);
+                case BuildType.Full:
+                    {
+                        QuarkUtility.EmptyFolder(assetBundleBuildPath);
+                        FullBuild(buildParams);
+                    }
+                    break;
+                case BuildType.Incremental:
+                    QuarkUtility.CreateFolder(assetBundleBuildPath);
+                    IncrementalBuild(buildParams);
+                    break;
             }
             QuarkUtility.LogInfo("Quark assetbundle build done ");
         }
@@ -303,7 +308,7 @@ namespace Quark.Editor
             {
                 buildHanlder.OnBuildComplete(tabData.BuildTarget, buildParams.AssetBundleOutputPath);
             }
-            QuarkBuildController.GenerateBuildCache(quarkManifest, buildParams);
+            //QuarkBuildController.GenerateBuildCache(quarkManifest, buildParams);
         }
         /// <summary>
         /// 增量构建
@@ -337,13 +342,15 @@ namespace Quark.Editor
                 };
             }
 
-            QuarkBuildController.CompareAndUpdateBuildCache(buildCache, dataset, out var newBundleCacheList, out var changed);
-            if (changed.Count > 0)
+            QuarkBuildController.CompareAndProcessBuildCacheFile(buildCache, dataset, buildParams, out var info);
+            List<AssetCache> builds = new List<AssetCache>();
+            builds.AddRange(info.Changed);
+            builds.AddRange(info.NewlyAdded);
+            var length = builds.Count;
+            if (length > 0)
             {
-                QuarkUtility.LogInfo($"{changed.Count} bundles has changed !");
-
+                QuarkUtility.LogInfo($"{length } bundles has changed !");
                 var abBuild = new List<AssetBundleBuild>();
-                var length = changed.Count;
                 for (int i = 0; i < length; i++)
                 {
                     AssetBundleBuild assetBundleBuild = default;
@@ -351,7 +358,7 @@ namespace Quark.Editor
                     {
                         case AssetBundleNameType.DefaultName:
                             {
-                                var cache = changed[i];
+                                var cache = builds[i];
                                 assetBundleBuild = new AssetBundleBuild()
                                 {
                                     assetBundleName = cache.BundleName,
@@ -361,7 +368,7 @@ namespace Quark.Editor
                             break;
                         case AssetBundleNameType.HashInstead:
                             {
-                                var cache = changed[i];
+                                var cache = builds[i];
                                 assetBundleBuild = new AssetBundleBuild()
                                 {
                                     assetBundleName = cache.BundleHash,
@@ -380,13 +387,15 @@ namespace Quark.Editor
                 }
                 var newBuildCache = new QuarkBuildCache
                 {
-                    BundleCacheList = newBundleCacheList,
+                    BundleCacheList = info.BundleCaches,
                     BuildVerison = buildParams.BuildVersion,
-                    InternalBuildVerison = buildParams.InternalBuildVersion
+                    InternalBuildVerison = buildParams.InternalBuildVersion,
+                    NameType = buildParams.AssetBundleNameType
                 };
                 QuarkBuildController.FinishBuild(assetBundleManifest, dataset, quarkManifest, buildParams);
                 QuarkBuildController.OverwriteBuildCache(newBuildCache, buildParams);
-                QuarkBuildController.OverwriteDiffManifest(quarkManifest, changed, buildParams);
+                QuarkBuildController.OverwriteManifest(quarkManifest, buildParams);
+                QuarkBuildController.GenerateIncrementalBuildLog(info, buildParams);
             }
             else
             {

@@ -7,6 +7,7 @@ namespace Quark.Editor
     {
         public string BuildVerison;
         public int InternalBuildVerison;
+        public AssetBundleNameType NameType;
         public List<AssetCache> BundleCacheList;
     }
 }

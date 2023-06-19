@@ -64,5 +64,9 @@ namespace Quark.Editor
         /// ab打包选项
         /// </summary>
         public BuildAssetBundleOptions BuildAssetBundleOptions;
+        /// <summary>
+        /// 构建类型，全量或增量
+        /// </summary>
+        public BuildType BuildType;
     }
 }

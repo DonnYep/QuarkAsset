@@ -207,7 +207,16 @@ namespace Quark.Editor
             //OverwriteManifest(quarkManifest, buildParams);
 
             //删除生成文对应的主manifest文件
-            var buildMainPath = Path.Combine(buildParams.AssetBundleOutputPath, $"{buildParams.BuildVersion}_{buildParams.InternalBuildVersion}");
+            string buildMainPath = string.Empty;
+            switch (buildParams.BuildType)
+            {
+                case BuildType.Full:
+                    buildMainPath = Path.Combine(buildParams.AssetBundleOutputPath, $"{buildParams.BuildVersion}_{buildParams.InternalBuildVersion}");
+                    break;
+                case BuildType.Incremental:
+                    buildMainPath = Path.Combine(buildParams.AssetBundleOutputPath, buildParams.BuildVersion);
+                    break;
+            }
             var buildMainManifestPath = QuarkUtility.Append(buildMainPath, ".manifest");
             QuarkUtility.DeleteFile(buildMainPath);
             QuarkUtility.DeleteFile(buildMainManifestPath);
@@ -268,129 +277,23 @@ namespace Quark.Editor
             }
             QuarkUtility.OverwriteTextFile(manifestWritePath, manifestContext);
         }
-        public static void GenerateBuildCache(QuarkManifest quarkManifest, QuarkBuildParams buildParams)
-        {
-            List<AssetCache> bundleCacheList = new List<AssetCache>();
-            foreach (var bundleInfo in quarkManifest.BundleInfoDict.Values)
-            {
-                var assetNames = bundleInfo.QuarkAssetBundle.ObjectList.Select(o => o.ObjectPath).ToArray();
-
-                var bundleCache = new AssetCache()
-                {
-                    BundleHash = bundleInfo.Hash,
-                    BundleName = bundleInfo.BundleName,
-                    //BundleSize = bundleInfo.BundleSize,
-                    BundlePath = bundleInfo.QuarkAssetBundle.BundlePath,
-                    AssetNames = assetNames
-                };
-                bundleCacheList.Add(bundleCache);
-            }
-            var buildCache = new QuarkBuildCache()
-            {
-                BuildVerison = buildParams.BuildVersion,
-                InternalBuildVerison = buildParams.InternalBuildVersion,
-                BundleCacheList = bundleCacheList
-            };
-            var buildCacheJson = QuarkUtility.ToJson(buildCache);
-            var buildCacheWritePath = Path.Combine(buildParams.BuildPath, buildParams.BuildVersion, buildParams.BuildTarget.ToString(), QuarkEditorConstant.BUILD_CACHE_NAME);
-            QuarkUtility.OverwriteTextFile(buildCacheWritePath, buildCacheJson);
-        }
         public static void OverwriteBuildCache(QuarkBuildCache buildCache, QuarkBuildParams buildParams)
         {
             var buildCacheJson = QuarkUtility.ToJson(buildCache);
             var buildCacheWritePath = Path.Combine(buildParams.BuildPath, buildParams.BuildVersion, buildParams.BuildTarget.ToString(), QuarkEditorConstant.BUILD_CACHE_NAME);
             QuarkUtility.OverwriteTextFile(buildCacheWritePath, buildCacheJson);
         }
-        /// <summary>
-        /// 比较缓存 
-        /// </summary>
-        public static void CompareBuildCache(QuarkBuildCache buildCache, QuarkDataset dataset, out List<AssetCache> changed)
+        public static void CompareAndProcessBuildCacheFile(QuarkBuildCache buildCache, QuarkDataset dataset, QuarkBuildParams buildParams, out QuarkIncrementalBuildInfo info)
         {
-            changed = new List<AssetCache>();
-            List<AssetBundleBuild> assetBundleBuildList = new List<AssetBundleBuild>();
-            var bundleCacheList = buildCache.BundleCacheList;
-            var cacheDict = bundleCacheList.ToDictionary((b) => b.BundlePath);
-            BuildDataset(dataset);
-            dataset.CacheAllBundleInfos();
-            var bundleInfos = dataset.AllCachedBundleInfos;
-            List<AssetCache> compareInfoList = new List<AssetCache>();
-            foreach (var bundleInfo in bundleInfos)
-            {
-                //过滤空包。若文件夹被标记为bundle，且不包含内容，则unity会过滤。因此遵循unity的规范；
-                if (bundleInfo.ObjectInfoList.Count <= 0)
-                {
-                    continue;
-                }
-                var bundlePath = bundleInfo.BundlePath;
-                var bundleName = bundleInfo.BundleName;
-                var path = Path.Combine(QuarkEditorUtility.ApplicationPath, bundlePath);
-                var hash = QuarkEditorUtility.CreateDirectoryMd5(path);
-                var assetNames = bundleInfo.ObjectInfoList.Select(o => o.ObjectPath).ToArray();
-                var cmpInfo = new AssetCache()
-                {
-                    BundleHash = hash,
-                    BundleName = bundleInfo.BundleName,
-                    BundlePath = bundleInfo.BundlePath,
-                    AssetNames = assetNames
-                };
-                compareInfoList.Add(cmpInfo);
-            }
-            var cmpDict = compareInfoList.ToDictionary(b => b.BundlePath);
-            //路径是唯一的，可以作为key
-            foreach (var cache in cacheDict.Values)
-            {
-                if (!cmpDict.TryGetValue(cache.BundlePath, out var cmp))
-                {
-                    //现有资源不存在之前的信息，则表示为过期，应移除
-                    //changed.Add(cache);
-                }
-                else
-                {
-                    //现有资源在缓存中存在，则校验hash
-                    if (cache.BundleHash != cmp.BundleHash)
-                    {
-                        //hash不一致
-                        changed.Add(cmp);
-                    }
-                }
-            }
-            foreach (var cmp in cmpDict.Values)
-            {
-                if (!cacheDict.TryGetValue(cmp.BundlePath, out var cache))
-                {
-                    //缓存中不存在，则表示新增
-                    changed.Add(cmp);
-                }
-            }
-            QuarkUtility.LogInfo($"{changed.Count} bundles has changed !");
-        }
-        public static void OverwriteDiffManifest(QuarkManifest quarkManifest, List<AssetCache> changedAssets, QuarkBuildParams buildParams)
-        {
-            var quarkDiffManifest = new QuarkManifest();
-            var srcPathDict = quarkManifest.BundleInfoDict.Values.ToDictionary(b => b.QuarkAssetBundle.BundlePath);
-            var cmpPathDict = changedAssets.ToDictionary(b => b.BundlePath);
-            var diffList = new List<QuarkBundleAsset>();
-            foreach (var srcPath in srcPathDict)
-            {
-                var srcBundlePath = srcPath.Value.QuarkAssetBundle.BundlePath;
-                if (cmpPathDict.ContainsKey(srcBundlePath))
-                {
-                    diffList.Add(srcPath.Value);
-                }
-            }
-            quarkDiffManifest.BundleInfoDict = diffList.ToDictionary(b => b.QuarkAssetBundle.BundleKey);
-            quarkDiffManifest.BuildVersion = buildParams.BuildVersion;
-            quarkDiffManifest.InternalBuildVersion = buildParams.InternalBuildVersion;
-            quarkDiffManifest.BuildTime = System.DateTime.Now.ToString();
+            info = new QuarkIncrementalBuildInfo();
 
-            OverwriteManifest(quarkDiffManifest, buildParams);
+            var newlyAdded = new List<AssetCache>();
+            var changed = new List<AssetCache>();
+            var expired = new List<AssetCache>();
+            var unchanged = new List<AssetCache>();
 
-        }
-        public static void CompareAndUpdateBuildCache(QuarkBuildCache buildCache, QuarkDataset dataset, out List<AssetCache> newBundleCacheList, out List<AssetCache> changed)
-        {
-            changed = new List<AssetCache>();
-            newBundleCacheList = new List<AssetCache>();
-            List<AssetBundleBuild> assetBundleBuildList = new List<AssetBundleBuild>();
+            var bundleCaches = new List<AssetCache>();
+
             var bundleCacheList = buildCache.BundleCacheList;
             var cacheDict = bundleCacheList.ToDictionary((b) => b.BundlePath);
             BuildDataset(dataset);
@@ -419,22 +322,62 @@ namespace Quark.Editor
                 cmpList.Add(cmpInfo);
             }
             var cmpDict = cmpList.ToDictionary(b => b.BundlePath);
+            var nameType = buildParams.AssetBundleNameType;
+            var abOutputPath = buildParams.AssetBundleOutputPath;
             //路径是唯一的，可以作为key
             foreach (var cache in cacheDict.Values)
             {
                 if (!cmpDict.TryGetValue(cache.BundlePath, out var cmp))
                 {
                     //现有资源不存在之前的信息，则表示为过期，应移除
+                    expired.Add(cmp);
+                    var filePath = string.Empty;
+                    switch (nameType)
+                    {
+                        case AssetBundleNameType.DefaultName:
+                            filePath = Path.Combine(abOutputPath, cmp.BundleName);
+                            break;
+                        case AssetBundleNameType.HashInstead:
+                            filePath = Path.Combine(abOutputPath, cmp.BundleHash);
+                            break;
+                    }
+                    QuarkUtility.DeleteFile(filePath);
                 }
                 else
                 {
+                    var filePath = string.Empty;
+                    switch (nameType)
+                    {
+                        case AssetBundleNameType.DefaultName:
+                            filePath = Path.Combine(abOutputPath, cmp.BundleName);
+                            break;
+                        case AssetBundleNameType.HashInstead:
+                            filePath = Path.Combine(abOutputPath, cmp.BundleHash);
+                            break;
+                    }
                     //现有资源在缓存中存在，则校验hash
                     if (cache.BundleHash != cmp.BundleHash)
                     {
                         //hash不一致
                         changed.Add(cmp);
+
+                        QuarkUtility.DeleteFile(filePath);
                     }
-                    newBundleCacheList.Add(cmp);
+                    else
+                    {
+                        //hash一致
+                        if (File.Exists(filePath))
+                        {
+                            //文件存在，则表示不变
+                            unchanged.Add(cmp);
+                        }
+                        else
+                        {
+                            //文件不存在，则表示变更，加入构建列表
+                            changed.Add(cmp);
+                        }
+                    }
+                    bundleCaches.Add(cmp);
                 }
             }
             foreach (var cmp in cmpDict.Values)
@@ -442,14 +385,23 @@ namespace Quark.Editor
                 if (!cacheDict.TryGetValue(cmp.BundlePath, out var cache))
                 {
                     //缓存中不存在，则表示新增
-                    changed.Add(cmp);
-                    newBundleCacheList.Add(cmp);
-                }
-                else
-                {
-                    //cmp.BundleSize = cache.BundleSize;
+                    newlyAdded.Add(cmp);
+
+                    bundleCaches.Add(cmp);
                 }
             }
+            info.NewlyAdded = newlyAdded.ToArray();
+            info.Changed = changed.ToArray();
+            info.Expired = expired.ToArray();
+            info.Unchanged = unchanged.ToArray();
+            info.BundleCaches = bundleCaches;
+        }
+        public static void GenerateIncrementalBuildLog(QuarkIncrementalBuildInfo buildInfo, QuarkBuildParams buildParams)
+        {
+            //生成差量构建日志
+            var json = QuarkUtility.ToJson(buildInfo);
+            var logPath = Path.Combine(buildParams.BuildPath, buildParams.BuildVersion, buildParams.BuildTarget.ToString(), QuarkEditorConstant.BUILD_LOG_NAME);
+            QuarkUtility.OverwriteTextFile(logPath, json);
         }
         public static BuildAssetBundleOptions GetBuildAssetBundleOptions(AssetBundleCompressType compressType, bool disableWriteTypeTree, bool deterministicAssetBundle, bool forceRebuildAssetBundle, bool ignoreTypeTreeChanges)
         {
@@ -476,6 +428,5 @@ namespace Quark.Editor
                 options |= BuildAssetBundleOptions.IgnoreTypeTreeChanges;
             return options;
         }
-
     }
 }

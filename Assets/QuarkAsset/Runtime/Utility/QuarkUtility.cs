@@ -470,6 +470,21 @@ namespace Quark
                 directory.Delete();
             }
         }
+        public static void CreateFolder(string folderPath)
+        {
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+        }
+        /// <summary>
+        /// 清空文件夹
+        /// </summary>
+        public static void EmptyFolder(string folderPath)
+        {
+            DeleteFolder(folderPath);
+            CreateFolder(folderPath);
+        }
         /// <summary>
         /// 使用UTF8编码；
         /// 写入文件信息；

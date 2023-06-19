@@ -22,5 +22,9 @@
         /// 打包构建缓存文件
         /// </summary>
         public const string BUILD_CACHE_NAME = "BuildCache.json";
+        /// <summary>
+        /// 构建日志
+        /// </summary>
+        public const string BUILD_LOG_NAME = "BuildLog.json";
     }
 }

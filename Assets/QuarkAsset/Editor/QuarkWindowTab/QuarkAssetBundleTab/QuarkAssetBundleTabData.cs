@@ -59,9 +59,9 @@ namespace Quark.Editor
 
         public int QuarkBuildHandlerIndex;
         /// <summary>
-        /// 是否增量打包
+        /// 构建类型
         /// </summary>
-        public bool IncrementalBuild;
+        public BuildType BuildType;
         public QuarkAssetBundleTabData()
         {
             BuildTarget = BuildTarget.StandaloneWindows;
@@ -75,7 +75,7 @@ namespace Quark.Editor
             UseAesEncryptionForManifest = false;
             AesEncryptionKeyForManifest = "QuarkAssetAesKey";
             BuildAssetBundleOptions = BuildAssetBundleOptions.ChunkBasedCompression;
-            BuildVersion = "0_0_1";
+            BuildVersion = "0.0.1";
             StreamingRelativePath = BuildVersion;
             QuarkBuildHandlerName = QuarkConstant.NONE;
             QuarkBuildHandlerIndex = 0;
@@ -83,6 +83,7 @@ namespace Quark.Editor
             DisableWriteTypeTree = false;
             DeterministicAssetBundle = false;
             IgnoreTypeTreeChanges = false;
+            BuildType = BuildType.Full;
         }
     }
 }

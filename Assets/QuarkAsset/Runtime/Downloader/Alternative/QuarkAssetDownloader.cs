@@ -206,7 +206,6 @@ namespace Quark.Networking
                     onDownloadStart?.Invoke(startEventArgs);
                     QuarkDownloadStartEventArgs.Release(startEventArgs);
                 }
-
                 //增量下载实现
                 //下载的路径是可IO的
                 long fileInfoLength = 0;
