@@ -1,8 +1,6 @@
 ﻿using Quark.Asset;
-using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
-using UnityEngine;
 using System.Linq;
 
 namespace Quark.Editor
@@ -186,7 +184,6 @@ namespace Quark.Editor
                 BuildAssetBundleOptions = tabData.BuildAssetBundleOptions,
                 BuildTarget = tabData.BuildTarget,
                 BuildVersion = tabData.BuildVersion,
-                ClearOutputFolders = tabData.ClearOutputFolders,
                 CopyToStreamingAssets = tabData.CopyToStreamingAssets,
                 EncryptionOffsetForAssetBundle = tabData.EncryptionOffsetForAssetBundle,
                 InternalBuildVersion = tabData.InternalBuildVersion,

@@ -223,6 +223,13 @@ namespace Quark.Editor
             var bundleInfos = srcBundleInfos;
             var bundleInfoLength = bundleInfos.Count;
 
+            RevertBundleDependencies(dataset);
+        }
+        public static void RevertBundleDependencies(QuarkDataset dataset)
+        {
+            var srcBundleInfos = dataset.AllCachedBundleInfos;
+            var bundleInfos = srcBundleInfos;
+            var bundleInfoLength = bundleInfos.Count;
             //这段还原dataset在editor模式的依赖
             for (int i = 0; i < bundleInfoLength; i++)
             {

@@ -25,10 +25,6 @@ namespace Quark.Editor
         /// </summary>
         public string AssetBundleOutputPath;
         /// <summary>
-        /// 是在构建ab之前清空输出目录
-        /// </summary>
-        public bool ClearOutputFolders;
-        /// <summary>
         /// 拷贝到streamingAsset文件；
         /// </summary>
         public bool CopyToStreamingAssets;

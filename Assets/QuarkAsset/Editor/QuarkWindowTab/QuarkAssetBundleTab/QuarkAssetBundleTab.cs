@@ -4,7 +4,6 @@ using UnityEditor;
 using System.IO;
 using Quark.Asset;
 using System.Collections.Generic;
-using System.Linq;
 using System;
 
 namespace Quark.Editor
@@ -125,8 +124,6 @@ namespace Quark.Editor
             GUILayout.Space(32);
 
             tabData.AssetBundleNameType = (AssetBundleNameType)EditorGUILayout.EnumPopup("Bundle name type", tabData.AssetBundleNameType);
-            tabData.ClearOutputFolders = EditorGUILayout.ToggleLeft("ClearOutputFolders", tabData.ClearOutputFolders);
-
 
             GUILayout.BeginVertical();
             {
@@ -247,9 +244,8 @@ namespace Quark.Editor
         }
         IEnumerator EnumBuildAssetBundle()
         {
+            var startTime = DateTime.Now;
             var assetBundleBuildPath = tabData.AssetBundleOutputPath;
-
-
             var buildParams = new QuarkBuildParams()
             {
                 AesEncryptionKeyForManifest = tabData.AesEncryptionKeyForManifest,
@@ -260,7 +256,6 @@ namespace Quark.Editor
                 BuildAssetBundleOptions = tabData.BuildAssetBundleOptions,
                 BuildTarget = tabData.BuildTarget,
                 BuildVersion = tabData.BuildVersion,
-                ClearOutputFolders = tabData.ClearOutputFolders,
                 CopyToStreamingAssets = tabData.CopyToStreamingAssets,
                 EncryptionOffsetForAssetBundle = tabData.EncryptionOffsetForAssetBundle,
                 InternalBuildVersion = tabData.InternalBuildVersion,
@@ -279,11 +274,15 @@ namespace Quark.Editor
                     }
                     break;
                 case BuildType.Incremental:
-                    QuarkUtility.CreateFolder(assetBundleBuildPath);
-                    IncrementalBuild(buildParams);
+                    {
+                        QuarkUtility.CreateFolder(assetBundleBuildPath);
+                        IncrementalBuild(buildParams);
+                    }
                     break;
             }
-            QuarkUtility.LogInfo("Quark assetbundle build done ");
+            var endTime = DateTime.Now;
+            var elapsedTime = endTime - startTime;
+            QuarkUtility.LogInfo($"Quark assetbundle build done , elapsed time : {elapsedTime.Hours}h:{elapsedTime.Minutes}m:{elapsedTime.Seconds}s:{elapsedTime.Milliseconds}ms");
         }
         /// <summary>
         /// 全量构建
@@ -392,13 +391,13 @@ namespace Quark.Editor
                     InternalBuildVerison = buildParams.InternalBuildVersion,
                     NameType = buildParams.AssetBundleNameType
                 };
-                QuarkBuildController.FinishBuild(assetBundleManifest, dataset, quarkManifest, buildParams);
                 QuarkBuildController.OverwriteBuildCache(newBuildCache, buildParams);
                 QuarkBuildController.OverwriteManifest(quarkManifest, buildParams);
                 QuarkBuildController.GenerateIncrementalBuildLog(info, buildParams);
             }
             else
             {
+                QuarkBuildController.RevertBundleDependencies(dataset);
                 QuarkBuildController.OverwriteManifest(quarkManifest, buildParams);
                 QuarkUtility.LogInfo("No bundle changed !");
             }
