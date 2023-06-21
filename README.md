@@ -26,12 +26,15 @@ QuarkAsset是一套轻量级的插件化Unity资源加载方案。 内置AssetDa
     - [未选择加载模式](#未选择加载模式)
     - [AssetDatabase加载模式](#assetdatabase加载模式)
     - [AssetBundle加载模式](#assetbundle加载模式)
-  - [QuarkRuntime加载](#quarkruntime加载)
+  - [QuarkRuntime加载&卸载](#quarkruntime加载&卸载)
   - [QuarkRuntime应用实例](#quarkruntime应用实例)
     - [自定义入口实例](#自定义入口实例)
     - [QuarkResources加载](#quarkresources加载)
       - [QuarkResources同步加载](#quarkresources同步加载)
       - [QuarkResources异步加载](#quarkresources异步加载)
+    - [QuarkResources卸载](#quarkResources卸载)
+      - [QuarkResources卸载单个资源](#quarkResources卸载单个资源)
+      - [QuarkResources卸载assetbundle](#quarkResources卸载assetbundle)
   - [BuildPipeline](#buildpipeline)
     - [打包配置](#打包配置)
     - [命令行打包](#命令行打包)
@@ -166,18 +169,18 @@ QuarkAsset是一套轻量级的插件化Unity资源加载方案。 内置AssetDa
 
 -----
 
-<a name="QuarkRuntime加载"></a>
+<a name="QuarkRuntime加载&卸载"></a>
 
-## QuarkRuntime加载
+## QuarkRuntime加载&卸载
 
-* Quark的加载类为`QuarkResources`。
+* Quark的加载&卸载类为`QuarkResources`。
 
 * 加载资源时输入的名称可采用以下三种范式：
     * 1、资源名。      
     * 2、资源名.后缀   
     * 3、资源路径      
 
-* 加载时请注意以下内容：
+* 加载&卸载时请注意以下内容：
     * 1、资源名大小写敏感的资源名 。示例：MyAudio
     * 2、后缀名大小写不敏感。示例：MyAudio.mp3或MyAudio.MP3
     * 3、资源路径大小写敏感，地址须以Assets/开头。示例：Assets/Audio/MyAudio.mp3。采用地址加载时，后缀名需要小写。
@@ -258,6 +261,38 @@ QuarkResources.LoadAssetAsync<Texture>("Assets/Textures/MyTexture.png",res=>
     //加载完成回调，获取资源, do sth
 });
 ```
+
+<a name="QuarkResources卸载"></a>
+
+### QuarkResources卸载
+
+<a name="QuarkResources资源单个卸载"></a>
+
+#### QuarkResources卸载单个资源
+
+* 卸载与加载相同，都支持三种三种范式：
+    * 1、资源名。      
+    * 2、资源名.后缀   
+    * 3、资源路径      
+
+```csharp
+//资源名卸载单个资源
+QuarkResources.UnloadAsset("MyAudio"); 
+//资源名.后缀卸载单个资源
+QuarkResources.UnloadAsset("MyText.json"); 
+//资源路径卸载单个资源
+QuarkResources.UnloadAsset("Assets/Textures/MyTexture.png"); 
+```
+
+<a name="QuarkResources卸载assetbundle"></a>
+
+#### QuarkResources卸载assetbundle
+
+```csharp
+//卸载assetbundle
+QuarkResources.UnloadAssetBundle("MyBundle",true); 
+```
+
 -----
 <a name="BuildPipeline"></a>
 
