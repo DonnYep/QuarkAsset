@@ -334,34 +334,25 @@ namespace Quark.Editor
             //路径是唯一的，可以作为key
             foreach (var cache in cacheDict.Values)
             {
+                var filePath = string.Empty;
+                switch (nameType)
+                {
+                    case AssetBundleNameType.DefaultName:
+                        filePath = Path.Combine(abOutputPath, cache.BundleName);
+                        break;
+                    case AssetBundleNameType.HashInstead:
+                        filePath = Path.Combine(abOutputPath, cache.BundleHash);
+                        break;
+                }
                 if (!cmpDict.TryGetValue(cache.BundlePath, out var cmp))
                 {
                     //现有资源不存在之前的信息，则表示为过期，应移除
-                    expired.Add(cmp);
-                    var filePath = string.Empty;
-                    switch (nameType)
-                    {
-                        case AssetBundleNameType.DefaultName:
-                            filePath = Path.Combine(abOutputPath, cmp.BundleName);
-                            break;
-                        case AssetBundleNameType.HashInstead:
-                            filePath = Path.Combine(abOutputPath, cmp.BundleHash);
-                            break;
-                    }
+                    expired.Add(cache);
+
                     QuarkUtility.DeleteFile(filePath);
                 }
                 else
                 {
-                    var filePath = string.Empty;
-                    switch (nameType)
-                    {
-                        case AssetBundleNameType.DefaultName:
-                            filePath = Path.Combine(abOutputPath, cmp.BundleName);
-                            break;
-                        case AssetBundleNameType.HashInstead:
-                            filePath = Path.Combine(abOutputPath, cmp.BundleHash);
-                            break;
-                    }
                     //现有资源在缓存中存在，则校验hash
                     if (cache.BundleHash != cmp.BundleHash)
                     {
