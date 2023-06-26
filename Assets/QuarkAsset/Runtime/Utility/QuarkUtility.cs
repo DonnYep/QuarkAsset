@@ -334,6 +334,9 @@ namespace Quark
         /// <param name="context">写入的信息</param>
         public static void OverwriteTextFile(string fileFullPath, string context)
         {
+            var folderPath = Path.GetDirectoryName(fileFullPath);
+            if (!Directory.Exists(folderPath))
+                Directory.CreateDirectory(folderPath);
             using (FileStream stream = File.Open(fileFullPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite))
             {
                 stream.Seek(0, SeekOrigin.Begin);
@@ -496,6 +499,9 @@ namespace Quark
         /// <param name="append">是否追加</param>
         public static void WriteTextFile(string fileFullPath, string context, bool append = false)
         {
+            var folderPath = Path.GetDirectoryName(fileFullPath);
+            if (!Directory.Exists(folderPath))
+                Directory.CreateDirectory(folderPath);
             using (FileStream stream = File.Open(fileFullPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite))
             {
                 if (append)

@@ -113,7 +113,6 @@ namespace Quark
                 mergeResult.InternalBuildVersion = diffManifest.InternalBuildVersion;
                 mergeResult.MergedBundles = mergedBundleList;
             }
-
         }
     }
 }
