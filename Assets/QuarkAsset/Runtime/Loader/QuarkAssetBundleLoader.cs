@@ -470,6 +470,8 @@ namespace Quark.Loader
                 {
                     var dependentBundleKey = dependentList[i];
                     nameBundleKeyDict.TryGetValue(dependentBundleKey, out var dependentBundleName);
+                    if (string.IsNullOrEmpty(dependentBundleName))
+                        continue;
                     if (bundleWarpperDict.TryGetValue(dependentBundleName, out var dependentBundleWarpper))
                     {
                         if (dependentBundleWarpper.AssetBundle == null)
@@ -511,6 +513,8 @@ namespace Quark.Loader
             {
                 var dependBundleKey = dependentList[i];
                 nameBundleKeyDict.TryGetValue(dependBundleKey, out var dependentBundleName);
+                if (string.IsNullOrEmpty(dependentBundleName))
+                    continue;
                 if (bundleWarpperDict.TryGetValue(dependentBundleName, out var dependentBundleWarpper))
                 {
                     dependentBundleWarpper.ReferenceCount -= count;
@@ -626,6 +630,8 @@ namespace Quark.Loader
                     //遍历依赖包
                     var dependBundleKey = dependList[i];
                     nameBundleKeyDict.TryGetValue(dependBundleKey, out var dependentBundleName);
+                    if (string.IsNullOrEmpty(dependentBundleName))
+                        continue;
                     if (bundleWarpperDict.TryGetValue(dependentBundleName, out var dependBundleWarpper))
                     {
                         var dependAssetBundle = dependBundleWarpper.AssetBundle;

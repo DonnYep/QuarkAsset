@@ -278,7 +278,6 @@ where T : Object
             return quarkLoadModeProvider.GetAllLoadedInfos();
         }
 
-
         public static async Task<T> LoadAssetAsync<T>(string assetName) where T : Object
         {
             return await new QuarkLoadAwaiter<T>(assetName);

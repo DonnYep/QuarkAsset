@@ -362,6 +362,8 @@ namespace Quark.Loader
             {
                 var dependentBundleKey = dependList[i];
                 nameBundleKeyDict.TryGetValue(dependentBundleKey, out var dependentBundleName);
+                if (string.IsNullOrEmpty(dependentBundleName))
+                    continue;
                 if (bundleWarpperDict.TryGetValue(dependentBundleName, out var dependBundleWarpper))
                 {
                     dependBundleWarpper.ReferenceCount++; //AB包引用计数增加
@@ -383,6 +385,8 @@ namespace Quark.Loader
             {
                 var dependBundleKey = dependentList[i];
                 nameBundleKeyDict.TryGetValue(dependBundleKey, out var dependentBundleName);
+                if (string.IsNullOrEmpty(dependentBundleName))
+                    continue;
                 if (bundleWarpperDict.TryGetValue(dependentBundleName, out var dependentBundleWarpper))
                 {
                     dependentBundleWarpper.ReferenceCount -= count;
@@ -448,6 +452,8 @@ namespace Quark.Loader
             {
                 var dependentBundleKey = dependList[i];
                 nameBundleKeyDict.TryGetValue(dependentBundleKey, out var dependentBundleName);
+                if (string.IsNullOrEmpty(dependentBundleName))
+                    continue;
                 if (bundleWarpperDict.TryGetValue(dependentBundleName, out var dependBundleWarpper))
                 {
                     dependBundleWarpper.ReferenceCount++;

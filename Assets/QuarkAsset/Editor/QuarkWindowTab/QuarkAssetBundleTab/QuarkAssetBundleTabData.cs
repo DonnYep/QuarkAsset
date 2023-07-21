@@ -61,6 +61,10 @@ namespace Quark.Editor
         /// 构建类型
         /// </summary>
         public BuildType BuildType;
+        /// <summary>
+        /// 强制清除所有ab名称
+        /// </summary>
+        public bool ForceRemoveAllAssetBundleNames;
         public QuarkAssetBundleTabData()
         {
             BuildTarget = BuildTarget.StandaloneWindows;

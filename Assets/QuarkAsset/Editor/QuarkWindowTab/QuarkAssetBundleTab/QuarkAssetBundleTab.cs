@@ -70,6 +70,10 @@ namespace Quark.Editor
 
             GUILayout.Space(16);
 
+            tabData.ForceRemoveAllAssetBundleNames = EditorGUILayout.ToggleLeft("Force remove all assetbundle names before build", tabData.ForceRemoveAllAssetBundleNames);
+
+            GUILayout.Space(16);
+
             GUILayout.BeginHorizontal();
             {
                 tabData.BuildPath = EditorGUILayout.TextField("Build path", tabData.BuildPath.Trim());
@@ -264,6 +268,10 @@ namespace Quark.Editor
                 UseOffsetEncryptionForAssetBundle = tabData.UseOffsetEncryptionForAssetBundle,
                 BuildType = tabData.BuildType
             };
+            if (tabData.ForceRemoveAllAssetBundleNames)
+            {
+                QuarkCommand.ForceRemoveAllAssetBundleNames();
+            }
             yield return assetDatabaseTab.BuildDataset();
             switch (tabData.BuildType)
             {
