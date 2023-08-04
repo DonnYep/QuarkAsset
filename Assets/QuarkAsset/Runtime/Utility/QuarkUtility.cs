@@ -560,8 +560,10 @@ namespace Quark
             get
             {
                 string perfix = string.Empty;
-#if UNITY_IOS || UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
+#if UNITY_IOS
+    #if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
                 perfix=@"file://";
+    #endif
 #endif
                 return perfix;
             }

@@ -274,6 +274,7 @@ namespace Quark.Editor
             quarkManifest.BuildTime = System.DateTime.Now.ToString();
             quarkManifest.BuildVersion = buildParams.BuildVersion;
             quarkManifest.InternalBuildVersion = buildParams.InternalBuildVersion;
+            quarkManifest.BuildHash=GUID.Generate().ToString();
             var manifestJson = QuarkUtility.ToJson(quarkManifest);
             var manifestContext = manifestJson;
             var manifestWritePath = Path.Combine(buildParams.AssetBundleOutputPath, QuarkConstant.MANIFEST_NAME);
