@@ -10,6 +10,6 @@ namespace Quark.Asset
         long BundleSize { get; set; }
         string BundleFormatBytes { get; set; }
         List<QuarkObjectInfo> ObjectInfoList { get; set; }
-        List<string> DependentBundleKeyList { get; set; }
+        List<QuarkBundleDependentInfo> DependentBundleKeyList { get; set; }
     }
 }

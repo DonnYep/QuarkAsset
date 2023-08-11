@@ -406,12 +406,27 @@ namespace Quark.Editor
             {
                 bundleInfoList.Remove(invalidBundleInfos[i]);
             }
+            var bundleDict = bundleInfoList.ToDictionary(d => d.BundleKey);
+
             for (int i = 0; i < bundleInfoList.Count; i++)
             {
                 var bundleInfo = bundleInfoList[i];
                 var importer = AssetImporter.GetAtPath(bundleInfo.BundlePath);
                 bundleInfo.DependentBundleKeyList.Clear();
-                bundleInfo.DependentBundleKeyList.AddRange(AssetDatabase.GetAssetBundleDependencies(importer.assetBundleName, true));
+                var dependencies = AssetDatabase.GetAssetBundleDependencies(importer.assetBundleName, true);
+                for (int j = 0; j < dependencies.Length; j++)
+                {
+                    var dep = dependencies[j];
+                    if (bundleDict.TryGetValue(dep, out var bInfo))
+                    {
+                        var depInfo = new QuarkBundleDependentInfo()
+                        {
+                            BundleKey = dep,
+                            BundleName = bInfo.BundleName
+                        };
+                        bundleInfo.DependentBundleKeyList.Add(depInfo);
+                    }
+                }
             }
             for (int i = 0; i < bundleInfoList.Count; i++)
             {

@@ -18,6 +18,13 @@ namespace Quark
         static StringBuilder stringBuilderCache = new StringBuilder(1024);
         #endregion
 
+        public static string WebPathCombine(params string[] paths)
+        {
+            var pathResult = Path.Combine(paths);
+            pathResult = pathResult.Replace("\\", "/");
+            return pathResult;
+        }
+
         #region Assembly
         public static object GetTypeInstance(string typeName)
         {
@@ -569,5 +576,15 @@ namespace Quark
             }
         }
         #endregion
+        public static string FormatBytes(long bytes, int decimals = 2)
+        {
+            string[] suffix = { "Byte", "KB", "MB", "GB", "TB" };
+            int i = 0;
+            double dblSByte = bytes;
+            if (bytes > 1024)
+                for (i = 0; (bytes / 1024) > 0; i++, bytes /= 1024)
+                    dblSByte = bytes / 1024.0;
+            return $"{Math.Round(dblSByte, decimals)}{suffix[i]}";
+        }
     }
 }

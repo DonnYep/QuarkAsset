@@ -20,7 +20,7 @@ namespace Quark.Asset
         [SerializeField]
         List<QuarkObjectInfo> objectInfoList;
         [SerializeField]
-        List<string> dependentBundleKeyList;
+        List<QuarkBundleDependentInfo> dependentBundleKeyList;
         /// <summary>
         /// AB包的名称；
         /// </summary>
@@ -79,12 +79,12 @@ namespace Quark.Asset
         /// <summary>
         /// 资源的依赖项；
         /// </summary>
-        public List<string> DependentBundleKeyList
+        public List<QuarkBundleDependentInfo> DependentBundleKeyList
         {
             get
             {
                 if (dependentBundleKeyList == null)
-                    dependentBundleKeyList = new List<string>();
+                    dependentBundleKeyList = new List<QuarkBundleDependentInfo>();
                 return dependentBundleKeyList;
             }
             set { dependentBundleKeyList = value; }

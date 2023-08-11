@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEditor;
-using System.IO;
-using Quark.Asset;
 
 namespace Quark.Editor
 {
@@ -16,15 +10,16 @@ namespace Quark.Editor
         internal const string QuarkVersionWindowDataName = "QuarkVersion_WindowData.json";
         QuarkManifestCompareTab manifestCompareTab;
         QuarkManifestDecryptTab manifestDecryptTab;
+        QuarkManifestMergeTab manifestMergeTab;
 
         Vector2 scrollPosition;
 
-        string[] tabArray = new string[] { "Compare", "Decrypt" };
+        string[] tabArray = new string[] { "Compare", "Decrypt", "Merge" };
         public QuarkVersionWindow()
         {
-            this.titleContent = new GUIContent("QuarkVersionEditor");
+            this.titleContent = new GUIContent("QuarkVersion");
         }
-        [MenuItem("Window/QuarkAsset/VersionEditor", false, 110)]
+        [MenuItem("Window/QuarkAsset/QuarkVersion", false, 110)]
         public static void OpenWindow()
         {
             var window = GetWindow<QuarkVersionWindow>();
@@ -37,23 +32,29 @@ namespace Quark.Editor
                 manifestCompareTab = new QuarkManifestCompareTab();
             if (manifestDecryptTab == null)
                 manifestDecryptTab = new QuarkManifestDecryptTab();
+            if (manifestMergeTab == null)
+                manifestMergeTab = new QuarkManifestMergeTab();
             manifestCompareTab.OnEnable();
             manifestDecryptTab.OnEnable();
+            manifestMergeTab.OnEnable();
         }
         private void OnGUI()
         {
             wndData.SelectedTabIndex = GUILayout.Toolbar(wndData.SelectedTabIndex, tabArray);
             GUILayout.Space(16);
-    
+
             scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
             {
                 switch (wndData.SelectedTabIndex)
                 {
                     case 0:
-                        manifestCompareTab.OnGUI();
+                        manifestCompareTab.OnGUI(position);
                         break;
                     case 1:
                         manifestDecryptTab.OnGUI();
+                        break;
+                    case 2:
+                        manifestMergeTab.OnGUI();
                         break;
                 }
             }
@@ -64,6 +65,7 @@ namespace Quark.Editor
             SaveWindowData();
             manifestCompareTab.OnDisable();
             manifestDecryptTab.OnDisable();
+            manifestMergeTab.OnDisable();
         }
         void GetWindowData()
         {

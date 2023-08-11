@@ -361,7 +361,7 @@ namespace Quark.Loader
             for (int i = 0; i < length; i++)
             {
                 var dependentBundleKey = dependList[i];
-                nameBundleKeyDict.TryGetValue(dependentBundleKey, out var dependentBundleName);
+                nameBundleKeyDict.TryGetValue(dependentBundleKey.BundleKey, out var dependentBundleName);
                 if (string.IsNullOrEmpty(dependentBundleName))
                     continue;
                 if (bundleWarpperDict.TryGetValue(dependentBundleName, out var dependBundleWarpper))
@@ -384,7 +384,7 @@ namespace Quark.Loader
             for (int i = 0; i < dependentLength; i++)
             {
                 var dependBundleKey = dependentList[i];
-                nameBundleKeyDict.TryGetValue(dependBundleKey, out var dependentBundleName);
+                nameBundleKeyDict.TryGetValue(dependBundleKey.BundleKey, out var dependentBundleName);
                 if (string.IsNullOrEmpty(dependentBundleName))
                     continue;
                 if (bundleWarpperDict.TryGetValue(dependentBundleName, out var dependentBundleWarpper))
@@ -451,7 +451,7 @@ namespace Quark.Loader
             for (int i = 0; i < length; i++)
             {
                 var dependentBundleKey = dependList[i];
-                nameBundleKeyDict.TryGetValue(dependentBundleKey, out var dependentBundleName);
+                nameBundleKeyDict.TryGetValue(dependentBundleKey.BundleKey, out var dependentBundleName);
                 if (string.IsNullOrEmpty(dependentBundleName))
                     continue;
                 if (bundleWarpperDict.TryGetValue(dependentBundleName, out var dependBundleWarpper))

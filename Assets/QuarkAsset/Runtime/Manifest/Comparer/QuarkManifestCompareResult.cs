@@ -14,9 +14,9 @@ namespace Quark.Manifest
         /// </summary>
         public QuarkManifestCompareInfo[] NewlyAddedInfos;
         /// <summary>
-        /// 过期无效的文件；
+        /// 过期删除的文件；
         /// </summary>
-        public QuarkManifestCompareInfo[] ExpiredInfos;
+        public QuarkManifestCompareInfo[] DeletedInfos;
         /// <summary>
         /// 未更改的文件；
         /// </summary>

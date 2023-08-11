@@ -76,7 +76,7 @@ namespace Quark.Editor
                 {
                     var bundleKey = bundleInfo.DependentBundleKeyList[j];
                     int dependentItemId = dependentRootItem.id + j + 2;
-                    var dependentItem = new TreeViewItem(dependentItemId, 3, bundleKey)
+                    var dependentItem = new TreeViewItem(dependentItemId, 3, bundleKey.BundleKey)
                     {
                         icon = folderIcon
                     };

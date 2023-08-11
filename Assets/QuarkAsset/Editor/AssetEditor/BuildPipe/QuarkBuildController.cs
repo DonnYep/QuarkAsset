@@ -138,13 +138,27 @@ namespace Quark.Editor
         public static void SetBundleDependent(QuarkDataset dataset, QuarkManifest quarkManifest)
         {
             var bundleInfos = dataset.AllCachedBundleInfos;
+            var bundleDict = bundleInfos.ToDictionary(d => d.BundleKey);
             AssetDatabase.Refresh();
             for (int i = 0; i < bundleInfos.Count; i++)
             {
                 var bundleInfo = bundleInfos[i];
                 bundleInfo.DependentBundleKeyList.Clear();
                 var importer = AssetImporter.GetAtPath(bundleInfo.BundlePath);
-                bundleInfo.DependentBundleKeyList.AddRange(AssetDatabase.GetAssetBundleDependencies(importer.assetBundleName, true));
+                var dependencies = AssetDatabase.GetAssetBundleDependencies(importer.assetBundleName, true);
+                for (int j = 0; j < dependencies.Length; j++)
+                {
+                    var dep = dependencies[j];
+                    if (bundleDict.TryGetValue(dep, out var bInfo))
+                    {
+                        var depInfo = new QuarkBundleDependentInfo()
+                        {
+                            BundleKey = dep,
+                            BundleName = bInfo.BundleName
+                        };
+                        bundleInfo.DependentBundleKeyList.Add(depInfo);
+                    }
+                }
                 if (quarkManifest.BundleInfoDict.TryGetValue(bundleInfo.BundleKey, out var manifestBundleInfo))
                 {
                     manifestBundleInfo.QuarkAssetBundle.DependentBundleKeyList.Clear();
@@ -228,6 +242,8 @@ namespace Quark.Editor
         public static void RevertBundleDependencies(QuarkDataset dataset)
         {
             var srcBundleInfos = dataset.AllCachedBundleInfos;
+            var bundleDict = srcBundleInfos.ToDictionary(d => d.BundleKey);
+
             var bundleInfos = srcBundleInfos;
             var bundleInfoLength = bundleInfos.Count;
             //这段还原dataset在editor模式的依赖
@@ -243,7 +259,20 @@ namespace Quark.Editor
                 var bundleInfo = bundleInfos[i];
                 var importer = AssetImporter.GetAtPath(bundleInfo.BundlePath);
                 bundleInfo.DependentBundleKeyList.Clear();
-                bundleInfo.DependentBundleKeyList.AddRange(AssetDatabase.GetAssetBundleDependencies(importer.assetBundleName, true));
+                var dependencies = AssetDatabase.GetAssetBundleDependencies(importer.assetBundleName, true);
+                for (int j = 0; j < dependencies.Length; j++)
+                {
+                    var dep = dependencies[j];
+                    if (bundleDict.TryGetValue(dep, out var bInfo))
+                    {
+                        var depInfo = new QuarkBundleDependentInfo()
+                        {
+                            BundleKey = dep,
+                            BundleName = bInfo.BundleName
+                        };
+                        bundleInfo.DependentBundleKeyList.Add(depInfo);
+                    }
+                }
             }
 
             for (int i = 0; i < bundleInfoLength; i++)
@@ -274,7 +303,7 @@ namespace Quark.Editor
             quarkManifest.BuildTime = System.DateTime.Now.ToString();
             quarkManifest.BuildVersion = buildParams.BuildVersion;
             quarkManifest.InternalBuildVersion = buildParams.InternalBuildVersion;
-            quarkManifest.BuildHash=GUID.Generate().ToString();
+            quarkManifest.BuildHash = GUID.Generate().ToString();
             var manifestJson = QuarkUtility.ToJson(quarkManifest);
             var manifestContext = manifestJson;
             var manifestWritePath = Path.Combine(buildParams.AssetBundleOutputPath, QuarkConstant.MANIFEST_NAME);

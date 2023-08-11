@@ -469,14 +469,14 @@ namespace Quark.Loader
                 for (int i = 0; i < dependentLength; i++)
                 {
                     var dependentBundleKey = dependentList[i];
-                    nameBundleKeyDict.TryGetValue(dependentBundleKey, out var dependentBundleName);
+                    nameBundleKeyDict.TryGetValue(dependentBundleKey.BundleKey, out var dependentBundleName);
                     if (string.IsNullOrEmpty(dependentBundleName))
                         continue;
                     if (bundleWarpperDict.TryGetValue(dependentBundleName, out var dependentBundleWarpper))
                     {
                         if (dependentBundleWarpper.AssetBundle == null)
                         {
-                            var abPath = Path.Combine(dependentBundleWarpper.BundlePersistentPath, dependentBundleKey);
+                            var abPath = Path.Combine(dependentBundleWarpper.BundlePersistentPath, dependentBundleKey.BundleKey);
                             var assetBundle = AssetBundle.LoadFromFile(abPath, 0, QuarkDataProxy.QuarkEncryptionOffset);
                             dependentBundleWarpper.AssetBundle = assetBundle;
                             if (dependentBundleWarpper.AssetBundle != null)
@@ -512,7 +512,7 @@ namespace Quark.Loader
             for (int i = 0; i < dependentLength; i++)
             {
                 var dependBundleKey = dependentList[i];
-                nameBundleKeyDict.TryGetValue(dependBundleKey, out var dependentBundleName);
+                nameBundleKeyDict.TryGetValue(dependBundleKey.BundleKey, out var dependentBundleName);
                 if (string.IsNullOrEmpty(dependentBundleName))
                     continue;
                 if (bundleWarpperDict.TryGetValue(dependentBundleName, out var dependentBundleWarpper))
@@ -629,7 +629,7 @@ namespace Quark.Loader
                 {
                     //遍历依赖包
                     var dependBundleKey = dependList[i];
-                    nameBundleKeyDict.TryGetValue(dependBundleKey, out var dependentBundleName);
+                    nameBundleKeyDict.TryGetValue(dependBundleKey.BundleKey, out var dependentBundleName);
                     if (string.IsNullOrEmpty(dependentBundleName))
                         continue;
                     if (bundleWarpperDict.TryGetValue(dependentBundleName, out var dependBundleWarpper))
@@ -637,7 +637,7 @@ namespace Quark.Loader
                         var dependAssetBundle = dependBundleWarpper.AssetBundle;
                         if (dependAssetBundle == null)
                         {
-                            var abPath = Path.Combine(dependBundleWarpper.BundlePersistentPath, dependBundleKey);
+                            var abPath = Path.Combine(dependBundleWarpper.BundlePersistentPath, dependBundleKey.BundleKey);
                             dependAssetBundle = AssetBundle.LoadFromFile(abPath, 0, QuarkDataProxy.QuarkEncryptionOffset);
                             if (dependAssetBundle != null)
                             {

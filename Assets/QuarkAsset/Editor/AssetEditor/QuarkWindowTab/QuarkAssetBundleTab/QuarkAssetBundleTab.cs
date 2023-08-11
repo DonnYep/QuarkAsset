@@ -134,8 +134,16 @@ namespace Quark.Editor
                 tabData.CopyToStreamingAssets = EditorGUILayout.ToggleLeft("CopyToStreamingAssets", tabData.CopyToStreamingAssets);
                 if (tabData.CopyToStreamingAssets)
                 {
-                    GUILayout.Label("Assets/StreamingAssets/[ Nullable ]");
-                    tabData.StreamingRelativePath = EditorGUILayout.TextField("StreamingRelativePath", tabData.StreamingRelativePath.Trim());
+                    var streamingRelativePath = tabData.StreamingRelativePath.Trim();
+                    if (string.IsNullOrEmpty(streamingRelativePath))
+                    {
+                        GUILayout.Label("Assets/StreamingAssets/[ Nullable ]");
+                    }
+                    else
+                    {
+                        GUILayout.Label($"Assets/StreamingAssets/{streamingRelativePath}");
+                    }
+                    tabData.StreamingRelativePath = EditorGUILayout.TextField("StreamingRelativePath", streamingRelativePath);
                 }
             }
             GUILayout.EndVertical();

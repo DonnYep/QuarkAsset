@@ -1,4 +1,5 @@
 ﻿using Quark.Asset;
+using Quark.Manifest;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
@@ -8,95 +9,29 @@ namespace Quark.Editor
     public class QuarkManifestCompareTab
     {
         internal const string ManifestCompareTabDataFileName = "QuarkVersion_ManifesCompareTabData.json";
-        QuarkManifestCompareTabData wndData;
+        QuarkManifestCompareTabData tabData;
+        QuarkManifestCompareLabel compareResultLabel = new QuarkManifestCompareLabel();
         public void OnEnable()
         {
+            compareResultLabel.OnEnable();
             GetWindowData();
+            GetCachedCompareResult();
         }
-        public void OnGUI()
+        public void OnGUI(Rect rect)
         {
-            EditorGUILayout.BeginVertical();
+            EditorGUILayout.BeginHorizontal();
             {
-                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.BeginVertical();
                 {
-                    wndData.SrcManifestPath = EditorGUILayout.TextField("SrcManifestPath", wndData.SrcManifestPath);
-                    if (GUILayout.Button("Browse", GUILayout.MaxWidth(128f)))
-                    {
-                        var newPath = EditorUtility.OpenFilePanel("SrcManifestPath", wndData.SrcManifestPath, string.Empty);
-                        if (!string.IsNullOrEmpty(newPath))
-                        {
-                            wndData.SrcManifestPath = newPath.Replace("\\", "/");
-                        }
-                    }
+                    DrawCompareConfig();
+                    DrawCompareButton();
+                    GUILayout.Space(16);
+                    compareResultLabel.OnGUI(rect);
                 }
-                EditorGUILayout.EndHorizontal();
+                EditorGUILayout.EndVertical();
 
-                wndData.SrcManifestAesKey = EditorGUILayout.TextField("SrcManifestAesKey", wndData.SrcManifestAesKey);
-
-                GUILayout.Space(16);
-
-                EditorGUILayout.BeginHorizontal();
-                {
-                    wndData.DiffManifestPath = EditorGUILayout.TextField("DiffManifestPath", wndData.DiffManifestPath);
-                    if (GUILayout.Button("Browse", GUILayout.MaxWidth(128f)))
-                    {
-                        var newPath = EditorUtility.OpenFilePanel("DiffManifestPath", wndData.DiffManifestPath, string.Empty);
-                        if (!string.IsNullOrEmpty(newPath))
-                        {
-                            wndData.DiffManifestPath = newPath.Replace("\\", "/");
-                        }
-                    }
-                }
-                EditorGUILayout.EndHorizontal();
-                wndData.DiffManifestAesKey = EditorGUILayout.TextField("DiffManifestAesKey", wndData.DiffManifestAesKey);
-
-                GUILayout.Space(16);
-                EditorGUILayout.BeginHorizontal();
-                {
-                    wndData.CompareResultOutputPath = EditorGUILayout.TextField("CompareResultPath", wndData.CompareResultOutputPath);
-                    if (GUILayout.Button("Browse", GUILayout.MaxWidth(128f)))
-                    {
-                        var newPath = EditorUtility.OpenFolderPanel("CompareResultPath", wndData.CompareResultOutputPath, string.Empty);
-                        if (!string.IsNullOrEmpty(newPath))
-                        {
-                            wndData.CompareResultOutputPath = newPath.Replace("\\", "/");
-                        }
-                    }
-                }
-                EditorGUILayout.EndHorizontal();
-
-                wndData.OpenCompareResultPathWhenCompareDone = EditorGUILayout.ToggleLeft("Open compare result path output", wndData.OpenCompareResultPathWhenCompareDone);
-
-                GUILayout.Space(16);
-                if (GUILayout.Button("Compare"))
-                {
-                    var srcManifest = LoadManifest(wndData.SrcManifestPath, wndData.SrcManifestAesKey);
-                    var diffManifest = LoadManifest(wndData.DiffManifestPath, wndData.DiffManifestAesKey);
-                    if (srcManifest == null)
-                    {
-                        QuarkUtility.LogError("srcManifest invalid ,check you config !");
-                    }
-                    if (diffManifest == null)
-                    {
-                        QuarkUtility.LogError("diffManifestinvalid ,check you config !");
-                    }
-                    if (srcManifest != null && diffManifest != null)
-                    {
-                        QuarkResources.QuarlManifestComparer.CompareManifest(srcManifest, diffManifest, out var result);
-                        if (Directory.Exists(wndData.CompareResultOutputPath))
-                        {
-                            var resultFileName = Path.Combine(wndData.CompareResultOutputPath, QuarkConstant.MANIFEST_COMPARE_RESULT_NAME);
-                            QuarkUtility.OverwriteTextFile(resultFileName, QuarkUtility.ToJson(result));
-                            QuarkUtility.LogInfo("Compare result overwrite done ! ");
-                            if (wndData.OpenCompareResultPathWhenCompareDone)
-                            {
-                                EditorUtility.RevealInFinder(resultFileName);
-                            }
-                        }
-                    }
-                }
             }
-            EditorGUILayout.EndVertical();
+            EditorGUILayout.EndHorizontal();
         }
         public void OnDisable()
         {
@@ -104,9 +39,10 @@ namespace Quark.Editor
         }
         QuarkManifest LoadManifest(string path, string key)
         {
-            if (File.Exists(path))
+            var manifestPath = Path.Combine(path, QuarkConstant.MANIFEST_NAME);
+            if (File.Exists(manifestPath))
             {
-                var context = QuarkUtility.ReadTextFileContent(path);
+                var context = QuarkUtility.ReadTextFileContent(manifestPath);
                 return Quark.QuarkUtility.Manifest.DeserializeManifest(context, key);
             }
             else
@@ -118,17 +54,106 @@ namespace Quark.Editor
         {
             try
             {
-                wndData = QuarkEditorUtility.GetData<QuarkManifestCompareTabData>(ManifestCompareTabDataFileName);
+                tabData = QuarkEditorUtility.GetData<QuarkManifestCompareTabData>(ManifestCompareTabDataFileName);
             }
             catch
             {
-                wndData = new QuarkManifestCompareTabData();
-                QuarkEditorUtility.SaveData(ManifestCompareTabDataFileName, wndData);
+                tabData = new QuarkManifestCompareTabData();
+                QuarkEditorUtility.SaveData(ManifestCompareTabDataFileName, tabData);
             }
         }
         void SaveWindowData()
         {
-            QuarkEditorUtility.SaveData(ManifestCompareTabDataFileName, wndData);
+            QuarkEditorUtility.SaveData(ManifestCompareTabDataFileName, tabData);
+        }
+        void GetCachedCompareResult()
+        {
+            try
+            {
+                var cmpRst = QuarkEditorUtility.GetData<QuarkManifestCompareResult>(QuarkConstant.MANIFEST_COMPARE_RESULT_NAME);
+                compareResultLabel.SetResult(cmpRst);
+            }
+            catch { }
+        }
+        void DrawCompareConfig()
+        {
+            EditorGUILayout.BeginHorizontal();
+            {
+                tabData.SrcManifestPath = EditorGUILayout.TextField("SrcManifestPath", tabData.SrcManifestPath);
+                if (GUILayout.Button("Browse", GUILayout.MaxWidth(128f)))
+                {
+                    var newPath = EditorUtility.OpenFolderPanel("SrcManifestPath", tabData.SrcManifestPath, string.Empty);
+                    if (!string.IsNullOrEmpty(newPath))
+                    {
+                        tabData.SrcManifestPath = newPath.Replace("\\", "/");
+                    }
+                }
+            }
+            EditorGUILayout.EndHorizontal();
+
+            tabData.SrcManifestAesKey = EditorGUILayout.TextField("SrcManifestAesKey", tabData.SrcManifestAesKey);
+
+            //GUILayout.Space(16);
+
+            EditorGUILayout.BeginHorizontal();
+            {
+                tabData.DiffManifestPath = EditorGUILayout.TextField("DiffManifestPath", tabData.DiffManifestPath);
+                if (GUILayout.Button("Browse", GUILayout.MaxWidth(128f)))
+                {
+                    var newPath = EditorUtility.OpenFolderPanel("DiffManifestPath", tabData.DiffManifestPath, string.Empty);
+                    if (!string.IsNullOrEmpty(newPath))
+                    {
+                        tabData.DiffManifestPath = newPath.Replace("\\", "/");
+                    }
+                }
+            }
+            EditorGUILayout.EndHorizontal();
+            tabData.DiffManifestAesKey = EditorGUILayout.TextField("DiffManifestAesKey", tabData.DiffManifestAesKey);
+
+            GUILayout.Space(16);
+
+            GUILayout.BeginHorizontal();
+            {
+                GUILayout.FlexibleSpace();
+                if (GUILayout.Button("Open result path", GUILayout.MaxWidth(128f)))
+                {
+                    var filePath = Path.Combine(QuarkEditorUtility.LibraryPath, QuarkConstant.MANIFEST_COMPARE_RESULT_NAME);
+                    EditorUtility.RevealInFinder(filePath);
+                }
+            }
+            GUILayout.EndHorizontal();
+            GUILayout.Space(16);
+        }
+        void DrawCompareButton()
+        {
+            EditorGUILayout.BeginHorizontal();
+            {
+                if (GUILayout.Button("Compare"))
+                {
+                    var srcManifest = LoadManifest(tabData.SrcManifestPath, tabData.SrcManifestAesKey);
+                    var diffManifest = LoadManifest(tabData.DiffManifestPath, tabData.DiffManifestAesKey);
+                    if (srcManifest == null)
+                    {
+                        QuarkUtility.LogError("srcManifest invalid ,check you config !");
+                    }
+                    if (diffManifest == null)
+                    {
+                        QuarkUtility.LogError("diffManifestinvalid ,check you config !");
+                    }
+                    if (srcManifest != null && diffManifest != null)
+                    {
+                        QuarkResources.QuarlManifestComparer.CompareManifestByBundleName(srcManifest, diffManifest, out var result);
+                        compareResultLabel.SetResult(result);
+                        QuarkEditorUtility.SaveData(QuarkConstant.MANIFEST_COMPARE_RESULT_NAME, result);
+                        QuarkUtility.LogInfo("Compare result overwrite done ! ");
+                    }
+                }
+                if (GUILayout.Button("Clear"))
+                {
+                    compareResultLabel.Clear();
+                }
+            }
+            EditorGUILayout.EndHorizontal();
         }
     }
 }

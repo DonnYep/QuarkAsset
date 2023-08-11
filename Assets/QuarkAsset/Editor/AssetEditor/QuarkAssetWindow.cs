@@ -17,9 +17,9 @@ namespace Quark.Editor
         Texture2D refreshIcon;
         public QuarkAssetWindow()
         {
-            this.titleContent = new GUIContent("QuarkEditor");
+            this.titleContent = new GUIContent("QuarkAsset");
         }
-        [MenuItem("Window/QuarkAsset/QuarkEditor", false, 100)]
+        [MenuItem("Window/QuarkAsset/QuarkAsset", false, 100)]
         public static void OpenWindow()
         {
             var window = GetWindow<QuarkAssetWindow>();

@@ -1,9 +1,5 @@
 ﻿using Quark.Asset;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using UnityEditor;
 using UnityEngine;
 
@@ -12,59 +8,57 @@ namespace Quark.Editor
     public class QuarkManifestDecryptTab
     {
         internal const string ManifestDecryptTabDataFileName = "QuarkVersion_ManifestDecryptTabData.json";
-        QuarkManifestDecryptTabData wndData;
+        QuarkManifestDecryptTabData tabData;
         public void OnEnable()
         {
             GetWindowData();
-
         }
         public void OnGUI()
         {
-
             EditorGUILayout.BeginHorizontal();
             {
-                wndData.ManifestPath = EditorGUILayout.TextField("ManifestPath", wndData.ManifestPath);
+                tabData.ManifestPath = EditorGUILayout.TextField("ManifestPath", tabData.ManifestPath);
                 if (GUILayout.Button("Browse", GUILayout.MaxWidth(128f)))
                 {
-                    var newPath = EditorUtility.OpenFilePanel("ManifestPath", wndData.ManifestPath, string.Empty);
+                    var newPath = EditorUtility.OpenFilePanel("ManifestPath", tabData.ManifestPath, string.Empty);
                     if (!string.IsNullOrEmpty(newPath))
                     {
-                        wndData.ManifestPath = newPath.Replace("\\", "/");
+                        tabData.ManifestPath = newPath.Replace("\\", "/");
                     }
                 }
             }
             EditorGUILayout.EndHorizontal();
-            wndData.ManifestAesKey = EditorGUILayout.TextField("ManifestAesKey", wndData.ManifestAesKey);
+            tabData.ManifestAesKey = EditorGUILayout.TextField("ManifestAesKey", tabData.ManifestAesKey);
 
             GUILayout.Space(16);
 
             EditorGUILayout.BeginHorizontal();
             {
-                wndData.DecryptedManifestOutputPath = EditorGUILayout.TextField("CompareResultPath", wndData.DecryptedManifestOutputPath);
+                tabData.DecryptedManifestOutputPath = EditorGUILayout.TextField("CompareResultPath", tabData.DecryptedManifestOutputPath);
                 if (GUILayout.Button("Browse", GUILayout.MaxWidth(128f)))
                 {
-                    var newPath = EditorUtility.OpenFolderPanel("CompareResultPath", wndData.DecryptedManifestOutputPath, string.Empty);
+                    var newPath = EditorUtility.OpenFolderPanel("CompareResultPath", tabData.DecryptedManifestOutputPath, string.Empty);
                     if (!string.IsNullOrEmpty(newPath))
                     {
-                        wndData.DecryptedManifestOutputPath = newPath.Replace("\\", "/");
+                        tabData.DecryptedManifestOutputPath = newPath.Replace("\\", "/");
                     }
                 }
             }
             EditorGUILayout.EndHorizontal();
-            wndData.OpenDecryptPathWhenCompareDone = EditorGUILayout.ToggleLeft("Open decrypted path when output", wndData.OpenDecryptPathWhenCompareDone);
+            tabData.OpenDecryptPathWhenCompareDone = EditorGUILayout.ToggleLeft("Open decrypted path when output", tabData.OpenDecryptPathWhenCompareDone);
             GUILayout.Space(16);
 
             if (GUILayout.Button("Decrypd"))
             {
 
-                var manifest = LoadManifest(wndData.ManifestPath, wndData.ManifestAesKey);
+                var manifest = LoadManifest(tabData.ManifestPath, tabData.ManifestAesKey);
                 if (manifest != null)
                 {
-                    OverwriteManifest(wndData.DecryptedManifestOutputPath, manifest);
+                    OverwriteManifest(tabData.DecryptedManifestOutputPath, manifest);
                     QuarkUtility.LogInfo("Decrypted manifest overwrite done ! ");
-                    if (wndData.OpenDecryptPathWhenCompareDone)
+                    if (tabData.OpenDecryptPathWhenCompareDone)
                     {
-                        EditorUtility.RevealInFinder(wndData.DecryptedManifestOutputPath);
+                        EditorUtility.RevealInFinder(tabData.DecryptedManifestOutputPath);
                     }
                 }
             }
@@ -98,17 +92,17 @@ namespace Quark.Editor
         {
             try
             {
-                wndData = QuarkEditorUtility.GetData<QuarkManifestDecryptTabData>(ManifestDecryptTabDataFileName);
+                tabData = QuarkEditorUtility.GetData<QuarkManifestDecryptTabData>(ManifestDecryptTabDataFileName);
             }
             catch
             {
-                wndData = new QuarkManifestDecryptTabData();
-                QuarkEditorUtility.SaveData(ManifestDecryptTabDataFileName, wndData);
+                tabData = new QuarkManifestDecryptTabData();
+                QuarkEditorUtility.SaveData(ManifestDecryptTabDataFileName, tabData);
             }
         }
         void SaveWindowData()
         {
-            QuarkEditorUtility.SaveData(ManifestDecryptTabDataFileName, wndData);
+            QuarkEditorUtility.SaveData(ManifestDecryptTabDataFileName, tabData);
         }
     }
 }
