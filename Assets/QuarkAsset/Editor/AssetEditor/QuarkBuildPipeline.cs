@@ -189,14 +189,15 @@ namespace Quark.Editor
                 InternalBuildVersion = tabData.InternalBuildVersion,
                 StreamingRelativePath = tabData.StreamingRelativePath,
                 UseAesEncryptionForManifest = tabData.UseAesEncryptionForManifest,
-                UseOffsetEncryptionForAssetBundle = tabData.UseOffsetEncryptionForAssetBundle
+                UseOffsetEncryptionForAssetBundle = tabData.UseOffsetEncryptionForAssetBundle,
+                ClearStreamingAssetsDestinationPath = true
             };
             QuarkBuildController.BuildDataset(dataset);
             QuarkBuildController.ProcessBundleInfos(dataset, quarkManifest, buildParams);
             QuarkBuildController.SetBundleDependent(dataset, quarkManifest);
             var assetBundleManifest = BuildPipeline.BuildAssetBundles(assetBundleBuildPath, tabData.BuildAssetBundleOptions, tabData.BuildTarget);
             QuarkBuildController.FinishBuild(assetBundleManifest, dataset, quarkManifest, buildParams);
-            QuarkBuildController.OverwriteManifest( quarkManifest, buildParams);
+            QuarkBuildController.OverwriteManifest(quarkManifest, buildParams);
             QuarkUtility.LogInfo("Quark build pipeline done");
         }
     }

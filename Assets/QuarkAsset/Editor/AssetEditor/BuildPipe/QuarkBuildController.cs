@@ -290,9 +290,13 @@ namespace Quark.Editor
             if (buildParams.CopyToStreamingAssets)
             {
                 var buildPath = buildParams.AssetBundleOutputPath;
+                var streamingAssetPath = Path.Combine(Application.streamingAssetsPath, buildParams.StreamingRelativePath);
+                if (buildParams.ClearStreamingAssetsDestinationPath)
+                {
+                    QuarkUtility.EmptyFolder(streamingAssetPath);
+                }
                 if (Directory.Exists(buildPath))
                 {
-                    var streamingAssetPath = Path.Combine(Application.streamingAssetsPath, buildParams.StreamingRelativePath);
                     QuarkUtility.CopyDirectory(buildPath, streamingAssetPath);
                 }
             }

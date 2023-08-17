@@ -134,6 +134,9 @@ namespace Quark.Editor
                 tabData.CopyToStreamingAssets = EditorGUILayout.ToggleLeft("CopyToStreamingAssets", tabData.CopyToStreamingAssets);
                 if (tabData.CopyToStreamingAssets)
                 {
+                    tabData.ClearStreamingAssetsDestinationPath = EditorGUILayout.ToggleLeft("Clear streaming assets destination path", tabData.ClearStreamingAssetsDestinationPath);
+
+
                     var streamingRelativePath = tabData.StreamingRelativePath.Trim();
                     if (string.IsNullOrEmpty(streamingRelativePath))
                     {
@@ -274,7 +277,8 @@ namespace Quark.Editor
                 StreamingRelativePath = tabData.StreamingRelativePath,
                 UseAesEncryptionForManifest = tabData.UseAesEncryptionForManifest,
                 UseOffsetEncryptionForAssetBundle = tabData.UseOffsetEncryptionForAssetBundle,
-                BuildType = tabData.BuildType
+                BuildType = tabData.BuildType,
+                ClearStreamingAssetsDestinationPath = tabData.ClearStreamingAssetsDestinationPath
             };
             if (tabData.ForceRemoveAllAssetBundleNames)
             {

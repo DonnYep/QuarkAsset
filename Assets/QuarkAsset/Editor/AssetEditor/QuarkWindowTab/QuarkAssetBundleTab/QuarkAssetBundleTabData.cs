@@ -65,6 +65,10 @@ namespace Quark.Editor
         /// 强制清除所有ab名称
         /// </summary>
         public bool ForceRemoveAllAssetBundleNames;
+        /// <summary>
+        /// 清空拷贝到的StreamingAssets路径
+        /// </summary>
+        public bool ClearStreamingAssetsDestinationPath;
         public QuarkAssetBundleTabData()
         {
             BuildTarget = BuildTarget.StandaloneWindows;

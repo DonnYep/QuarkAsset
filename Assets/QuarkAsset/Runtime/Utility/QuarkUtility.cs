@@ -140,6 +140,8 @@ namespace Quark
         #region Encryption
         public static byte[] GenerateBytesAESKey(string srckey)
         {
+            if (string.IsNullOrEmpty(srckey))
+                return new byte[0];
             var srcKeyLen = Encoding.UTF8.GetBytes(srckey).Length;
             int dstLen = 16;
             switch (srcKeyLen)
