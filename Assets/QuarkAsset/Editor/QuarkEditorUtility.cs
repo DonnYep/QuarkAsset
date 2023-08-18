@@ -106,6 +106,14 @@ namespace Quark.Editor
         {
             return EditorGUIUtility.FindTexture("TestIgnored");
         }
+        public static Texture2D GetCreateAddNewIcon()
+        {
+            return EditorGUIUtility.FindTexture("CreateAddNew");
+        }
+        public static Texture2D GetSaveActiveIcon()
+        {
+            return EditorGUIUtility.FindTexture("SaveActive");
+        }
         public static Texture2D ToTexture2D(Texture texture)
         {
             return Texture2D.CreateExternalTexture(
@@ -475,6 +483,26 @@ namespace Quark.Editor
                     totalSize += file.Length;
             }
             return totalSize;
+        }
+        public static T CreateScriptableObject<T>(string path, HideFlags hideFlags = HideFlags.None) where T : ScriptableObject
+        {
+            var so = ScriptableObject.CreateInstance<T>();
+            so.hideFlags = hideFlags;
+            AssetDatabase.CreateAsset(so, path);
+            EditorUtility.SetDirty(so);
+            EditorUtility.FocusProjectWindow();
+            Selection.activeObject = so;
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            return so;
+        }
+        public static void SaveScriptableObject(ScriptableObject scriptableObject)
+        {
+            if (scriptableObject == null)
+                return;
+            EditorUtility.SetDirty(scriptableObject);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
         }
     }
 }

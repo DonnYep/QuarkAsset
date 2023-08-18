@@ -68,5 +68,6 @@ namespace Quark.Editor
         /// 清空拷贝到的StreamingAssets路径
         /// </summary>
         public bool ClearStreamingAssetsDestinationPath;
+        public static readonly QuarkBuildParams None=new QuarkBuildParams();
     }
 }

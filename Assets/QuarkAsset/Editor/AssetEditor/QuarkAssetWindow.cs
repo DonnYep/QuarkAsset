@@ -15,6 +15,7 @@ namespace Quark.Editor
         QuarkAssetWindowData windowData;
         QuarkDataset latestDataset;
         Texture2D refreshIcon;
+        Texture2D createAddNewIcon;
         public QuarkAssetWindow()
         {
             this.titleContent = new GUIContent("QuarkAsset");
@@ -41,6 +42,7 @@ namespace Quark.Editor
             assetBundleTab.SetAssetDatabaseTab(assetDatabaseTab);
             assetDatasetTab.OnEnable();
             refreshIcon = QuarkEditorUtility.GetRefreshIcon();
+            createAddNewIcon = QuarkEditorUtility.GetCreateAddNewIcon();
         }
 
         void OnDisable()
@@ -59,7 +61,7 @@ namespace Quark.Editor
             EditorGUILayout.BeginHorizontal();
             {
                 latestDataset = (QuarkDataset)EditorGUILayout.ObjectField("QuarkAssetDataset", latestDataset, typeof(QuarkDataset), false);
-                if (GUILayout.Button(refreshIcon, GUILayout.MaxWidth(32)))
+                if (GUILayout.Button(refreshIcon, GUILayout.MaxWidth(28)))
                 {
                     if (latestDataset == null)
                         return;
@@ -75,6 +77,10 @@ namespace Quark.Editor
                             assetDatasetTab.OnDatasetRefresh();
                             break;
                     }
+                }
+                if (GUILayout.Button(createAddNewIcon, GUILayout.MaxWidth(28)))
+                {
+                    latestDataset = CreateQuarkAssetDataset();
                 }
             }
             EditorGUILayout.EndHorizontal();
@@ -94,15 +100,6 @@ namespace Quark.Editor
                     UnassignDataset();
                 }
             }
-            GUILayout.BeginHorizontal();
-            {
-                GUILayout.FlexibleSpace();
-                if (GUILayout.Button("CreateDataset", GUILayout.MaxWidth(128f)))
-                {
-                    latestDataset = CreateQuarkAssetDataset();
-                }
-            }
-            GUILayout.EndHorizontal();
 
             GUILayout.Space(16);
             scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
@@ -129,14 +126,9 @@ namespace Quark.Editor
 
         QuarkDataset CreateQuarkAssetDataset()
         {
-            var dataset = ScriptableObject.CreateInstance<QuarkDataset>();
-            dataset.hideFlags = HideFlags.NotEditable;
-            AssetDatabase.CreateAsset(dataset, "Assets/New QuarkAssetDataset.asset");
+            var dataset = QuarkEditorUtility.CreateScriptableObject<QuarkDataset>("Assets/NewQuarkAssetDataset.asset", HideFlags.NotEditable);
             dataset.QuarkAssetExts.AddRange(QuarkEditorConstant.Extensions);
-            EditorUtility.SetDirty(dataset);
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
-            QuarkUtility.LogInfo("QuarkAssetDataset is created");
+            QuarkEditorUtility.SaveScriptableObject(dataset);
             return dataset;
         }
         void GetWindowData()

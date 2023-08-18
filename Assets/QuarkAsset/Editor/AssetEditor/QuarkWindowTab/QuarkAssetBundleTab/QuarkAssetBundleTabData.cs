@@ -69,6 +69,14 @@ namespace Quark.Editor
         /// 清空拷贝到的StreamingAssets路径
         /// </summary>
         public bool ClearStreamingAssetsDestinationPath;
+        /// <summary>
+        /// 使用构建预设
+        /// </summary>
+        public bool UseBuildProfile;
+        /// <summary>
+        /// 构建预设地址
+        /// </summary>
+        public string BuildProfilePath;
         public QuarkAssetBundleTabData()
         {
             BuildTarget = BuildTarget.StandaloneWindows;
