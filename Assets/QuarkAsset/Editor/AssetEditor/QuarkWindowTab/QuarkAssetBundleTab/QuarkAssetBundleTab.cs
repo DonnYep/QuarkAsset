@@ -179,7 +179,7 @@ namespace Quark.Editor
             {
                 if (buildProfile != null)
                 {
-                    buildProfile.ProfileDescription = EditorGUILayout.TagField("Description", buildProfile.ProfileDescription);
+                    buildProfile.ProfileDescription = EditorGUILayout.TextField("Description", buildProfile.ProfileDescription);
                     buildProfile.BuildVersion = EditorGUILayout.TextField("Build version", buildProfile.BuildVersion);
                     buildProfile.BuildType = (BuildType)EditorGUILayout.EnumPopup("Build type", buildProfile.BuildType);
                     switch (buildProfile.BuildType)
@@ -189,7 +189,15 @@ namespace Quark.Editor
                                 buildProfile.InternalBuildVersion = EditorGUILayout.IntField("Internal build version", buildProfile.InternalBuildVersion);
                                 if (buildProfile.InternalBuildVersion < 0)
                                     buildProfile.InternalBuildVersion = 0;
-                                tabData.AssetBundleOutputPath = Path.Combine(tabData.BuildPath, buildProfile.BuildVersion, tabData.BuildTarget.ToString(), $"{buildProfile.BuildVersion}_{buildProfile.InternalBuildVersion}").Replace("\\", "/");
+                                var buildVersion = buildProfile.BuildVersion;
+                                if (!string.IsNullOrEmpty(buildVersion))
+                                {
+                                    tabData.AssetBundleOutputPath = Path.Combine(tabData.BuildPath, buildVersion, tabData.BuildTarget.ToString(), $"{buildVersion}_{buildProfile.InternalBuildVersion}").Replace("\\", "/");
+                                }
+                                else
+                                {
+                                    tabData.AssetBundleOutputPath = Path.Combine(tabData.BuildPath, tabData.BuildTarget.ToString(), $"_{buildProfile.InternalBuildVersion}").Replace("\\", "/");
+                                }
                             }
                             break;
                         case BuildType.Incremental:

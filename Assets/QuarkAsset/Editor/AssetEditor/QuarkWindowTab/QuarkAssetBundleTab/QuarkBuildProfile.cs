@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-
 namespace Quark.Editor
 {
     public class QuarkBuildProfile : ScriptableObject
