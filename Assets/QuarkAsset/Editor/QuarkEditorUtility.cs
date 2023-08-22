@@ -114,6 +114,10 @@ namespace Quark.Editor
         {
             return EditorGUIUtility.FindTexture("SaveActive");
         }
+        public static Texture2D GetFilterByTypeIcon()
+        {
+            return EditorGUIUtility.FindTexture("FilterByType");
+        }
         public static Texture2D ToTexture2D(Texture texture)
         {
             return Texture2D.CreateExternalTexture(
@@ -306,6 +310,17 @@ namespace Quark.Editor
                 },
                 new MultiColumnHeaderState.Column
                 {
+                    headerContent = new GUIContent(GetFilterByTypeIcon()),
+                    headerTextAlignment = TextAlignment.Center,
+                    sortingArrowAlignment = TextAlignment.Center,
+                    sortedAscending = false,
+                    minWidth=28,
+                    width=28,
+                    maxWidth=28,
+                    autoResize = true,
+                },
+                new MultiColumnHeaderState.Column
+                {
                     headerContent = new GUIContent("ObjectName"),
                     headerTextAlignment = TextAlignment.Left,
                     sortingArrowAlignment = TextAlignment.Left,
@@ -369,6 +384,50 @@ namespace Quark.Editor
                     width=768,
                     maxWidth=1024,
                     autoResize = true,
+                }
+            };
+            var state = new MultiColumnHeaderState(columns);
+            return state;
+        }
+        public static MultiColumnHeaderState CreateBundleDetailMultiColumnHeader()
+        {
+            var columns = new[]
+            {
+                new MultiColumnHeaderState.Column
+                {
+                    headerContent = new GUIContent("Size"),
+                    headerTextAlignment = TextAlignment.Left,
+                    sortingArrowAlignment = TextAlignment.Left,
+                    sortedAscending = false,
+                    minWidth=54,
+                    width=64,
+                    maxWidth=92,
+                    autoResize = true,
+                    canSort=false
+                },
+                new MultiColumnHeaderState.Column
+                {
+                    headerContent = new GUIContent("Count"),
+                    headerTextAlignment = TextAlignment.Left,
+                    sortingArrowAlignment = TextAlignment.Left,
+                    sortedAscending = false,
+                    minWidth=36,
+                    width = 48,
+                    maxWidth=92,
+                    autoResize = false,
+                    canSort=false
+                },
+                new MultiColumnHeaderState.Column
+                {
+                    headerContent = new GUIContent("Bundle"),
+                    headerTextAlignment = TextAlignment.Left,
+                    sortingArrowAlignment = TextAlignment.Left,
+                    sortedAscending = false,
+                    minWidth=192,
+                    width = 768,
+                    maxWidth=1024,
+                    autoResize = false,
+                    canSort=false
                 }
             };
             var state = new MultiColumnHeaderState(columns);
@@ -459,6 +518,94 @@ namespace Quark.Editor
             var state = new MultiColumnHeaderState(columns);
             return state;
         }
+        public static MultiColumnHeaderState CreateManifestMergeMultiColumnHeader()
+        {
+            var columns = new[]
+            {
+            new MultiColumnHeaderState.Column
+                {
+                    headerContent = new GUIContent("Index"),
+                    headerTextAlignment = TextAlignment.Left,
+                    sortingArrowAlignment = TextAlignment.Left,
+                    sortedAscending = false,
+                    minWidth=24,
+                    width=40,
+                    maxWidth=92,
+                    autoResize = true,
+                    canSort=false
+                },
+              new MultiColumnHeaderState.Column
+                {
+                    headerContent = new GUIContent("Type"),
+                    headerTextAlignment = TextAlignment.Left,
+                    sortingArrowAlignment = TextAlignment.Left,
+                    sortedAscending = false,
+                    minWidth=36,
+                    width = 48,
+                    maxWidth=92,
+                    autoResize = false,
+                    canSort=true
+                },
+                new MultiColumnHeaderState.Column
+                {
+                    headerContent = new GUIContent("ObjectCount"),
+                    headerTextAlignment = TextAlignment.Left,
+                    sortingArrowAlignment = TextAlignment.Left,
+                    sortedAscending = false,
+                    minWidth=48,
+                    width = 92,
+                    maxWidth=92,
+                    autoResize = false,
+                    canSort=true
+                },
+                new MultiColumnHeaderState.Column
+                {
+                    headerContent = new GUIContent("BundleName"),
+                    headerTextAlignment = TextAlignment.Left,
+                    sortingArrowAlignment = TextAlignment.Left,
+                    sortedAscending = false,
+                    minWidth=168,
+                    width=256,
+                    maxWidth=480,
+                    autoResize = true,
+                },
+                new MultiColumnHeaderState.Column
+                {
+                    headerContent = new GUIContent("FormatSize"),
+                    headerTextAlignment = TextAlignment.Left,
+                    sortingArrowAlignment = TextAlignment.Left,
+                    sortedAscending = false,
+                     minWidth=64,
+                    width=92,
+                    maxWidth=128,
+                    autoResize = true,
+                },
+                new MultiColumnHeaderState.Column
+                {
+                    headerContent = new GUIContent("BundleKey"),
+                    headerTextAlignment = TextAlignment.Left,
+                    sortingArrowAlignment = TextAlignment.Left,
+                    sortedAscending = false,
+                    minWidth=168,
+                    width=256,
+                    maxWidth=480,
+                    autoResize = true,
+                },
+                new MultiColumnHeaderState.Column
+                {
+                   headerContent = new GUIContent("BundleHash"),
+                    headerTextAlignment = TextAlignment.Left,
+                    sortingArrowAlignment = TextAlignment.Left,
+                    sortedAscending = false,
+                    minWidth=168,
+                    width=256,
+                    maxWidth=320,
+                    autoResize = true,
+                }
+            };
+            var state = new MultiColumnHeaderState(columns);
+            return state;
+        }
         /// <summary>
         /// 获取文件夹中文件的总体大小；
         /// </summary>
@@ -501,7 +648,11 @@ namespace Quark.Editor
             if (scriptableObject == null)
                 return;
             EditorUtility.SetDirty(scriptableObject);
+#if UNITY_2021_1_OR_NEWER
+                AssetDatabase.SaveAssetIfDirty(scriptableObject);
+#elif UNITY_2019_1_OR_NEWER
             AssetDatabase.SaveAssets();
+#endif
             AssetDatabase.Refresh();
         }
     }

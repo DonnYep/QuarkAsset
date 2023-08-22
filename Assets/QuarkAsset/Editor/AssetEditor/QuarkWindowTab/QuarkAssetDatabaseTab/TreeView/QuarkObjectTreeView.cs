@@ -136,7 +136,9 @@ namespace Quark.Editor
             {
                 case 0://index
                     break;
-                case 1://ObjectName
+                case 1://icon
+                    break;
+                case 2://ObjectName
                     {
                         if (ascending)
                             objectInfoList.Sort((lhs, rhs) => lhs.ObjectName.CompareTo(rhs.ObjectName));
@@ -144,7 +146,7 @@ namespace Quark.Editor
                             objectInfoList.Sort((lhs, rhs) => rhs.ObjectName.CompareTo(lhs.ObjectName));
                     }
                     break;
-                case 2://Size
+                case 3://Size
                     {
                         if (ascending)
                             objectInfoList.Sort((lhs, rhs) => lhs.ObjectSize.CompareTo(rhs.ObjectSize));
@@ -152,7 +154,7 @@ namespace Quark.Editor
                             objectInfoList.Sort((lhs, rhs) => rhs.ObjectSize.CompareTo(lhs.ObjectSize));
                     }
                     break;
-                case 3://Extension
+                case 4://Extension
                     {
                         if (ascending)
                             objectInfoList.Sort((lhs, rhs) => lhs.BundleName.CompareTo(rhs.BundleName));
@@ -160,7 +162,7 @@ namespace Quark.Editor
                             objectInfoList.Sort((lhs, rhs) => rhs.BundleName.CompareTo(lhs.BundleName));
                     }
                     break;
-                case 4://Type
+                case 5://Type
                     {
                         if (ascending)
                             objectInfoList.Sort((lhs, rhs) => lhs.ObjectType.CompareTo(rhs.ObjectType));
@@ -168,7 +170,7 @@ namespace Quark.Editor
                             objectInfoList.Sort((lhs, rhs) => rhs.ObjectType.CompareTo(lhs.ObjectType));
                     }
                     break;
-                case 5://BundleName
+                case 6://BundleName
                     {
                         if (ascending)
                             objectInfoList.Sort((lhs, rhs) => rhs.BundleName.CompareTo(lhs.BundleName));
@@ -176,7 +178,7 @@ namespace Quark.Editor
                             objectInfoList.Sort((lhs, rhs) => lhs.BundleName.CompareTo(rhs.BundleName));
                     }
                     break;
-                case 6://AssetPath
+                case 7://AssetPath
                     {
                         if (ascending)
                             objectInfoList.Sort((lhs, rhs) => rhs.ObjectPath.CompareTo(lhs.ObjectPath));
@@ -190,6 +192,8 @@ namespace Quark.Editor
 
         void DrawCellGUI(Rect cellRect, QuarkObjectTreeViewItem treeView, int column, ref RowGUIArgs args)
         {
+            //CenterRectUsingSingleLineHeight(ref cellRect);
+
             switch (column)
             {
                 case 0:
@@ -202,21 +206,24 @@ namespace Quark.Editor
                         var iconRect = new Rect(cellRect.x + 4, cellRect.y, cellRect.height, cellRect.height);
                         if (treeView.icon != null)
                             GUI.DrawTexture(iconRect, treeView.icon, ScaleMode.ScaleToFit);
-                        var lablCellRect = new Rect(cellRect.x + iconRect.width + 4, cellRect.y, cellRect.width - iconRect.width, cellRect.height);
-                        DefaultGUI.Label(lablCellRect, treeView.displayName, args.selected, args.focused);
                     }
                     break;
                 case 2:
                     {
-                        DefaultGUI.Label(cellRect, treeView.FormatBytes, args.selected, args.focused);
+                        DefaultGUI.Label(cellRect, treeView.displayName, args.selected, args.focused);
                     }
                     break;
                 case 3:
                     {
-                        DefaultGUI.Label(cellRect, treeView.AssetExtension, args.selected, args.focused);
+                        DefaultGUI.Label(cellRect, treeView.FormatBytes, args.selected, args.focused);
                     }
                     break;
                 case 4:
+                    {
+                        DefaultGUI.Label(cellRect, treeView.AssetExtension, args.selected, args.focused);
+                    }
+                    break;
+                case 5:
                     {
                         var iconRect = new Rect(cellRect.x + 4, cellRect.y, cellRect.height, cellRect.height);
                         if (treeView.icon != null)
@@ -226,12 +233,12 @@ namespace Quark.Editor
                         //DefaultGUI.Label(cellRect, treeView.AssetType, args.selected, args.focused);
                     }
                     break;
-                case 5:
+                case 6:
                     {
                         DefaultGUI.Label(cellRect, treeView.BundleName, args.selected, args.focused);
                     }
                     break;
-                case 6:
+                case 7:
                     {
                         DefaultGUI.Label(cellRect, treeView.AssetPath, args.selected, args.focused);
                     }

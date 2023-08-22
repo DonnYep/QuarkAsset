@@ -54,7 +54,7 @@ namespace Quark.Editor
                         manifestDecryptTab.OnGUI();
                         break;
                     case 2:
-                        manifestMergeTab.OnGUI();
+                        manifestMergeTab.OnGUI(position);
                         break;
                 }
             }

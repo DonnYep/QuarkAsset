@@ -47,21 +47,27 @@ namespace Quark.Editor
             EditorGUILayout.EndHorizontal();
             tabData.OpenDecryptPathWhenCompareDone = EditorGUILayout.ToggleLeft("Open decrypted path when output", tabData.OpenDecryptPathWhenCompareDone);
             GUILayout.Space(16);
-
-            if (GUILayout.Button("Decrypd"))
+            GUILayout.BeginHorizontal();
             {
-
-                var manifest = LoadManifest(tabData.ManifestPath, tabData.ManifestAesKey);
-                if (manifest != null)
+                if (GUILayout.Button("Decrypd"))
                 {
-                    OverwriteManifest(tabData.DecryptedManifestOutputPath, manifest);
-                    QuarkUtility.LogInfo("Decrypted manifest overwrite done ! ");
-                    if (tabData.OpenDecryptPathWhenCompareDone)
+                    var manifest = LoadManifest(tabData.ManifestPath, tabData.ManifestAesKey);
+                    if (manifest != null)
                     {
-                        EditorUtility.RevealInFinder(tabData.DecryptedManifestOutputPath);
+                        OverwriteManifest(tabData.DecryptedManifestOutputPath, manifest);
+                        QuarkUtility.LogInfo("Decrypted manifest overwrite done ! ");
+                        if (tabData.OpenDecryptPathWhenCompareDone)
+                        {
+                            EditorUtility.RevealInFinder(tabData.DecryptedManifestOutputPath);
+                        }
                     }
                 }
+                if (GUILayout.Button("Clear"))
+                {
+
+                }
             }
+            GUILayout.EndHorizontal();
         }
         public void OnDisable()
         {

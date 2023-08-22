@@ -16,6 +16,7 @@ namespace Quark.Editor
         QuarkDataset latestDataset;
         Texture2D refreshIcon;
         Texture2D createAddNewIcon;
+        Texture2D SaveActiveIcon;
         public QuarkAssetWindow()
         {
             this.titleContent = new GUIContent("QuarkAsset");
@@ -43,6 +44,7 @@ namespace Quark.Editor
             assetDatasetTab.OnEnable();
             refreshIcon = QuarkEditorUtility.GetRefreshIcon();
             createAddNewIcon = QuarkEditorUtility.GetCreateAddNewIcon();
+            SaveActiveIcon= QuarkEditorUtility.GetSaveActiveIcon();
         }
 
         void OnDisable()
@@ -81,6 +83,10 @@ namespace Quark.Editor
                 if (GUILayout.Button(createAddNewIcon, GUILayout.MaxWidth(28)))
                 {
                     latestDataset = CreateQuarkAssetDataset();
+                }
+                if (GUILayout.Button(SaveActiveIcon, GUILayout.MaxWidth(28)))
+                {
+                    QuarkEditorUtility.SaveScriptableObject(QuarkEditorDataProxy.QuarkAssetDataset);
                 }
             }
             EditorGUILayout.EndHorizontal();
@@ -152,13 +158,7 @@ namespace Quark.Editor
             if (QuarkEditorDataProxy.QuarkAssetDataset != null)
             {
                 windowData.QuarkDatasetPath = AssetDatabase.GetAssetPath(QuarkEditorDataProxy.QuarkAssetDataset);
-                EditorUtility.SetDirty(QuarkEditorDataProxy.QuarkAssetDataset);
-#if UNITY_2021_1_OR_NEWER
-                AssetDatabase.SaveAssetIfDirty(QuarkEditorDataProxy.QuarkAssetDataset);
-#elif UNITY_2019_1_OR_NEWER
-                AssetDatabase.SaveAssets();
-#endif
-                AssetDatabase.Refresh();
+                QuarkEditorUtility.SaveScriptableObject(QuarkEditorDataProxy.QuarkAssetDataset);
             }
             QuarkEditorUtility.SaveData(QuarkAssetWindowDataName, windowData);
         }

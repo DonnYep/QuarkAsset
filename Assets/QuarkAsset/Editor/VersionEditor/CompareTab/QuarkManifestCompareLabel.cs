@@ -11,6 +11,11 @@ namespace Quark.Editor
         TreeViewState treeViewState;
         SearchField searchField;
         Rect buttonRect;
+        QuarkManifestCompareTab owner;
+        public QuarkManifestCompareLabel(QuarkManifestCompareTab owner)
+        {
+            this.owner = owner;
+        }
         public void OnEnable()
         {
             searchField = new SearchField();
@@ -36,11 +41,14 @@ namespace Quark.Editor
         void DrawTreeView(Rect rect)
         {
             GUILayout.BeginVertical(GUILayout.MaxWidth(rect.width));
+
             GUILayout.BeginHorizontal();
             {
-                if (GUILayout.Button("Bundle change type filter", EditorStyles.popup,GUILayout.MaxWidth(192)))
+                if (GUILayout.Button("Bundle change type filter", EditorStyles.toolbarPopup, GUILayout.MaxWidth(192)))
                 {
-                    PopupWindow.Show(buttonRect, new ChangeTypePopup());
+                    var popup = new ChangeTypePopup();
+                    popup.onClose = () => owner.RefreshCompareResult();
+                    PopupWindow.Show(buttonRect, popup);
                 }
                 if (Event.current.type == EventType.Repaint)
                     buttonRect = GUILayoutUtility.GetLastRect();

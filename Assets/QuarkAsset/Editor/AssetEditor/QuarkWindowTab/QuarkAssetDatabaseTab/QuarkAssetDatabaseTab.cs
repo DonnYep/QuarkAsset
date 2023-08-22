@@ -308,6 +308,9 @@ namespace Quark.Editor
                             BundleName = subBundlePath,
                             BundlePath = subBundlePath
                         };
+                        subBundleInfo.BundleSize = QuarkEditorUtility.GetUnityDirectorySize(subBundlePath, QuarkEditorDataProxy.QuarkAssetDataset.QuarkAssetExts);
+                        subBundleInfo.BundleFormatBytes = EditorUtility.FormatBytes(subBundleInfo.BundleSize);
+
                         if (!bundleInfo.SubBundleInfoList.Contains(subBundleInfo))
                         {
                             bundleInfo.SubBundleInfoList.Add(subBundleInfo);
@@ -452,6 +455,7 @@ namespace Quark.Editor
 
             QuarkUtility.LogInfo("Quark dataset build done ");
             OnSelectionChanged(tabData.SelectedBundleIds);
+            QuarkEditorDataProxy.QuarkAssetDataset.CacheAllBundleInfos();
         }
         void OnSelectionChanged(IList<int> selectedIds)
         {

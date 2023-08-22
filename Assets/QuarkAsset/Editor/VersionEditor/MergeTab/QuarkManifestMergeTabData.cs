@@ -1,5 +1,6 @@
 ﻿namespace Quark.Editor
 {
+    [System.Serializable]
     public class QuarkManifestMergeTabData
     {
         public string SrcManifestPath;
@@ -8,7 +9,7 @@
         public string DiffManifestPath;
         public string DiffManifestAesKey;
 
-        public string MergedManifestOutputPath;
-        public bool OpenMergedManifestPathWhenMerge;
+        public bool ShowIncremental = true;
+        public bool ShowBuiltIn = true;
     }
 }

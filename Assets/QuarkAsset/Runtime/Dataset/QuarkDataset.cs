@@ -63,7 +63,12 @@ namespace Quark.Asset
                 return quarkSceneList;
             }
         }
-        public void  CacheAllBundleInfos()
+        public IList<IQuarkBundleInfo> GetCacheAllBundleInfos()
+        {
+            CacheAllBundleInfos();
+            return AllCachedBundleInfos;
+        }
+        public void CacheAllBundleInfos()
         {
             var infoList = AllCachedBundleInfos;
             infoList.Clear();

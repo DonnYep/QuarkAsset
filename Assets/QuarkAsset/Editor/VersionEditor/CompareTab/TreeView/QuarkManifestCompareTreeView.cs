@@ -24,10 +24,14 @@ namespace Quark.Editor
             if (compareResult != null)
             {
                 compareResultInfo.Clear();
-                compareResultInfo.AddRange(compareResult.ChangedInfos);
-                compareResultInfo.AddRange(compareResult.NewlyAddedInfos);
-                compareResultInfo.AddRange(compareResult.DeletedInfos);
-                compareResultInfo.AddRange(compareResult.UnchangedInfos);
+                if (QuarkManifestCompareTabDataProxy.ShowChanged)
+                    compareResultInfo.AddRange(compareResult.ChangedInfos);
+                if (QuarkManifestCompareTabDataProxy.ShowNewlyAdded)
+                    compareResultInfo.AddRange(compareResult.NewlyAddedInfos);
+                if (QuarkManifestCompareTabDataProxy.ShowDeleted)
+                    compareResultInfo.AddRange(compareResult.DeletedInfos);
+                if (QuarkManifestCompareTabDataProxy.ShowUnchanged)
+                    compareResultInfo.AddRange(compareResult.UnchangedInfos);
                 Reload();
             }
         }

@@ -10,9 +10,10 @@ namespace Quark.Editor
     {
         internal const string ManifestCompareTabDataFileName = "QuarkVersion_ManifesCompareTabData.json";
         QuarkManifestCompareTabData tabData;
-        QuarkManifestCompareLabel compareResultLabel = new QuarkManifestCompareLabel();
+        QuarkManifestCompareLabel compareResultLabel;
         public void OnEnable()
         {
+            compareResultLabel = new QuarkManifestCompareLabel(this);
             compareResultLabel.OnEnable();
             GetWindowData();
             GetCachedCompareResult();
@@ -36,6 +37,10 @@ namespace Quark.Editor
         public void OnDisable()
         {
             SaveWindowData();
+        }
+        internal void RefreshCompareResult()
+        {
+            GetCachedCompareResult();
         }
         QuarkManifest LoadManifest(string path, string key)
         {
@@ -61,9 +66,17 @@ namespace Quark.Editor
                 tabData = new QuarkManifestCompareTabData();
                 QuarkEditorUtility.SaveData(ManifestCompareTabDataFileName, tabData);
             }
+            QuarkManifestCompareTabDataProxy.ShowChanged = tabData.Changed;
+            QuarkManifestCompareTabDataProxy.ShowNewlyAdded = tabData.NewlyAdded;
+            QuarkManifestCompareTabDataProxy.ShowDeleted = tabData.Deleted;
+            QuarkManifestCompareTabDataProxy.ShowUnchanged = tabData.Unchanged;
         }
         void SaveWindowData()
         {
+            tabData.Changed = QuarkManifestCompareTabDataProxy.ShowChanged;
+            tabData.NewlyAdded = QuarkManifestCompareTabDataProxy.ShowNewlyAdded;
+            tabData.Deleted = QuarkManifestCompareTabDataProxy.ShowDeleted;
+            tabData.Unchanged = QuarkManifestCompareTabDataProxy.ShowUnchanged;
             QuarkEditorUtility.SaveData(ManifestCompareTabDataFileName, tabData);
         }
         void GetCachedCompareResult()
