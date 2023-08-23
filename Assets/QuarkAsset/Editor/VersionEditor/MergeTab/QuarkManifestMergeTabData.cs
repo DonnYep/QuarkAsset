@@ -11,5 +11,7 @@
 
         public bool ShowIncremental = true;
         public bool ShowBuiltIn = true;
+
+        public bool ShowMergedManifest;
     }
 }

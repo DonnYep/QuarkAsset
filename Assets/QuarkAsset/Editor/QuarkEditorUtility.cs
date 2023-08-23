@@ -606,6 +606,82 @@ namespace Quark.Editor
             var state = new MultiColumnHeaderState(columns);
             return state;
         }
+        public static MultiColumnHeaderState CreateManifestParseMultiColumnHeader()
+        {
+            var columns = new[]
+            {
+            new MultiColumnHeaderState.Column
+                {
+                    headerContent = new GUIContent("Index"),
+                    headerTextAlignment = TextAlignment.Left,
+                    sortingArrowAlignment = TextAlignment.Left,
+                    sortedAscending = false,
+                    minWidth=24,
+                    width=40,
+                    maxWidth=92,
+                    autoResize = true,
+                    canSort=false
+                },
+                new MultiColumnHeaderState.Column
+                {
+                    headerContent = new GUIContent("ObjectCount"),
+                    headerTextAlignment = TextAlignment.Left,
+                    sortingArrowAlignment = TextAlignment.Left,
+                    sortedAscending = false,
+                    minWidth=48,
+                    width = 92,
+                    maxWidth=92,
+                    autoResize = false,
+                    canSort=true
+                },
+                new MultiColumnHeaderState.Column
+                {
+                    headerContent = new GUIContent("BundleName"),
+                    headerTextAlignment = TextAlignment.Left,
+                    sortingArrowAlignment = TextAlignment.Left,
+                    sortedAscending = false,
+                    minWidth=168,
+                    width=256,
+                    maxWidth=480,
+                    autoResize = true,
+                },
+                new MultiColumnHeaderState.Column
+                {
+                    headerContent = new GUIContent("FormatSize"),
+                    headerTextAlignment = TextAlignment.Left,
+                    sortingArrowAlignment = TextAlignment.Left,
+                    sortedAscending = false,
+                     minWidth=64,
+                    width=92,
+                    maxWidth=128,
+                    autoResize = true,
+                },
+                new MultiColumnHeaderState.Column
+                {
+                    headerContent = new GUIContent("BundleKey"),
+                    headerTextAlignment = TextAlignment.Left,
+                    sortingArrowAlignment = TextAlignment.Left,
+                    sortedAscending = false,
+                    minWidth=168,
+                    width=256,
+                    maxWidth=480,
+                    autoResize = true,
+                },
+                new MultiColumnHeaderState.Column
+                {
+                   headerContent = new GUIContent("BundleHash"),
+                    headerTextAlignment = TextAlignment.Left,
+                    sortingArrowAlignment = TextAlignment.Left,
+                    sortedAscending = false,
+                    minWidth=168,
+                    width=256,
+                    maxWidth=320,
+                    autoResize = true,
+                }
+            };
+            var state = new MultiColumnHeaderState(columns);
+            return state;
+        }
         /// <summary>
         /// 获取文件夹中文件的总体大小；
         /// </summary>

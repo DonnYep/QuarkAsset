@@ -89,7 +89,7 @@ namespace Quark.Editor
                 var bundlePath = bundleInfo.BundlePath;
                 var importer = AssetImporter.GetAtPath(bundlePath);
                 var nameType = buildParams.AssetBundleNameType;
-                var bundleName = bundleInfo.BundleName;
+                var bundleKey = bundleInfo.BundleName;
                 var path = Path.Combine(QuarkEditorUtility.ApplicationPath, bundlePath);
                 var hash = QuarkEditorUtility.CreateDirectoryMd5(path);
                 switch (nameType)
@@ -99,12 +99,12 @@ namespace Quark.Editor
                         break;
                     case AssetBundleNameType.HashInstead:
                         {
-                            bundleName = hash;
+                            bundleKey = hash;
                             bundleInfo.BundleKey = hash;
                         }
                         break;
                 }
-                importer.assetBundleName = bundleName;
+                importer.assetBundleName = bundleKey;
                 var bundle = new QuarkBundle()
                 {
                     BundleKey = bundleInfo.BundleKey,
@@ -132,7 +132,7 @@ namespace Quark.Editor
                     QuarkAssetBundle = bundle,
                     BundleName = bundleInfo.BundleName
                 };
-                quarkManifest.BundleInfoDict.Add(bundleName, quarkBundleInfo);
+                quarkManifest.BundleInfoDict.Add(bundleKey, quarkBundleInfo);
             }
         }
         public static void SetBundleDependent(QuarkDataset dataset, QuarkManifest quarkManifest)

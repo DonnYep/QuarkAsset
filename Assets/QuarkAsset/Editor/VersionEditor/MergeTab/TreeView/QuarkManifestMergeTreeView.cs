@@ -8,7 +8,6 @@ namespace Quark.Editor
 {
     public class QuarkManifestMergeTreeView : TreeView
     {
-        QuarkMergedManifest mergedManifest;
         List<QuarkMergedBundleAsset> mergedBundleAssets = new List<QuarkMergedBundleAsset>();
         public QuarkManifestMergeTreeView(TreeViewState treeViewState, MultiColumnHeader multiColumnHeader)
 : base(treeViewState, multiColumnHeader)
@@ -20,7 +19,6 @@ namespace Quark.Editor
         }
         public void SetManifest(QuarkMergedManifest mergedManifest)
         {
-            this.mergedManifest = mergedManifest;
             mergedBundleAssets.Clear();
             if (mergedManifest == null)
                 return;

@@ -41,7 +41,7 @@ namespace Quark.Editor
         {
             GUILayout.BeginVertical();
             {
-                GUILayout.BeginHorizontal("box");
+                GUILayout.BeginHorizontal();
                 {
                     DrawManifestDetail(rect);
                     DrawTreeView(rect);

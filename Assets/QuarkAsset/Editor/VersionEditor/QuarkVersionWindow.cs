@@ -9,12 +9,12 @@ namespace Quark.Editor
 
         internal const string QuarkVersionWindowDataName = "QuarkVersion_WindowData.json";
         QuarkManifestCompareTab manifestCompareTab;
-        QuarkManifestDecryptTab manifestDecryptTab;
         QuarkManifestMergeTab manifestMergeTab;
+        QuarkManifestParseTab manifestParseTab;
 
         Vector2 scrollPosition;
 
-        string[] tabArray = new string[] { "Compare", "Decrypt", "Merge" };
+        string[] tabArray = new string[] { "Compare", "Merge", "Parse" };
         public QuarkVersionWindow()
         {
             this.titleContent = new GUIContent("QuarkVersion");
@@ -30,13 +30,13 @@ namespace Quark.Editor
             GetWindowData();
             if (manifestCompareTab == null)
                 manifestCompareTab = new QuarkManifestCompareTab();
-            if (manifestDecryptTab == null)
-                manifestDecryptTab = new QuarkManifestDecryptTab();
             if (manifestMergeTab == null)
                 manifestMergeTab = new QuarkManifestMergeTab();
+            if (manifestParseTab == null)
+                manifestParseTab = new QuarkManifestParseTab();
             manifestCompareTab.OnEnable();
-            manifestDecryptTab.OnEnable();
             manifestMergeTab.OnEnable();
+            manifestParseTab.OnEnable();
         }
         private void OnGUI()
         {
@@ -51,10 +51,10 @@ namespace Quark.Editor
                         manifestCompareTab.OnGUI(position);
                         break;
                     case 1:
-                        manifestDecryptTab.OnGUI();
+                        manifestMergeTab.OnGUI(position);
                         break;
                     case 2:
-                        manifestMergeTab.OnGUI(position);
+                        manifestParseTab.OnGUI(position);
                         break;
                 }
             }
@@ -64,8 +64,8 @@ namespace Quark.Editor
         {
             SaveWindowData();
             manifestCompareTab.OnDisable();
-            manifestDecryptTab.OnDisable();
             manifestMergeTab.OnDisable();
+            manifestParseTab.OnDisable();
         }
         void GetWindowData()
         {

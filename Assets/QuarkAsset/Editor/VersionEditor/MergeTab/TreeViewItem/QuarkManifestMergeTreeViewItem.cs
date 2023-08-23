@@ -1,5 +1,4 @@
 ﻿using UnityEditor.IMGUI.Controls;
-using UnityEngine;
 namespace Quark.Editor
 {
     public class QuarkManifestMergeTreeViewItem : TreeViewItem

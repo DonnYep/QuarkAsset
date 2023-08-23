@@ -1,9 +1,5 @@
 ﻿using Quark.Asset;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using UnityEditor;
 using UnityEngine;
 
@@ -19,7 +15,8 @@ namespace Quark.Editor
             manifestMergeLabel = new QuarkManifestMergeLabel(this);
             GetWindowData();
             manifestMergeLabel.OnEnable();
-            GetCachedMergedManifest();
+            if (tabData.ShowMergedManifest)
+                GetCachedMergedManifest();
         }
         public void OnGUI(Rect rect)
         {
@@ -28,10 +25,8 @@ namespace Quark.Editor
                 DrawConfig();
                 GUILayout.Space(16);
                 DrawButton();
+                manifestMergeLabel.OnGUI(rect);
             }
-
-            manifestMergeLabel.OnGUI(rect);
-
             EditorGUILayout.EndVertical();
         }
         public void OnDisable()
@@ -44,9 +39,10 @@ namespace Quark.Editor
         }
         QuarkManifest LoadManifest(string path, string key)
         {
-            if (File.Exists(path))
+            var filePath = Path.Combine(path, QuarkConstant.MANIFEST_NAME);
+            if (File.Exists(filePath))
             {
-                var context = QuarkUtility.ReadTextFileContent(path);
+                var context = QuarkUtility.ReadTextFileContent(filePath);
                 return Quark.QuarkUtility.Manifest.DeserializeManifest(context, key);
             }
             else
@@ -81,7 +77,7 @@ namespace Quark.Editor
                 tabData.SrcManifestPath = EditorGUILayout.TextField("SrcManifestPath", tabData.SrcManifestPath);
                 if (GUILayout.Button("Browse", GUILayout.MaxWidth(128f)))
                 {
-                    var newPath = EditorUtility.OpenFilePanel("SrcManifestPath", tabData.SrcManifestPath, string.Empty);
+                    var newPath = EditorUtility.OpenFolderPanel("SrcManifestPath", tabData.SrcManifestPath, string.Empty);
                     if (!string.IsNullOrEmpty(newPath))
                     {
                         tabData.SrcManifestPath = newPath.Replace("\\", "/");
@@ -99,7 +95,7 @@ namespace Quark.Editor
                 tabData.DiffManifestPath = EditorGUILayout.TextField("DiffManifestPath", tabData.DiffManifestPath);
                 if (GUILayout.Button("Browse", GUILayout.MaxWidth(128f)))
                 {
-                    var newPath = EditorUtility.OpenFilePanel("DiffManifestPath", tabData.DiffManifestPath, string.Empty);
+                    var newPath = EditorUtility.OpenFolderPanel("DiffManifestPath", tabData.DiffManifestPath, string.Empty);
                     if (!string.IsNullOrEmpty(newPath))
                     {
                         tabData.DiffManifestPath = newPath.Replace("\\", "/");
@@ -131,10 +127,12 @@ namespace Quark.Editor
                         manifestMergeLabel.SetManifest(mergedManifest);
                         QuarkEditorUtility.SaveData(QuarkConstant.MERGED_MANIFEST_NAME, mergedManifest);
                         QuarkUtility.LogInfo("Merged manifest overwrite done ! ");
+                        tabData.ShowMergedManifest=true;
                     }
                 }
                 if (GUILayout.Button("Clear"))
                 {
+                    tabData.ShowMergedManifest = false;
                     manifestMergeLabel.Clear();
                 }
             }
