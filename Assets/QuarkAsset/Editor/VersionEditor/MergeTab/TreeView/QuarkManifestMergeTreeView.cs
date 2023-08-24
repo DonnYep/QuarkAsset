@@ -89,6 +89,17 @@ namespace Quark.Editor
                 DrawCellGUI(args.GetCellRect(i), args.item as QuarkManifestMergeTreeViewItem, args.GetColumn(i), ref args);
             }
         }
+        protected override void DoubleClickedItem(int id)
+        {
+            if (id < mergedBundleAssets.Count)
+            {
+                var rstInfo = mergedBundleAssets[id];
+                var obj = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(rstInfo.QuarkBundleAsset.QuarkAssetBundle.BundlePath);
+                EditorGUIUtility.PingObject(obj);
+                Selection.activeObject = obj;
+            }
+            base.DoubleClickedItem(id);
+        }
         void DrawCellGUI(Rect cellRect, QuarkManifestMergeTreeViewItem treeView, int column, ref RowGUIArgs args)
         {
             switch (column)
