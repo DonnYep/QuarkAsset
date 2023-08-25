@@ -15,7 +15,6 @@ namespace Quark
         static QuarkDownloader quarkDownloader;
         static QuarkManifestVerifier quarkManifestVerifier;
         static QuarkManifestRequester quarkManifestRequester;
-        static QuarlManifestComparer quarlManifestComparer;
         static QuarkLoadModeProvider quarkLoadModeProvider
             = new QuarkLoadModeProvider();
         public static QuarkLoadMode QuarkLoadMode
@@ -67,18 +66,6 @@ namespace Quark
                 if (quarkManifestRequester == null)
                     quarkManifestRequester = new QuarkManifestRequester();
                 return quarkManifestRequester;
-            }
-        }
-        /// <summary>
-        /// 文件清单比较器
-        /// </summary>
-        public static QuarlManifestComparer QuarlManifestComparer
-        {
-            get
-            {
-                if (quarlManifestComparer == null)
-                    quarlManifestComparer = new QuarlManifestComparer();
-                return quarlManifestComparer;
             }
         }
         public static void LaunchAssetBundleMode(QuarkMergedManifest mergedManifest, string persistentPath, string diffPersistentPath, string manifestAesKey = "", ulong encryptionOffset = 0)

@@ -155,7 +155,7 @@ namespace Quark.Editor
                     }
                     if (srcManifest != null && diffManifest != null)
                     {
-                        QuarkResources.QuarlManifestComparer.CompareManifestByBundleName(srcManifest, diffManifest, out var result);
+                        QuarkUtility.Manifest.CompareManifestByBundleName(srcManifest, diffManifest, out var result);
                         compareResultLabel.SetResult(result);
                         QuarkEditorUtility.SaveData(QuarkConstant.MANIFEST_COMPARE_RESULT_NAME, result);
                         QuarkUtility.LogInfo("Compare result overwrite done ! ");

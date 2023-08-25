@@ -1,5 +1,7 @@
 ﻿using Quark.Asset;
+using Quark.Manifest;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace Quark
@@ -15,6 +17,8 @@ namespace Quark
             }
             public static string SerializeManifest(QuarkManifest manifest, byte[] aesKeyBytes)
             {
+                if (manifest == null)
+                    return string.Empty;
                 var manifestJson = QuarkUtility.ToJson(manifest);
                 var encrypt = aesKeyBytes != null && aesKeyBytes.Length > 0;
                 string serializedContext = string.Empty;
@@ -31,6 +35,8 @@ namespace Quark
             }
             public static string SerializeMergedManifest(QuarkMergedManifest mergedManifest, byte[] aesKeyBytes)
             {
+                if (mergedManifest == null)
+                    return string.Empty;
                 var manifestJson = QuarkUtility.ToJson(mergedManifest);
                 var encrypt = aesKeyBytes != null && aesKeyBytes.Length > 0;
                 string serializedContext = string.Empty;
@@ -226,6 +232,141 @@ namespace Quark
                 mergeResult.InternalBuildVersion = diffManifest.InternalBuildVersion;
                 mergeResult.BuildHash = diffManifest.BuildHash;
                 mergeResult.MergedBundles = mergedBundleList;
+            }
+            public static void CompareManifest(QuarkManifest sourceManifest, QuarkManifest comparisonManifest, out QuarkManifestCompareResult result)
+            {
+                result = new QuarkManifestCompareResult();
+                List<QuarkManifestCompareInfo> deleted = new List<QuarkManifestCompareInfo>();
+                List<QuarkManifestCompareInfo> changed = new List<QuarkManifestCompareInfo>();
+                List<QuarkManifestCompareInfo> newlyAdded = new List<QuarkManifestCompareInfo>();
+                List<QuarkManifestCompareInfo> unchanged = new List<QuarkManifestCompareInfo>();
+                //这里使用src的文件清单遍历comparison的文件清单;
+                foreach (var srcBundleInfoKeyValue in sourceManifest.BundleInfoDict)
+                {
+                    var srcBundleInfo = srcBundleInfoKeyValue.Value;
+                    if (!comparisonManifest.BundleInfoDict.TryGetValue(srcBundleInfoKeyValue.Key, out var cmpBundleInfo))
+                    {
+                        //如果comparison中不存在，表示资源已经过期，加入到移除的列表中；
+                        var formatSize = QuarkUtility.FormatBytes(srcBundleInfo.BundleSize);
+                        var deletedInfo = new QuarkManifestCompareInfo(srcBundleInfo.QuarkAssetBundle.BundleName, srcBundleInfo.QuarkAssetBundle.BundleKey, srcBundleInfo.Hash, srcBundleInfo.BundleSize, formatSize, QuarkBundleChangeType.Deleted);
+                        deletedInfo.BundlePath = srcBundleInfo.QuarkAssetBundle.BundlePath;
+                        deleted.Add(deletedInfo);
+                    }
+                    else
+                    {
+                        //如果comparison中存在，则比较Hash
+                        if (srcBundleInfo.Hash != cmpBundleInfo.Hash)
+                        {
+                            //Hash不一致，表示需要更新；
+                            var formatSize = QuarkUtility.FormatBytes(srcBundleInfo.BundleSize);
+                            var changedInfo = new QuarkManifestCompareInfo(cmpBundleInfo.QuarkAssetBundle.BundleName, cmpBundleInfo.QuarkAssetBundle.BundleKey, cmpBundleInfo.Hash, cmpBundleInfo.BundleSize, formatSize, QuarkBundleChangeType.Changed);
+                            changedInfo.BundlePath = srcBundleInfo.QuarkAssetBundle.BundlePath;
+                            changed.Add(changedInfo);
+                        }
+                        else
+                        {
+                            //Hash一致，无需更新；
+                            var formatSize = QuarkUtility.FormatBytes(srcBundleInfo.BundleSize);
+                            var unchangedInfo = new QuarkManifestCompareInfo(srcBundleInfo.QuarkAssetBundle.BundleName, srcBundleInfo.QuarkAssetBundle.BundleKey, srcBundleInfo.Hash, srcBundleInfo.BundleSize, formatSize, QuarkBundleChangeType.Unchanged);
+                            unchangedInfo.BundlePath = srcBundleInfo.QuarkAssetBundle.BundlePath;
+                            unchanged.Add(unchangedInfo);
+                        }
+                    }
+                }
+                foreach (var cmpBundleInfoKeyValue in comparisonManifest.BundleInfoDict)
+                {
+                    var cmpBundleInfo = cmpBundleInfoKeyValue.Value;
+                    if (!sourceManifest.BundleInfoDict.ContainsKey(cmpBundleInfoKeyValue.Key))
+                    {
+                        //source中不存在，表示为新增资源；
+                        var formatSize = QuarkUtility.FormatBytes(cmpBundleInfo.BundleSize);
+                        var newlyAddedInfo = new QuarkManifestCompareInfo(cmpBundleInfo.QuarkAssetBundle.BundleName, cmpBundleInfo.QuarkAssetBundle.BundleKey, cmpBundleInfo.Hash, cmpBundleInfo.BundleSize, formatSize, QuarkBundleChangeType.NewlyAdded);
+                        newlyAddedInfo.BundlePath = cmpBundleInfo.QuarkAssetBundle.BundlePath;
+                        newlyAdded.Add(newlyAddedInfo);
+                    }
+                }
+                result.ChangedInfos = changed.ToArray();
+                result.NewlyAddedInfos = newlyAdded.ToArray();
+                result.DeletedInfos = deleted.ToArray();
+                result.UnchangedInfos = unchanged.ToArray();
+            }
+            public static void CompareManifestByBundleName(QuarkManifest sourceManifest, QuarkManifest comparisonManifest, out QuarkManifestCompareResult result)
+            {
+                result = new QuarkManifestCompareResult();
+                List<QuarkManifestCompareInfo> deleted = new List<QuarkManifestCompareInfo>();
+                List<QuarkManifestCompareInfo> changed = new List<QuarkManifestCompareInfo>();
+                List<QuarkManifestCompareInfo> newlyAdded = new List<QuarkManifestCompareInfo>();
+                List<QuarkManifestCompareInfo> unchanged = new List<QuarkManifestCompareInfo>();
+                var srcDict = sourceManifest.BundleInfoDict.Values.ToDictionary(b => b.BundleName);
+                var cmpDict = comparisonManifest.BundleInfoDict.Values.ToDictionary(b => b.BundleName);
+                //这里使用src的文件清单遍历comparison的文件清单;
+                foreach (var srcBundleInfoKeyValue in srcDict)
+                {
+                    var srcBundleInfo = srcBundleInfoKeyValue.Value;
+                    if (!cmpDict.TryGetValue(srcBundleInfoKeyValue.Key, out var cmpBundleInfo))
+                    {
+                        //如果comparison中不存在，表示资源已经过期，加入到移除的列表中；
+                        var formatSize = QuarkUtility.FormatBytes(srcBundleInfo.BundleSize);
+                        var deletedInfo = new QuarkManifestCompareInfo(srcBundleInfo.QuarkAssetBundle.BundleName, srcBundleInfo.QuarkAssetBundle.BundleKey, srcBundleInfo.Hash, srcBundleInfo.BundleSize, formatSize, QuarkBundleChangeType.Deleted);
+                        deletedInfo.BundlePath = srcBundleInfo.QuarkAssetBundle.BundlePath;
+                        deleted.Add(deletedInfo);
+                    }
+                    else
+                    {
+                        //如果comparison中存在，则比较Hash
+                        if (srcBundleInfo.Hash != cmpBundleInfo.Hash)
+                        {
+                            //Hash不一致，表示需要更新；
+                            var formatSize = QuarkUtility.FormatBytes(srcBundleInfo.BundleSize);
+                            var changedInfo = new QuarkManifestCompareInfo(cmpBundleInfo.QuarkAssetBundle.BundleName, cmpBundleInfo.QuarkAssetBundle.BundleKey, cmpBundleInfo.Hash, cmpBundleInfo.BundleSize, formatSize, QuarkBundleChangeType.Changed);
+                            changedInfo.BundlePath = srcBundleInfo.QuarkAssetBundle.BundlePath;
+                            changed.Add(changedInfo);
+                        }
+                        else
+                        {
+                            //Hash一致，无需更新；
+                            var formatSize = QuarkUtility.FormatBytes(srcBundleInfo.BundleSize);
+                            var unchangedInfo = new QuarkManifestCompareInfo(srcBundleInfo.QuarkAssetBundle.BundleName, srcBundleInfo.QuarkAssetBundle.BundleKey, srcBundleInfo.Hash, srcBundleInfo.BundleSize, formatSize, QuarkBundleChangeType.Unchanged);
+                            unchangedInfo.BundlePath = srcBundleInfo.QuarkAssetBundle.BundlePath;
+                            unchanged.Add(unchangedInfo);
+                        }
+                    }
+                }
+                foreach (var cmpBundleInfoKeyValue in cmpDict)
+                {
+                    var cmpBundleInfo = cmpBundleInfoKeyValue.Value;
+                    if (!srcDict.ContainsKey(cmpBundleInfoKeyValue.Key))
+                    {
+                        //source中不存在，表示为新增资源；
+                        var formatSize = QuarkUtility.FormatBytes(cmpBundleInfo.BundleSize);
+                        var newlyAddedInfo = new QuarkManifestCompareInfo(cmpBundleInfo.QuarkAssetBundle.BundleName, cmpBundleInfo.QuarkAssetBundle.BundleKey, cmpBundleInfo.Hash, cmpBundleInfo.BundleSize, formatSize, QuarkBundleChangeType.NewlyAdded);
+                        newlyAddedInfo.BundlePath = cmpBundleInfo.QuarkAssetBundle.BundlePath;
+                        newlyAdded.Add(newlyAddedInfo);
+                    }
+                }
+                result.ChangedInfos = changed.ToArray();
+                result.NewlyAddedInfos = newlyAdded.ToArray();
+                result.DeletedInfos = deleted.ToArray();
+                result.UnchangedInfos = unchanged.ToArray();
+            }
+            public static void CompareManifestThenCleanInvalidAssets(QuarkManifest sourceManifest, QuarkManifest comparisonManifest, string directoryPath, out QuarkManifestCompareResult result)
+            {
+                CompareManifest(sourceManifest, comparisonManifest, out result);
+                if (!Directory.Exists(directoryPath))
+                    return;
+                var dirInfo = new DirectoryInfo(directoryPath);
+                var fileInfos = dirInfo.GetFiles();
+                var fileNameHash = new HashSet<string>();
+                var fileNames = fileInfos.Select(f => f.Name);
+                foreach (var fileName in fileNames)
+                {
+                    fileNameHash.Add(fileName);
+                }
+                foreach (var fileInfo in fileInfos)
+                {
+                    if (fileNameHash.Contains(fileInfo.Name))
+                        fileInfo.Delete();
+                }
             }
         }
     }
