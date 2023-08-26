@@ -349,22 +349,31 @@ namespace Quark
                 result.DeletedInfos = deleted.ToArray();
                 result.UnchangedInfos = unchanged.ToArray();
             }
-            public static void CompareManifestThenCleanInvalidAssets(QuarkManifest sourceManifest, QuarkManifest comparisonManifest, string directoryPath, out QuarkManifestCompareResult result)
+            public static void CleanInvalidBundlesByCompareResult(QuarkManifestCompareResult result, string directoryPath)
             {
-                CompareManifest(sourceManifest, comparisonManifest, out result);
+                if (result == null)
+                    return;
                 if (!Directory.Exists(directoryPath))
                     return;
                 var dirInfo = new DirectoryInfo(directoryPath);
                 var fileInfos = dirInfo.GetFiles();
-                var fileNameHash = new HashSet<string>();
+                var invalidFileNames = new HashSet<string>();
                 var fileNames = fileInfos.Select(f => f.Name);
-                foreach (var fileName in fileNames)
+                var changedInfos = result.ChangedInfos;
+                var deletedInfos = result.DeletedInfos;
+                for (int i = 0; i < changedInfos.Length; i++)
                 {
-                    fileNameHash.Add(fileName);
+                    var name = changedInfos[i].BundleKey;
+                    invalidFileNames.Add(name);
+                }
+                for (int i = 0; i < deletedInfos.Length; i++)
+                {
+                    var name = deletedInfos[i].BundleKey;
+                    invalidFileNames.Add(name);
                 }
                 foreach (var fileInfo in fileInfos)
                 {
-                    if (fileNameHash.Contains(fileInfo.Name))
+                    if (invalidFileNames.Contains(fileInfo.Name))
                         fileInfo.Delete();
                 }
             }
