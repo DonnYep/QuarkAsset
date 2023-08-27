@@ -18,13 +18,6 @@ namespace Quark
         static StringBuilder stringBuilderCache = new StringBuilder(1024);
         #endregion
 
-        public static string WebPathCombine(params string[] paths)
-        {
-            var pathResult = Path.Combine(paths);
-            pathResult = pathResult.Replace("\\", "/");
-            return pathResult;
-        }
-
         #region Assembly
         public static object GetTypeInstance(string typeName)
         {
@@ -267,15 +260,6 @@ namespace Quark
             return LitJson.JsonMapper.ToJson(obj);
         }
         /// <summary>
-        /// 将对象序列化为JSON流
-        /// </summary>
-        /// <param name="obj">目标对象</param>
-        /// <returns>序列化后的JSON流</returns>
-        public static byte[] ToJsonData(object obj)
-        {
-            return Encoding.UTF8.GetBytes(ToJson(obj));
-        }
-        /// <summary>
         /// 将JSON反序列化为泛型对象
         /// </summary>
         /// <typeparam name="T">对象类型</typeparam>
@@ -284,16 +268,6 @@ namespace Quark
         public static T ToObject<T>(string json)
         {
             return LitJson.JsonMapper.ToObject<T>(json);
-        }
-        /// <summary>
-        /// 将JSON流转换为对象
-        /// </summary>
-        /// <typeparam name="T">目标类型</typeparam>
-        /// <param name="jsonData">JSON流</param>
-        /// <returns>反序列化后的对象</returns>
-        public static T ToObject<T>(byte[] jsonData)
-        {
-            return ToObject<T>(Encoding.UTF8.GetString(jsonData));
         }
         #endregion
 
