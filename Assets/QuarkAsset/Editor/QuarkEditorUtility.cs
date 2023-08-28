@@ -90,6 +90,10 @@ namespace Quark.Editor
         {
             return EditorGUIUtility.FindTexture("Folder Icon");
         }
+        public static Texture2D GetFindDependenciesIcon()
+        {
+            return EditorGUIUtility.FindTexture("UnityEditor.FindDependencies");
+        }
         public static Texture2D GetFolderEmptyIcon()
         {
             return EditorGUIUtility.FindTexture("FolderEmpty Icon");
@@ -606,7 +610,7 @@ namespace Quark.Editor
             var state = new MultiColumnHeaderState(columns);
             return state;
         }
-        public static MultiColumnHeaderState CreateManifestParseMultiColumnHeader()
+        public static MultiColumnHeaderState CreateManifestParseBundleMultiColumnHeader()
         {
             var columns = new[]
             {
@@ -658,7 +662,7 @@ namespace Quark.Editor
                 },
                 new MultiColumnHeaderState.Column
                 {
-                    headerContent = new GUIContent("BundleKey"),
+                    headerContent = new GUIContent("BundleHash"),
                     headerTextAlignment = TextAlignment.Left,
                     sortingArrowAlignment = TextAlignment.Left,
                     sortedAscending = false,
@@ -666,6 +670,61 @@ namespace Quark.Editor
                     width=256,
                     maxWidth=480,
                     autoResize = true,
+                },
+                new MultiColumnHeaderState.Column
+                {
+                   headerContent = new GUIContent("BundlePath"),
+                    headerTextAlignment = TextAlignment.Left,
+                    sortingArrowAlignment = TextAlignment.Left,
+                    sortedAscending = false,
+                    minWidth=192,
+                    width=768,
+                    maxWidth=1024,
+                    autoResize = true,
+                }
+            };
+            var state = new MultiColumnHeaderState(columns);
+            return state;
+        }
+        public static MultiColumnHeaderState CreateManifestParseDependentMultiColumnHeader()
+        {
+            var columns = new[]
+            {
+                new MultiColumnHeaderState.Column
+                {
+                    headerContent = new GUIContent("FormatSize"),
+                    headerTextAlignment = TextAlignment.Left,
+                    sortingArrowAlignment = TextAlignment.Left,
+                    sortedAscending = false,
+                     minWidth=64,
+                    width=92,
+                    maxWidth=128,
+                    autoResize = true,
+                    canSort=false
+                },
+                new MultiColumnHeaderState.Column
+                {
+                    headerContent = new GUIContent("BundleName"),
+                    headerTextAlignment = TextAlignment.Left,
+                    sortingArrowAlignment = TextAlignment.Left,
+                    sortedAscending = false,
+                    minWidth=168,
+                    width=256,
+                    maxWidth=480,
+                    autoResize = true,
+                    canSort=false
+                },
+                new MultiColumnHeaderState.Column
+                {
+                    headerContent = new GUIContent("ObjectCount"),
+                    headerTextAlignment = TextAlignment.Left,
+                    sortingArrowAlignment = TextAlignment.Left,
+                    sortedAscending = false,
+                    minWidth=48,
+                    width = 92,
+                    maxWidth=92,
+                    autoResize = false,
+                    canSort=false
                 },
                 new MultiColumnHeaderState.Column
                 {
@@ -677,6 +736,7 @@ namespace Quark.Editor
                     width=256,
                     maxWidth=320,
                     autoResize = true,
+                    canSort=false
                 }
             };
             var state = new MultiColumnHeaderState(columns);

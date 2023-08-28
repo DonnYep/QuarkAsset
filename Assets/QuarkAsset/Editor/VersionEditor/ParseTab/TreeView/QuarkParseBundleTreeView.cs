@@ -1,4 +1,5 @@
 ﻿using Quark.Asset;
+using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
@@ -6,10 +7,12 @@ using UnityEngine;
 
 namespace Quark.Editor
 {
-    public class QuarkManifestParseTreeView : TreeView
+    public class QuarkParseBundleTreeView : TreeView
     {
         List<QuarkBundleAsset> bundleAssets = new List<QuarkBundleAsset>();
-        public QuarkManifestParseTreeView(TreeViewState treeViewState, MultiColumnHeader multiColumnHeader)
+        List<QuarkBundleAsset> selectedBundles = new List<QuarkBundleAsset>();
+        public Action<IEnumerable<QuarkBundleAsset>> onBundleSelectionChanged;
+        public QuarkParseBundleTreeView(TreeViewState treeViewState, MultiColumnHeader multiColumnHeader)
 : base(treeViewState, multiColumnHeader)
         {
             Reload();
@@ -26,6 +29,16 @@ namespace Quark.Editor
             }
             Reload();
         }
+        protected override void SelectionChanged(IList<int> selectedIds)
+        {
+            base.SelectionChanged(selectedIds);
+            selectedBundles.Clear();
+            for (int i = 0; i < selectedIds.Count; i++)
+            {
+                selectedBundles.Add(bundleAssets[selectedIds[i]]);
+            }
+            onBundleSelectionChanged?.Invoke(selectedBundles);
+        }
         protected override TreeViewItem BuildRoot()
         {
             var root = new TreeViewItem { id = -1, depth = -1, displayName = "Root" };
@@ -39,7 +52,7 @@ namespace Quark.Editor
                 {
                     BundleFormatSize = QuarkUtility.FormatBytes(ba.BundleSize),
                     BundleHash = ba.Hash,
-                    BundleKey = ba.QuarkAssetBundle.BundleKey,
+                    BundlePath = ba.QuarkAssetBundle.BundlePath,
                     BundleSize = ba.BundleSize,
                     ObjectCount = ba.QuarkAssetBundle.ObjectList.Count,
                     icon = defaultIcon
@@ -98,12 +111,12 @@ namespace Quark.Editor
                     break;
                 case 4:
                     {
-                        DefaultGUI.Label(cellRect, treeView.BundleKey, args.selected, args.focused);
+                        DefaultGUI.Label(cellRect, treeView.BundleHash, args.selected, args.focused);
                     }
                     break;
                 case 5:
                     {
-                        DefaultGUI.Label(cellRect, treeView.BundleHash, args.selected, args.focused);
+                        DefaultGUI.Label(cellRect, treeView.BundlePath, args.selected, args.focused);
                     }
                     break;
             }

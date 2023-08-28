@@ -13,21 +13,36 @@ namespace Quark.Editor
     {
         QuarkManifest manifest;
 
-        QuarkManifestParseTreeView treeView;
-        TreeViewState treeViewState;
-        SearchField searchField;
+        QuarkParseBundleTreeView bundleTreeView;
+        QuarkParseDependentTreeView dependentTreeView;
+
+        TreeViewState bundleTreeViewState;
+        TreeViewState dependentTreeViewState;
+
+        SearchField bundleSearchField;
+        SearchField dependentSearchField;
 
         long totalBundleCount;
         long totalBundleLength;
         string totalBundleFormatSize;
 
+        long selectedTotalBundleCount;
+        long selectedTotalBundleLength;
+        string selectedTotalBundleFormatSize;
         public void OnEnable()
         {
-            searchField = new SearchField();
-            treeViewState = new TreeViewState();
-            var multiColumnHeaderState = new MultiColumnHeader(QuarkEditorUtility.CreateManifestParseMultiColumnHeader());
-            treeView = new QuarkManifestParseTreeView(treeViewState, multiColumnHeaderState);
-            searchField.downOrUpArrowKeyPressed += treeView.SetFocusAndEnsureSelectedItem;
+            bundleSearchField = new SearchField();
+            dependentSearchField = new SearchField();
+            bundleTreeViewState = new TreeViewState();
+            dependentTreeViewState = new TreeViewState();
+            var multiColumnHeaderState = new MultiColumnHeader(QuarkEditorUtility.CreateManifestParseBundleMultiColumnHeader());
+            bundleTreeView = new QuarkParseBundleTreeView(bundleTreeViewState, multiColumnHeaderState);
+            bundleTreeView.onBundleSelectionChanged = OnBundleSelectionChanged;
+            var depMultiColumnHeaderState = new MultiColumnHeader(QuarkEditorUtility.CreateManifestParseDependentMultiColumnHeader());
+            dependentTreeView = new QuarkParseDependentTreeView(dependentTreeViewState, depMultiColumnHeaderState);
+            bundleSearchField.downOrUpArrowKeyPressed += bundleTreeView.SetFocusAndEnsureSelectedItem;
+            dependentSearchField.downOrUpArrowKeyPressed += dependentTreeView.SetFocusAndEnsureSelectedItem;
+            ResetSelectedInfo();
         }
         public void OnGUI(Rect rect)
         {
@@ -51,6 +66,7 @@ namespace Quark.Editor
             totalBundleLength = 0;
             totalBundleCount = 0;
             totalBundleFormatSize = QuarkUtility.FormatBytes(totalBundleLength);
+            ResetSelectedInfo();
         }
         public void SetManifest(QuarkManifest manifest)
         {
@@ -66,7 +82,8 @@ namespace Quark.Editor
                 totalBundleCount = manifest.BundleInfoDict.Count;
             }
             totalBundleFormatSize = QuarkUtility.FormatBytes(totalBundleLength);
-            treeView.SetManifest(manifest);
+            bundleTreeView.SetManifest(manifest);
+            dependentTreeView.SetManifest(manifest);
         }
         void DrawManifestDetail(Rect rect)
         {
@@ -106,6 +123,12 @@ namespace Quark.Editor
                 EditorGUILayout.LabelField($"Total bundle length: {totalBundleLength}");
                 EditorGUILayout.LabelField($"Total bundle format size : {totalBundleFormatSize}");
 
+                GUILayout.Space(8);
+
+                EditorGUILayout.LabelField($"Selected bundle ", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField($"Selected bundle count: {selectedTotalBundleCount}");
+                EditorGUILayout.LabelField($"Selected bundle total length: {selectedTotalBundleLength}");
+                EditorGUILayout.LabelField($"Selected bundle total format size : {selectedTotalBundleFormatSize}");
             }
             GUILayout.EndVertical();
             //0.62f
@@ -114,16 +137,67 @@ namespace Quark.Editor
         {
             GUILayout.BeginVertical(GUILayout.MaxWidth(rect.width * 0.7f));
             {
-                GUILayout.BeginHorizontal();
+                GUILayout.BeginVertical(GUILayout.MaxHeight(rect.height * 0.62f));
                 {
-                    treeView.searchString = searchField.OnToolbarGUI(treeView.searchString);
-                }
-                GUILayout.EndHorizontal();
+                    GUILayout.BeginHorizontal();
+                    {
+                        EditorGUILayout.LabelField("Bundles", EditorStyles.boldLabel, GUILayout.MaxWidth(92));
 
-                Rect viewRect = GUILayoutUtility.GetRect(32, 8192, 32, 8192);
-                treeView.OnGUI(viewRect);
+                        EditorGUILayout.LabelField("Search", GUILayout.MaxWidth(48));
+                        bundleTreeView.searchString = bundleSearchField.OnToolbarGUI(bundleTreeView.searchString);
+                    }
+                    GUILayout.EndHorizontal();
+
+                    Rect bundleViewRect = GUILayoutUtility.GetRect(32, 2048, 32, 4096);
+                    bundleTreeView.OnGUI(bundleViewRect);
+                }
+                GUILayout.EndVertical();
+
+                GUILayout.Space(16);
+
+                GUILayout.BeginVertical(GUILayout.MaxHeight(rect.height * 0.38f));
+                {
+                    GUILayout.BeginHorizontal();
+                    {
+                        EditorGUILayout.LabelField("Dependencies", EditorStyles.boldLabel, GUILayout.MaxWidth(92));
+
+                        EditorGUILayout.LabelField("Search", GUILayout.MaxWidth(48));
+                        dependentTreeView.searchString = dependentSearchField.OnToolbarGUI(dependentTreeView.searchString);
+                        if (GUILayout.Button("ExpandAll", EditorStyles.miniButton, GUILayout.MaxWidth(92)))
+                        {
+                            dependentTreeView.ExpandAll();
+                        }
+                        if (GUILayout.Button("CollapseAll", EditorStyles.miniButton, GUILayout.MaxWidth(92)))
+                        {
+                            dependentTreeView.CollapseAll();
+                        }
+                    }
+                    GUILayout.EndHorizontal();
+
+                    Rect dependentViewRect = GUILayoutUtility.GetRect(32, 2048, 32, 4096);
+                    dependentTreeView.OnGUI(dependentViewRect);
+                }
+                GUILayout.EndVertical();
             }
             GUILayout.EndVertical();
+        }
+        void OnBundleSelectionChanged(IEnumerable<QuarkBundleAsset> bundles)
+        {
+            dependentTreeView.AddSelectBundles(bundles);
+            selectedTotalBundleCount = 0;
+            selectedTotalBundleLength = 0;
+            foreach (var b in bundles)
+            {
+                selectedTotalBundleCount++;
+                selectedTotalBundleLength += b.BundleSize;
+            }
+            selectedTotalBundleFormatSize = QuarkUtility.FormatBytes(selectedTotalBundleLength);
+        }
+        void ResetSelectedInfo()
+        {
+            selectedTotalBundleCount = 0;
+            selectedTotalBundleLength = 0;
+            selectedTotalBundleFormatSize = QuarkUtility.FormatBytes(selectedTotalBundleLength);
         }
     }
 }

@@ -63,7 +63,7 @@ namespace Quark.Editor
                 {
                     BundleFormatSize = QuarkUtility.FormatBytes(mba.QuarkBundleAsset.BundleSize),
                     BundleHash = mba.QuarkBundleAsset.Hash,
-                    BundleKey = mba.QuarkBundleAsset.QuarkAssetBundle.BundleKey,
+                    BundlePath = mba.QuarkBundleAsset.QuarkAssetBundle.BundleKey,
                     BundleSize = mba.QuarkBundleAsset.BundleSize,
                     ObjectCount = mba.QuarkBundleAsset.QuarkAssetBundle.ObjectList.Count,
                     IsIncremental = mba.IsIncremental,
@@ -133,7 +133,7 @@ namespace Quark.Editor
                     break;
                 case 5:
                     {
-                        DefaultGUI.Label(cellRect, treeView.BundleKey, args.selected, args.focused);
+                        DefaultGUI.Label(cellRect, treeView.BundlePath, args.selected, args.focused);
                     }
                     break;
                 case 6:
