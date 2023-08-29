@@ -48,14 +48,15 @@ namespace Quark.Editor
             for (int i = 0; i < length; i++)
             {
                 var ba = bundleAssets[i];
-                var item = new QuarkManifestMergeTreeViewItem(i, 1, ba.BundleName)
+                var item = new QuarkParseBundleTreeViewItem(i, 1, ba.BundleName)
                 {
                     BundleFormatSize = QuarkUtility.FormatBytes(ba.BundleSize),
                     BundleHash = ba.Hash,
                     BundlePath = ba.QuarkAssetBundle.BundlePath,
                     BundleSize = ba.BundleSize,
                     ObjectCount = ba.QuarkAssetBundle.ObjectList.Count,
-                    icon = defaultIcon
+                    icon = defaultIcon,
+                    BundleDependentCount = ba.QuarkAssetBundle.DependentBundleKeyList.Count.ToString()
                 };
                 allItems.Add(item);
             }
@@ -67,7 +68,7 @@ namespace Quark.Editor
             var length = args.GetNumVisibleColumns();
             for (int i = 0; i < length; i++)
             {
-                DrawCellGUI(args.GetCellRect(i), args.item as QuarkManifestMergeTreeViewItem, args.GetColumn(i), ref args);
+                DrawCellGUI(args.GetCellRect(i), args.item as QuarkParseBundleTreeViewItem, args.GetColumn(i), ref args);
             }
         }
         protected override void DoubleClickedItem(int id)
@@ -81,7 +82,7 @@ namespace Quark.Editor
             }
             base.DoubleClickedItem(id);
         }
-        void DrawCellGUI(Rect cellRect, QuarkManifestMergeTreeViewItem treeView, int column, ref RowGUIArgs args)
+        void DrawCellGUI(Rect cellRect, QuarkParseBundleTreeViewItem treeView, int column, ref RowGUIArgs args)
         {
             switch (column)
             {
@@ -97,6 +98,11 @@ namespace Quark.Editor
                     break;
                 case 2:
                     {
+                        DefaultGUI.Label(cellRect, treeView.BundleDependentCount, args.selected, args.focused);
+                    }
+                    break;
+                case 3:
+                    {
                         var iconRect = new Rect(cellRect.x + 4, cellRect.y, cellRect.height, cellRect.height);
                         if (treeView.icon != null)
                             GUI.DrawTexture(iconRect, treeView.icon, ScaleMode.ScaleToFit);
@@ -104,17 +110,17 @@ namespace Quark.Editor
                         DefaultGUI.Label(labelCellRect, treeView.displayName, args.selected, args.focused);
                     }
                     break;
-                case 3:
+                case 4:
                     {
                         DefaultGUI.Label(cellRect, treeView.BundleFormatSize, args.selected, args.focused);
                     }
                     break;
-                case 4:
+                case 5:
                     {
                         DefaultGUI.Label(cellRect, treeView.BundleHash, args.selected, args.focused);
                     }
                     break;
-                case 5:
+                case 6:
                     {
                         DefaultGUI.Label(cellRect, treeView.BundlePath, args.selected, args.focused);
                     }
@@ -140,7 +146,15 @@ namespace Quark.Editor
                             bundleAssets.Sort((lhs, rhs) => rhs.QuarkAssetBundle.ObjectList.Count.CompareTo(lhs.QuarkAssetBundle.ObjectList.Count));
                     }
                     break;
-                case 2://BundleName
+                case 2://dependent count
+                    {
+                        if (ascending)
+                            bundleAssets.Sort((lhs, rhs) => lhs.QuarkAssetBundle.DependentBundleKeyList.Count.CompareTo(rhs.QuarkAssetBundle.DependentBundleKeyList.Count));
+                        else
+                            bundleAssets.Sort((lhs, rhs) => rhs.QuarkAssetBundle.DependentBundleKeyList.Count.CompareTo(lhs.QuarkAssetBundle.DependentBundleKeyList.Count));
+                    }
+                    break;
+                case 3://BundleName
                     {
                         if (ascending)
                             bundleAssets.Sort((lhs, rhs) => lhs.BundleName.CompareTo(rhs.BundleName));
@@ -148,7 +162,7 @@ namespace Quark.Editor
                             bundleAssets.Sort((lhs, rhs) => rhs.BundleName.CompareTo(lhs.BundleName));
                     }
                     break;
-                case 3://BundleFormatSize
+                case 4://BundleFormatSize
                     {
                         if (ascending)
                             bundleAssets.Sort((lhs, rhs) => lhs.BundleSize.CompareTo(rhs.BundleSize));
@@ -156,7 +170,7 @@ namespace Quark.Editor
                             bundleAssets.Sort((lhs, rhs) => rhs.BundleSize.CompareTo(lhs.BundleSize));
                     }
                     break;
-                case 4://BundleKey
+                case 5://BundleKey
                     {
                         if (ascending)
                             bundleAssets.Sort((lhs, rhs) => lhs.QuarkAssetBundle.BundleKey.CompareTo(rhs.QuarkAssetBundle.BundleKey));
@@ -164,7 +178,7 @@ namespace Quark.Editor
                             bundleAssets.Sort((lhs, rhs) => rhs.QuarkAssetBundle.BundleKey.CompareTo(lhs.QuarkAssetBundle.BundleKey));
                     }
                     break;
-                case 5://BundleKey
+                case 6://BundleKey
                     {
                         if (ascending)
                             bundleAssets.Sort((lhs, rhs) => lhs.Hash.CompareTo(rhs.Hash));

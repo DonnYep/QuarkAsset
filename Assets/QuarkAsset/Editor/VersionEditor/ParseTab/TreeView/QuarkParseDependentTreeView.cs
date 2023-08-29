@@ -61,7 +61,7 @@ namespace Quark.Editor
                     var hasDepBundle = manifest.BundleInfoDict.TryGetValue(depKey, out var depBundle);
                     if (hasDepBundle)
                     {
-                        var dependentItem = new QuarkParseDependentTreeViewItem(labelNode.id + j + 1, 3, dependents[j].BundleKey)
+                        var dependentItem = new QuarkParseDependentTreeViewItem(labelNode.id + j + 1, 3, dependents[j].BundleName)
                         {
                             BundleFormatSize = QuarkUtility.FormatBytes(depBundle.BundleSize),
                             BundleHash = depBundle.Hash,
