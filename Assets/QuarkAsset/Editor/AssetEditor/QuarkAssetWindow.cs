@@ -38,7 +38,7 @@ namespace Quark.Editor
                 assetDatasetTab = new QuarkAssetDatasetTab();
             QuarkEditorDataProxy.QuarkAssetDataset = null;
             GetWindowData();
-            assetDatabaseTab.OnEnable();
+            assetDatabaseTab.OnEnable(position,this);
             assetBundleTab.OnEnable();
             assetBundleTab.SetAssetDatabaseTab(assetDatabaseTab);
             assetDatasetTab.OnEnable();

@@ -15,6 +15,7 @@ namespace Quark.Editor
         QuarkBundleSearchLabel bundleSearchLabel = new QuarkBundleSearchLabel();
         QuarkObjectSearchLabel objectSearchLabel = new QuarkObjectSearchLabel();
         QuarkBundleDetailLabel bundleDetailLabel = new QuarkBundleDetailLabel();
+        EditorWindow parentWindow = null;
 
         QuarkDataset dataset;
         /// <summary>
@@ -33,8 +34,18 @@ namespace Quark.Editor
         bool loadingQuarkObject = false;
         string[] tabArray = new string[] { "Objects", "Dependencies" };
 
-        public void OnEnable()
+        Rect horizontalSplitterRect;
+        Rect rightRect;
+        Rect leftRect;
+        Rect position;
+        Rect treeViewRect ;
+        bool resizingHorizontalSplitter = false;
+        float horizontalSplitterPercent;
+
+        bool rectSplitterInited;
+        public void OnEnable(Rect pos, EditorWindow parentWindow)
         {
+            this.parentWindow = parentWindow;
             try
             {
                 tabData = QuarkEditorUtility.GetData<QuarkAssetDatabaseTabData>(QuarkAssetDatabaseTabDataFileName);
@@ -48,9 +59,11 @@ namespace Quark.Editor
             objectSearchLabel.OnEnable();
             bundleDetailLabel.OnEnable();
             bundleSearchLabel.OnSelectionChanged += OnSelectionChanged;
-            bundleSearchLabel.OnBundleDelete += OnBundleDelete; ;
+            bundleSearchLabel.OnBundleDelete += OnBundleDelete;
             bundleSearchLabel.OnAllDelete += OnAllBundleDelete;
-            bundleSearchLabel.OnBundleSort += OnBundleSort; ;
+            bundleSearchLabel.OnBundleSort += OnBundleSort;
+            InitRects(pos);
+
         }
         public void OnDisable()
         {
@@ -91,6 +104,8 @@ namespace Quark.Editor
         }
         public void OnGUI(Rect rect)
         {
+            this.position = rect;
+            HandleHorizontalResize();
             GUILayout.Space(16);
             GUILayout.BeginHorizontal();
             {
@@ -107,7 +122,7 @@ namespace Quark.Editor
             GUILayout.Space(16);
 
 
-            GUILayout.BeginHorizontal();
+            treeViewRect = EditorGUILayout.BeginHorizontal();
             {
                 GUILayout.BeginVertical();
                 {
@@ -115,7 +130,7 @@ namespace Quark.Editor
                     {
                         GUILayout.Label($"Bundle", EditorStyles.label);
                     }
-                    bundleSearchLabel.OnGUI(rect);
+                    bundleSearchLabel.OnGUI(leftRect);
                 }
                 GUILayout.EndVertical();
 
@@ -158,16 +173,16 @@ namespace Quark.Editor
                         {
                             objectSearchLabel.TreeView.OnCachedIconPreview();
                         }
-                        objectSearchLabel.OnGUI(rect);
+                        objectSearchLabel.OnGUI(rightRect);
                     }
                     else if (tabData.LabelTabIndex == 1)
                     {
-                        bundleDetailLabel.OnGUI(rect);
+                        bundleDetailLabel.OnGUI(rightRect);
                     }
                 }
                 GUILayout.EndVertical();
             }
-            GUILayout.EndHorizontal();
+            EditorGUILayout.EndHorizontal();
 
             GUILayout.Space(16);
             GUILayout.BeginHorizontal();
@@ -506,5 +521,43 @@ namespace Quark.Editor
             tabData.SelectedBundleIds.AddRange(selectedIds);
             QuarkEditorUtility.SaveData(QuarkAssetDatabaseTabDataFileName, tabData);
         }
+        void InitRects(Rect pos)
+        {
+            horizontalSplitterPercent = 0.312f;
+            horizontalSplitterPercent = Mathf.Clamp(horizontalSplitterPercent, 0.1f, 0.9f);
+
+            position = pos;
+            var leftWidth = position.width * horizontalSplitterPercent;
+            var rightWidth = position.width * (1 - horizontalSplitterPercent);
+            horizontalSplitterRect = new Rect(leftWidth, 92, 5, position.height);
+            rightRect = new Rect(0, 0, rightWidth, position.height);
+            leftRect = new Rect(0, 0, leftWidth, position.height);
+        }
+        void HandleHorizontalResize()
+        {
+            EditorGUIUtility.AddCursorRect(horizontalSplitterRect, MouseCursor.ResizeHorizontal);
+            if (Event.current.type == EventType.MouseDown && horizontalSplitterRect.Contains(Event.current.mousePosition))
+                resizingHorizontalSplitter = true;
+            horizontalSplitterRect.height = treeViewRect.height;
+            if (!rectSplitterInited)
+            {
+                horizontalSplitterRect.x = position.width * horizontalSplitterPercent;
+                rightRect.width = position.width * (1 - horizontalSplitterPercent);
+                leftRect.width = position.width * horizontalSplitterPercent;
+                parentWindow.Repaint();
+                rectSplitterInited = true;
+            }
+            if (resizingHorizontalSplitter)
+            {
+                horizontalSplitterPercent = Mathf.Clamp(Event.current.mousePosition.x / position.width, 0.1f, 0.9f);
+                horizontalSplitterRect.x = position.width * horizontalSplitterPercent;
+                rightRect.width = position.width * (1 - horizontalSplitterPercent);
+                leftRect.width = position.width * horizontalSplitterPercent;
+                parentWindow.Repaint();
+            }
+            if (Event.current.type == EventType.MouseUp)
+                resizingHorizontalSplitter = false;
+        }
+
     }
 }

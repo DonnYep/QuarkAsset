@@ -130,11 +130,14 @@ namespace Quark.Editor
         }
         void DrawTreeView(Rect rect)
         {
-            EditorGUILayout.BeginVertical(GUILayout.MaxWidth(rect.width * 0.38f));
-            treeView.searchString = searchField.OnToolbarGUI(treeView.searchString);
-            Rect viewRect = GUILayoutUtility.GetRect(32, 8192, 32, 8192);
-            treeView.OnGUI(viewRect);
+            //EditorGUILayout.BeginVertical(GUILayout.MaxWidth(rect.width * 0.38f));
+            EditorGUILayout.BeginVertical(GUILayout.Width(rect.width));
+            {
+                treeView.searchString = searchField.OnToolbarGUI(treeView.searchString);
+                Rect viewRect = GUILayoutUtility.GetRect(32, 8192, 32, 8192);
+                treeView.OnGUI(viewRect);
 
+            }
             EditorGUILayout.EndVertical();
         }
     }

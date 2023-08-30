@@ -10,7 +10,7 @@ namespace Quark.Editor
         public string BundleHash { get; set; }
         public string BundleFormatSize { get; set; }
         public string BundlePath{ get; set; }
-        public string BundleDependentCount{ get; set; }
+        public int BundleDependentCount{ get; set; }
         public QuarkParseBundleTreeViewItem(int id, int depth, string displayName) : base(id, depth, displayName)
         {
         }

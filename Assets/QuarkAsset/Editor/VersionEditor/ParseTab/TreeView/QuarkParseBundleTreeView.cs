@@ -56,7 +56,7 @@ namespace Quark.Editor
                     BundleSize = ba.BundleSize,
                     ObjectCount = ba.QuarkAssetBundle.ObjectList.Count,
                     icon = defaultIcon,
-                    BundleDependentCount = ba.QuarkAssetBundle.DependentBundleKeyList.Count.ToString()
+                    BundleDependentCount = ba.QuarkAssetBundle.DependentBundleKeyList.Count
                 };
                 allItems.Add(item);
             }
@@ -98,7 +98,7 @@ namespace Quark.Editor
                     break;
                 case 2:
                     {
-                        DefaultGUI.Label(cellRect, treeView.BundleDependentCount, args.selected, args.focused);
+                        DefaultGUI.Label(cellRect, treeView.BundleDependentCount.ToString(), args.selected, args.focused);
                     }
                     break;
                 case 3:

@@ -8,7 +8,6 @@ namespace Quark.Editor
     {
         public int LabelTabIndex;
         public int LabelRowHeight;
-
         List<int> selectedBundleIds;
         /// <summary>
         /// 当前被选择的bundleId集合

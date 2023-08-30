@@ -55,8 +55,9 @@ namespace Quark.Editor
         }
         void DrawTreeView(Rect rect)
         {
-            var width = rect.width * 0.62f;
-            GUILayout.BeginVertical(GUILayout.MaxWidth(width));
+            //var width = rect.width * 0.62f;
+            //GUILayout.BeginVertical(GUILayout.MaxWidth(width));
+            GUILayout.BeginVertical(GUILayout.MaxWidth(rect.width));
             {
                 GUILayout.BeginHorizontal();
                 {
