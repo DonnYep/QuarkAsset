@@ -38,11 +38,21 @@ namespace Quark.Editor
         Rect rightRect;
         Rect leftRect;
         Rect position;
-        Rect treeViewRect ;
+        Rect treeViewRect;
         bool resizingHorizontalSplitter = false;
         float horizontalSplitterPercent;
 
         bool rectSplitterInited;
+
+        long totalBundleSize;
+
+        int selectedBundleCount;
+        long selectedBundleSize;
+
+        int selectedObjectCount;
+        long selectedObjectSize;
+
+
         public void OnEnable(Rect pos, EditorWindow parentWindow)
         {
             this.parentWindow = parentWindow;
@@ -62,9 +72,12 @@ namespace Quark.Editor
             bundleSearchLabel.OnBundleDelete += OnBundleDelete;
             bundleSearchLabel.OnAllDelete += OnAllBundleDelete;
             bundleSearchLabel.OnBundleSort += OnBundleSort;
+            objectSearchLabel.OnObjectSelectionChanged += OnObjectSelectionChanged;
             InitRects(pos);
-
         }
+
+
+
         public void OnDisable()
         {
             QuarkEditorUtility.SaveData(QuarkAssetDatabaseTabDataFileName, tabData);
@@ -78,6 +91,7 @@ namespace Quark.Editor
             dataset = QuarkEditorDataProxy.QuarkAssetDataset;
             var bundles = dataset.QuarkBundleInfoList;
             var bundleLen = bundles.Count;
+            totalBundleSize = 0;
             loadingBundleLength = bundleLen;
             bundleSearchLabel.TreeView.Clear();
             objectSearchLabel.TreeView.Clear();
@@ -85,6 +99,7 @@ namespace Quark.Editor
             {
                 var bundle = bundles[i];
                 bundleSearchLabel.TreeView.AddBundle(bundle);
+                totalBundleSize += bundle.BundleSize;
             }
             objectSearchLabel.TreeView.Reload();
             bundleSearchLabel.TreeView.Reload();
@@ -95,12 +110,17 @@ namespace Quark.Editor
         }
         public void OnDatasetUnassign()
         {
+            bundleDetailLabel.Clear();
+            bundleDetailLabel.Reload();
             objectSearchLabel.TreeView.Clear();
             objectSearchLabel.TreeView.Reload();
             bundleSearchLabel.TreeView.Clear();
             bundleSearchLabel.TreeView.Reload();
-            bundleDetailLabel.Clear();
-            bundleDetailLabel.Reload();
+            totalBundleSize = 0;
+            selectedBundleCount = 0;
+            selectedBundleSize = 0;
+            selectedObjectCount = 0;
+            selectedObjectSize = 0;
         }
         public void OnGUI(Rect rect)
         {
@@ -126,9 +146,12 @@ namespace Quark.Editor
             {
                 GUILayout.BeginVertical();
                 {
+                    var width = GUILayout.Width((parentWindow.position.width * horizontalSplitterPercent - 6) / 2);
+
                     using (new EditorGUILayout.HorizontalScope(EditorStyles.toolbar))
                     {
-                        GUILayout.Label($"Bundle", EditorStyles.label);
+                        GUILayout.Label($"Bundle:{bundleSearchLabel.TreeView.Count}/{QuarkUtility.FormatBytes(totalBundleSize)}", EditorStyles.label, width);
+                        GUILayout.Label($"Selected:{selectedBundleCount}/{QuarkUtility.FormatBytes(selectedBundleSize)}", EditorStyles.label, width);
                     }
                     bundleSearchLabel.OnGUI(leftRect);
                 }
@@ -139,6 +162,11 @@ namespace Quark.Editor
                     GUILayout.BeginHorizontal();
                     {
                         tabData.LabelTabIndex = EditorGUILayout.Popup(tabData.LabelTabIndex, tabArray, EditorStyles.toolbarPopup, GUILayout.MaxWidth(128));
+
+                        GUILayout.Label($"Object:{objectSearchLabel.TreeView.Count}", EditorStyles.label);
+
+                        GUILayout.Label($"Selected:{selectedObjectCount}/{QuarkUtility.FormatBytes(selectedObjectSize)}", EditorStyles.label);
+
                         using (new EditorGUILayout.HorizontalScope(EditorStyles.toolbar))
                         {
                             if (tabData.LabelTabIndex == 0)
@@ -267,12 +295,7 @@ namespace Quark.Editor
             if (dataset == null)
                 return;
             dataset.Dispose();
-            bundleDetailLabel.Clear();
-            bundleDetailLabel.Reload();
-            bundleSearchLabel.TreeView.Clear();
-            objectSearchLabel.TreeView.Clear();
-            bundleSearchLabel.TreeView.Reload();
-            objectSearchLabel.TreeView.Reload();
+            OnDatasetUnassign();
             EditorUtility.SetDirty(dataset);
             QuarkEditorUtility.ClearData(QuarkAssetDatabaseTabDataFileName);
             QuarkUtility.LogInfo("Quark asset clear done ");
@@ -478,12 +501,24 @@ namespace Quark.Editor
                 QuarkEditorUtility.StopCoroutine(selectionCoroutine);
             selectionCoroutine = QuarkEditorUtility.StartCoroutine(EnumSelectionChanged(selectedIds));
         }
+        void OnObjectSelectionChanged(List<QuarkObjectInfo> selectedObjects)
+        {
+            selectedObjectCount = selectedObjects.Count;
+            var length = selectedObjectCount;
+            selectedObjectSize = 0;
+            for (int i = 0; i < length; i++)
+            {
+                var selectedObject = selectedObjects[i];
+                selectedObjectSize += selectedObject.ObjectSize;
+            }
+        }
         IEnumerator EnumSelectionChanged(IList<int> selectedIds)
         {
             if (dataset == null)
                 yield break;
             loadingQuarkObject = true;
-
+            selectedBundleCount = selectedIds.Count;
+            selectedBundleSize = 0;
             var bundleInfos = dataset.QuarkBundleInfoList;
 
             var idLength = selectedIds.Count;
@@ -500,8 +535,10 @@ namespace Quark.Editor
                 var id = selectedIds[i];
                 if (id >= bundleInfos.Count)
                     continue;
-                bundleDetailLabel.AddBundle(bundleInfos[id]);
-                var objectInfos = bundleInfos[id].ObjectInfoList;
+                var bundleInfo = bundleInfos[id];
+                selectedBundleSize += bundleInfo.BundleSize;
+                bundleDetailLabel.AddBundle(bundleInfo);
+                var objectInfos = bundleInfo.ObjectInfoList;
                 var objectInfoLength = objectInfos.Count;
                 for (int j = 0; j < objectInfoLength; j++)
                 {
@@ -524,7 +561,6 @@ namespace Quark.Editor
         void InitRects(Rect pos)
         {
             horizontalSplitterPercent = 0.312f;
-            horizontalSplitterPercent = Mathf.Clamp(horizontalSplitterPercent, 0.1f, 0.9f);
 
             position = pos;
             var leftWidth = position.width * horizontalSplitterPercent;
@@ -550,11 +586,11 @@ namespace Quark.Editor
             if (resizingHorizontalSplitter)
             {
                 horizontalSplitterPercent = Mathf.Clamp(Event.current.mousePosition.x / position.width, 0.1f, 0.9f);
-                horizontalSplitterRect.x = position.width * horizontalSplitterPercent;
-                rightRect.width = position.width * (1 - horizontalSplitterPercent);
-                leftRect.width = position.width * horizontalSplitterPercent;
-                parentWindow.Repaint();
             }
+            horizontalSplitterRect.x = position.width * horizontalSplitterPercent;
+            rightRect.width = position.width * (1 - horizontalSplitterPercent);
+            leftRect.width = position.width * horizontalSplitterPercent;
+            parentWindow.Repaint();
             if (Event.current.type == EventType.MouseUp)
                 resizingHorizontalSplitter = false;
         }

@@ -9,7 +9,10 @@ namespace Quark.Editor
 {
     public class QuarkObjectTreeView : TreeView
     {
-        List<QuarkObjectInfo> objectInfoList = new List<QuarkObjectInfo>();
+        readonly List<QuarkObjectInfo> objectInfoList = new List<QuarkObjectInfo>();
+        readonly List<QuarkObjectInfo> selectedObjectInfos= new List<QuarkObjectInfo>();
+        public Action<List<QuarkObjectInfo>> onObjectSelectionChanged;
+        public int Count { get { return objectInfoList.Count; } }
         bool detailPreview;
         public float TreeViewRowHeight
         {
@@ -52,6 +55,8 @@ namespace Quark.Editor
         public void Clear()
         {
             objectInfoList.Clear();
+            selectedObjectInfos.Clear();
+            onObjectSelectionChanged?.Invoke(selectedObjectInfos);
         }
         protected override void DoubleClickedItem(int id)
         {
@@ -72,6 +77,18 @@ namespace Quark.Editor
                 menu.AddItem(new GUIContent("Copy object path to clipboard"), false, CopyObjectPathToClipboard, id);
             }
             menu.ShowAsContext();
+        }
+        protected override void SelectionChanged(IList<int> selectedIds)
+        {
+            base.SelectionChanged(selectedIds);
+            var length = selectedIds.Count;
+            selectedObjectInfos.Clear();
+            for (int i = 0; i < length; i++)
+            {
+                var idx = selectedIds[i];
+                selectedObjectInfos.Add(objectInfoList[idx]);
+            }
+            onObjectSelectionChanged?.Invoke(selectedObjectInfos);
         }
         protected override TreeViewItem BuildRoot()
         {
@@ -109,7 +126,7 @@ namespace Quark.Editor
                         AssetExtension = objectInfo.ObjectExtension,
                         FormatBytes = objectInfo.ObjectFormatBytes,
                         AssetType = objectInfo.ObjectType,
-                        ObjectTypeIcon=objectTypeIcon
+                        ObjectTypeIcon = objectTypeIcon
                     };
                     allItems.Add(item);
                 }

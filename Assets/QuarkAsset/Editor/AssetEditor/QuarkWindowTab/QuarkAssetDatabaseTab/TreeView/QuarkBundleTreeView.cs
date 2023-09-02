@@ -10,7 +10,7 @@ namespace Quark.Editor
     public class QuarkBundleTreeView : TreeView
     {
         readonly List<QuarkBundleInfo> bundleInfoList = new List<QuarkBundleInfo>();
-
+        public int Count { get { return bundleInfoList.Count; } }
         string originalName;
         /// <summary>
         /// 正在重命名的itemId

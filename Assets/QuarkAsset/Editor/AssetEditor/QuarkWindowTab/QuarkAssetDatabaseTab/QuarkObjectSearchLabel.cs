@@ -1,5 +1,8 @@
 ﻿using UnityEngine;
 using UnityEditor.IMGUI.Controls;
+using System.Collections.Generic;
+using System;
+using Quark.Asset;
 
 namespace Quark.Editor
 {
@@ -9,7 +12,11 @@ namespace Quark.Editor
         TreeViewState treeViewState;
         SearchField searchField;
         public QuarkObjectTreeView TreeView { get { return treeView; } }
-
+        public event Action<List<QuarkObjectInfo>> OnObjectSelectionChanged
+        {
+            add { treeView.onObjectSelectionChanged += value; }
+            remove { treeView.onObjectSelectionChanged -= value; }
+        }
         public void OnEnable()
         {
             searchField = new SearchField();
