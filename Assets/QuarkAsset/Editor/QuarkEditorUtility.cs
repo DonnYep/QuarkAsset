@@ -39,15 +39,6 @@ namespace Quark.Editor
                 return applicationPath;
             }
         }
-        public static void BuildAssetBundle(BuildTarget target, string outPath, BuildAssetBundleOptions options = BuildAssetBundleOptions.ChunkBasedCompression)
-        {
-            AssetDatabase.RemoveUnusedAssetBundleNames();
-            if (!Directory.Exists(outPath))
-            {
-                Directory.CreateDirectory(outPath);
-            }
-            BuildPipeline.BuildAssetBundles(outPath, options | BuildAssetBundleOptions.DeterministicAssetBundle, target);
-        }
         public static void BuildSceneBundle(string[] sceneList, string outPath)
         {
             if (!Directory.Exists(outPath))
@@ -121,15 +112,6 @@ namespace Quark.Editor
         public static Texture2D GetFilterByTypeIcon()
         {
             return EditorGUIUtility.FindTexture("FilterByType");
-        }
-        public static Texture2D ToTexture2D(Texture texture)
-        {
-            return Texture2D.CreateExternalTexture(
-                texture.width,
-                texture.height,
-                TextureFormat.RGB24,
-                false, false,
-                texture.GetNativeTexturePtr());
         }
         /// <summary>
         /// 获取除自生以外的依赖资源的所有路径；
