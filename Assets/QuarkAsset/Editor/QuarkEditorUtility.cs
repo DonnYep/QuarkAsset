@@ -217,18 +217,6 @@ namespace Quark.Editor
             {
                 new MultiColumnHeaderState.Column
                 {
-                    headerContent = new GUIContent("Index"),
-                    headerTextAlignment = TextAlignment.Left,
-                    sortingArrowAlignment = TextAlignment.Left,
-                    sortedAscending = false,
-                    minWidth=24,
-                    width=40,
-                    maxWidth=92,
-                    autoResize = true,
-                    canSort=false
-                },
-                new MultiColumnHeaderState.Column
-                {
                     headerContent = new GUIContent("Size"),
                     headerTextAlignment = TextAlignment.Left,
                     sortingArrowAlignment = TextAlignment.Left,
@@ -241,12 +229,12 @@ namespace Quark.Editor
                 },
                 new MultiColumnHeaderState.Column
                 {
-                    headerContent = new GUIContent("Count"),
+                    headerContent = new GUIContent("ObjectCount"),
                     headerTextAlignment = TextAlignment.Left,
                     sortingArrowAlignment = TextAlignment.Left,
                     sortedAscending = false,
                     minWidth=36,
-                    width = 48,
+                    width=72,
                     maxWidth=92,
                     autoResize = false,
                     canSort=true
@@ -265,7 +253,7 @@ namespace Quark.Editor
                 },
                 new MultiColumnHeaderState.Column
                 {
-                    headerContent = new GUIContent("Bundle"),
+                    headerContent = new GUIContent("BundleName"),
                     headerTextAlignment = TextAlignment.Left,
                     sortingArrowAlignment = TextAlignment.Left,
                     sortedAscending = false,
@@ -283,17 +271,6 @@ namespace Quark.Editor
         {
             var columns = new[]
             {
-            new MultiColumnHeaderState.Column
-                {
-                    headerContent = new GUIContent("Index"),
-                    headerTextAlignment = TextAlignment.Left,
-                    sortingArrowAlignment = TextAlignment.Left,
-                    sortedAscending = false,
-                    minWidth=24,
-                    width=40,
-                    maxWidth=92,
-                    autoResize = true,
-                },
                 new MultiColumnHeaderState.Column
                 {
                     headerContent = new GUIContent(GetFilterByTypeIcon()),

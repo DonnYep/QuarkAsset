@@ -241,9 +241,7 @@ namespace Quark.Editor
             var ascending = multiColumnHeader.IsSortedAscending(sortedType);
             switch (sortedType)
             {
-                case 0://index
-                    break;
-                case 1://size
+                case 0://size
                     {
                         if (ascending)
                             quarkBundleInfoList.Sort((lhs, rhs) => lhs.BundleSize.CompareTo(rhs.BundleSize));
@@ -251,7 +249,7 @@ namespace Quark.Editor
                             quarkBundleInfoList.Sort((lhs, rhs) => rhs.BundleSize.CompareTo(lhs.BundleSize));
                     }
                     break;
-                case 2://count
+                case 1://count
                     {
                         if (ascending)
                             quarkBundleInfoList.Sort((lhs, rhs) => lhs.ObjectInfoList.Count.CompareTo(rhs.ObjectInfoList.Count));
@@ -259,7 +257,7 @@ namespace Quark.Editor
                             quarkBundleInfoList.Sort((lhs, rhs) => rhs.ObjectInfoList.Count.CompareTo(lhs.ObjectInfoList.Count));
                     }
                     break;
-                case 3://splittable
+                case 2://splittable
                     {
                         if (ascending)
                             quarkBundleInfoList.Sort((lhs, rhs) => lhs.Splittable.CompareTo(rhs.Splittable));
@@ -267,7 +265,7 @@ namespace Quark.Editor
                             quarkBundleInfoList.Sort((lhs, rhs) => rhs.Splittable.CompareTo(lhs.Splittable));
                     }
                     break;
-                case 4://bundle
+                case 3://bundle
                     {
                         if (ascending)
                             quarkBundleInfoList.Sort((lhs, rhs) => rhs.BundleName.CompareTo(lhs.BundleName));
@@ -288,20 +286,15 @@ namespace Quark.Editor
             {
                 case 0:
                     {
-                        DefaultGUI.Label(cellRect, args.row.ToString(), args.selected, args.focused);
+                        DefaultGUI.Label(cellRect, treeView.BundleSize, args.selected, args.focused);
                     }
                     break;
                 case 1:
                     {
-                        DefaultGUI.Label(cellRect, treeView.BundleSize, args.selected, args.focused);
-                    }
-                    break;
-                case 2:
-                    {
                         DefaultGUI.Label(cellRect, treeView.ObjectCount.ToString(), args.selected, args.focused);
                     }
                     break;
-                case 3:
+                case 2:
                     {
                         var iconRect = new Rect(cellRect.x + 4, cellRect.y, cellRect.height, cellRect.height);
                         if (treeView.Splittable)
@@ -318,7 +311,7 @@ namespace Quark.Editor
                         }
                     }
                     break;
-                case 4:
+                case 3:
                     {
                         var iconRect = new Rect(cellRect.x + 4, cellRect.y, cellRect.height, cellRect.height);
                         if (treeView.icon != null)
