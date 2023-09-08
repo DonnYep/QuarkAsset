@@ -12,7 +12,6 @@ namespace Quark
     public static class QuarkResources
     {
         static QuarkAssetDownloader quarkAssetDownloader;
-        static QuarkDownloader quarkDownloader;
         static QuarkManifestVerifier quarkManifestVerifier;
         static QuarkManifestRequester quarkManifestRequester;
         static QuarkLoadModeProvider quarkLoadModeProvider
@@ -29,19 +28,6 @@ namespace Quark
                 if (quarkAssetDownloader == null)
                     quarkAssetDownloader = new QuarkAssetDownloader();
                 return quarkAssetDownloader;
-            }
-        }
-        [Obsolete("Use QuarkAssetDownloader instead")]
-        /// <summary>
-        /// 文件下载器；
-        /// </summary>
-        public static QuarkDownloader QuarkDownloader
-        {
-            get
-            {
-                if (quarkDownloader == null)
-                    quarkDownloader = new QuarkDownloader();
-                return quarkDownloader;
             }
         }
         /// <summary>
