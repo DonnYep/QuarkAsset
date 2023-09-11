@@ -230,6 +230,7 @@ public class GameLauncher : MonoBehaviour
     }
 }
 ```
+
 <a name="QuarkResources加载"></a>
 
 ### QuarkResources加载
@@ -260,6 +261,8 @@ QuarkResources.LoadAssetAsync<Texture>("Assets/Textures/MyTexture.png",res=>
 {
     //加载完成回调，获取资源, do sth
 });
+//异步加载场景
+QuarkResources.LoadSceneAsync("MyScene",progress=>{Debug.Log(progress);},()=>{Debug.Log("Load Done");},false);
 ```
 
 <a name="QuarkResources卸载"></a>
@@ -282,6 +285,8 @@ QuarkResources.UnloadAsset("MyAudio");
 QuarkResources.UnloadAsset("MyText.json"); 
 //资源路径卸载单个资源
 QuarkResources.UnloadAsset("Assets/Textures/MyTexture.png"); 
+//卸载场景
+QuarkResources.UnloadSceneAsync("MyScene",progress=>{Debug.Log(progress);},()=>{Debug.Log("Unload Done")); 
 ```
 
 <a name="QuarkResources卸载assetbundle"></a>
