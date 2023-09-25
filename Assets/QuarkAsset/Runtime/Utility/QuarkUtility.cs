@@ -19,16 +19,16 @@ namespace Quark
         #endregion
 
         #region Assembly
-        public static object GetTypeInstance(string typeName)
+        public static T GetTypeInstance<T>(string typeName)
         {
+            T inst = default;
             var domainAssemblies = AppDomain.CurrentDomain.GetAssemblies();
-            object inst = null;
             foreach (var a in domainAssemblies)
             {
                 var dstType = a.GetType(typeName);
                 if (dstType != null)
                 {
-                    inst = Activator.CreateInstance(dstType);
+                    inst = (T)Activator.CreateInstance(dstType);
                     break;
                 }
             }

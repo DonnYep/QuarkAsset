@@ -63,11 +63,14 @@ namespace Quark.Editor
         /// <summary>
         /// 构建类型，全量或增量
         /// </summary>
-        public BuildType BuildType;
+        public QuarkBuildType BuildType;
         /// <summary>
         /// 清空拷贝到的StreamingAssets路径
         /// </summary>
         public bool ClearStreamingAssetsDestinationPath;
+        public bool ForceRemoveAllAssetBundleNames;
+        public string BuildHandlerName;
+
         public static readonly QuarkBuildParams None=new QuarkBuildParams();
     }
 }

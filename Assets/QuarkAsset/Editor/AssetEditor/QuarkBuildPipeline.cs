@@ -8,7 +8,7 @@ namespace Quark.Editor
     public class QuarkBuildPipeline
     {
         static string QuarkDatasetPath = "Assets/QuarkAssetDataset.asset";
-        static QuarkAssetBundleTabData tabData;
+        static AssetBundleBuildProfileData tabData;
         static QuarkDataset dataset;
         /// <summary>
         /// 默认不拷贝到StreamingAssets文件夹；
@@ -91,7 +91,7 @@ namespace Quark.Editor
                 QuarkUtility.LogError($"Path: {QuarkDatasetPath} invalid !");
                 return string.Empty;
             }
-            tabData = new QuarkAssetBundleTabData();
+            tabData = new AssetBundleBuildProfileData();
             tabData.BuildTarget = buildTarget;
             if (nameByHash)
                 tabData.AssetBundleNameType = AssetBundleNameType.HashInstead;
@@ -120,7 +120,7 @@ namespace Quark.Editor
                 QuarkUtility.LogError($"Path: {QuarkDatasetPath} invalid !");
                 return string.Empty;
             }
-            tabData = new QuarkAssetBundleTabData();
+            tabData = new AssetBundleBuildProfileData();
             tabData.BuildTarget = buildTarget;
             if (!string.IsNullOrEmpty(aseKey))
             {
@@ -161,7 +161,7 @@ namespace Quark.Editor
             }
             return dataset.QuarkSceneList.Select(s => s.ObjectPath).ToArray();
         }
-        static void BuildAssetBundle(QuarkDataset dataset, QuarkAssetBundleTabData tabData)
+        static void BuildAssetBundle(QuarkDataset dataset, AssetBundleBuildProfileData tabData)
         {
             QuarkUtility.LogInfo("Quark build pipeline start");
             var assetBundleBuildPath = tabData.AssetBundleOutputPath;

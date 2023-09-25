@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -761,6 +762,15 @@ namespace Quark.Editor
             AssetDatabase.SaveAssets();
 #endif
             AssetDatabase.Refresh();
+        }
+        public static string[] GetDerivedTypeHandlers<T>()
+            where T : class
+        {
+            var srcHandlers = QuarkUtility.GetDerivedTypeNames<T>();
+            var buildHandlerNames = new string[srcHandlers.Length + 1];
+            buildHandlerNames[0] = "<NONE>";
+            Array.Copy(srcHandlers, 0, buildHandlerNames, 1, srcHandlers.Length);
+            return buildHandlerNames;
         }
     }
 }

@@ -224,10 +224,10 @@ namespace Quark.Editor
             string buildMainPath = string.Empty;
             switch (buildParams.BuildType)
             {
-                case BuildType.Full:
+                case QuarkBuildType.Full:
                     buildMainPath = Path.Combine(buildParams.AssetBundleOutputPath, $"{buildParams.BuildVersion}_{buildParams.InternalBuildVersion}");
                     break;
-                case BuildType.Incremental:
+                case QuarkBuildType.Incremental:
                     buildMainPath = Path.Combine(buildParams.AssetBundleOutputPath, buildParams.BuildVersion);
                     break;
             }

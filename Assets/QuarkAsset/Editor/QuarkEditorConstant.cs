@@ -26,5 +26,8 @@
         /// 构建日志
         /// </summary>
         public const string BUILD_LOG_NAME = "BuildLog.json";
+
+        public const int ICON_WIDTH = 28;
+        public const string NEW_BUILD_PROFILE_PATH = "Assets/Editor/NewQuarkBuildProfile.asset";
     }
 }

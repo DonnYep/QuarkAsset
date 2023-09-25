@@ -38,13 +38,13 @@ namespace Quark.Editor
                 assetDatasetTab = new QuarkAssetDatasetTab();
             QuarkEditorDataProxy.QuarkAssetDataset = null;
             GetWindowData();
-            assetDatabaseTab.OnEnable(position,this);
+            assetDatabaseTab.OnEnable(position, this);
             assetBundleTab.OnEnable();
             assetBundleTab.SetAssetDatabaseTab(assetDatabaseTab);
             assetDatasetTab.OnEnable();
             refreshIcon = QuarkEditorUtility.GetRefreshIcon();
             createAddNewIcon = QuarkEditorUtility.GetCreateAddNewIcon();
-            SaveActiveIcon= QuarkEditorUtility.GetSaveActiveIcon();
+            SaveActiveIcon = QuarkEditorUtility.GetSaveActiveIcon();
         }
 
         void OnDisable()
@@ -63,7 +63,7 @@ namespace Quark.Editor
             EditorGUILayout.BeginHorizontal();
             {
                 latestDataset = (QuarkDataset)EditorGUILayout.ObjectField("QuarkAssetDataset", latestDataset, typeof(QuarkDataset), false);
-                if (GUILayout.Button(refreshIcon, GUILayout.MaxWidth(28)))
+                if (GUILayout.Button(refreshIcon, GUILayout.MaxWidth(QuarkEditorConstant.ICON_WIDTH)))
                 {
                     if (latestDataset == null)
                         return;
@@ -80,11 +80,11 @@ namespace Quark.Editor
                             break;
                     }
                 }
-                if (GUILayout.Button(createAddNewIcon, GUILayout.MaxWidth(28)))
+                if (GUILayout.Button(createAddNewIcon, GUILayout.MaxWidth(QuarkEditorConstant.ICON_WIDTH)))
                 {
                     latestDataset = CreateQuarkAssetDataset();
                 }
-                if (GUILayout.Button(SaveActiveIcon, GUILayout.MaxWidth(28)))
+                if (GUILayout.Button(SaveActiveIcon, GUILayout.MaxWidth(QuarkEditorConstant.ICON_WIDTH)))
                 {
                     QuarkEditorUtility.SaveScriptableObject(QuarkEditorDataProxy.QuarkAssetDataset);
                 }

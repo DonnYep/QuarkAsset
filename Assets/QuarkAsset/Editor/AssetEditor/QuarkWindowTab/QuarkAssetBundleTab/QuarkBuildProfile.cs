@@ -1,43 +1,61 @@
-﻿using UnityEditor;
-using UnityEngine;
+﻿using UnityEngine;
 namespace Quark.Editor
 {
     public class QuarkBuildProfile : ScriptableObject
     {
-        public string ProfileDescription;
+        [SerializeField] string profileDescription;
+        public string ProfileDescription
+        {
+            get { return profileDescription; }
+            set { profileDescription = value; }
+        }
+        [SerializeField] AssetBundleBuildProfileData assetBundleBuildProfileData;
+        public AssetBundleBuildProfileData AssetBundleBuildProfileData
+        {
+            get
+            {
+                if (assetBundleBuildProfileData == null)
+                    assetBundleBuildProfileData = new AssetBundleBuildProfileData();
+                return assetBundleBuildProfileData;
+            }
+            set { assetBundleBuildProfileData = value; }
+        }
+        public QuarkBuildParams GetBuildParams()
+        {
+            var buildOption = QuarkBuildController.GetBuildAssetBundleOptions(AssetBundleBuildProfileData.AssetBundleCompressType,
+                AssetBundleBuildProfileData.DisableWriteTypeTree,
+                AssetBundleBuildProfileData.DeterministicAssetBundle,
+                AssetBundleBuildProfileData.ForceRebuildAssetBundle,
+                AssetBundleBuildProfileData.IgnoreTypeTreeChanges);
 
-        public BuildTarget BuildTarget;
-        /// <summary>
-        /// AB资源压缩类型；
-        /// </summary>
-        public AssetBundleCompressType AssetBundleCompressType;
-        /// <summary>
-        /// 不会在AssetBundle中包含类型信息;
-        /// </summary>
-        public bool DisableWriteTypeTree;
-        /// <summary>
-        /// 使用存储在Asset Bundle中的对象的id的哈希构建Asset Bundle;
-        /// </summary>
-        public bool DeterministicAssetBundle;
-        /// <summary>
-        /// 强制重建Asset Bundles;
-        /// </summary>
-        public bool ForceRebuildAssetBundle;
-        /// <summary>
-        /// 执行增量构建检查时忽略类型树更改;
-        /// </summary>
-        public bool IgnoreTypeTreeChanges;
-        /// <summary>
-        /// 强制清除所有ab名称
-        /// </summary>
-        public bool ForceRemoveAllAssetBundleNames;
-        public string BuildVersion;
-        public int InternalBuildVersion;
-        public AssetBundleNameType AssetBundleNameType;
-        public BuildType BuildType;
-        public bool UseAesEncryptionForManifest;
-        public string AesEncryptionKeyForManifest;
-        public int EncryptionOffsetForAssetBundle;
-        public bool UseOffsetEncryptionForAssetBundle;
+            QuarkBuildParams buildParams = new QuarkBuildParams()
+            {
+                AssetBundleOutputPath = AssetBundleBuildProfileData.AssetBundleOutputPath,
+                BuildPath = AssetBundleBuildProfileData.BuildPath,
+                AssetBundleCompressType = AssetBundleBuildProfileData.AssetBundleCompressType,
+                BuildAssetBundleOptions = buildOption,
+                BuildTarget = AssetBundleBuildProfileData.BuildTarget,
+                CopyToStreamingAssets = AssetBundleBuildProfileData.CopyToStreamingAssets,
+                ClearStreamingAssetsDestinationPath = AssetBundleBuildProfileData.ClearStreamingAssetsDestinationPath,
+                StreamingRelativePath = AssetBundleBuildProfileData.StreamingRelativePath,
+                BuildType = AssetBundleBuildProfileData.BuildType,
+                BuildVersion = AssetBundleBuildProfileData.BuildVersion,
+                InternalBuildVersion = AssetBundleBuildProfileData.InternalBuildVersion,
+                AssetBundleNameType = AssetBundleBuildProfileData.AssetBundleNameType,
+                UseOffsetEncryptionForAssetBundle = AssetBundleBuildProfileData.UseOffsetEncryptionForAssetBundle,
+                EncryptionOffsetForAssetBundle = AssetBundleBuildProfileData.EncryptionOffsetForAssetBundle,
+                UseAesEncryptionForManifest = AssetBundleBuildProfileData.UseAesEncryptionForManifest,
+                AesEncryptionKeyForManifest = AssetBundleBuildProfileData.AesEncryptionKeyForManifest,
+                ForceRemoveAllAssetBundleNames = AssetBundleBuildProfileData.ForceRemoveAllAssetBundleNames,
+                BuildHandlerName = AssetBundleBuildProfileData.BuildHandlerName
+
+            };
+            return buildParams;
+        }
+        public void Reset()
+        {
+            assetBundleBuildProfileData = new AssetBundleBuildProfileData();
+            profileDescription = string.Empty;
+        }
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace Quark.Editor
 {
-    public enum BuildType
+    public enum QuarkBuildType
     {
         Full,
         Incremental
