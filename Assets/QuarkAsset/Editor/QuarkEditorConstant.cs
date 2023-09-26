@@ -29,5 +29,10 @@
 
         public const int ICON_WIDTH = 28;
         public const string NEW_BUILD_PROFILE_PATH = "Assets/Editor/NewQuarkBuildProfile.asset";
+
+        public const string NEW_DATASET_PATH = "Assets/NewQuarkAssetDataset.asset";
+
+        public const string DEFAULT_DATASET_PATH = "Assets/QuarkAssetDataset.asset";
+
     }
 }

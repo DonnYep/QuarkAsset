@@ -7,7 +7,6 @@ namespace Quark.Editor
 {
     public class QuarkBuildPipeline
     {
-        static string QuarkDatasetPath = "Assets/QuarkAssetDataset.asset";
         static AssetBundleBuildProfileData tabData;
         static QuarkDataset dataset;
         /// <summary>
@@ -85,10 +84,10 @@ namespace Quark.Editor
         /// <returns>生成后的地址</returns>
         public static string BuildAssetBundle(BuildTarget buildTarget, bool nameByHash = false, bool copyToStreamingAssets = false)
         {
-            dataset = AssetDatabase.LoadAssetAtPath<QuarkDataset>(QuarkDatasetPath);
+            dataset = AssetDatabase.LoadAssetAtPath<QuarkDataset>(QuarkEditorConstant.DEFAULT_DATASET_PATH);
             if (dataset == null)
             {
-                QuarkUtility.LogError($"Path: {QuarkDatasetPath} invalid !");
+                QuarkUtility.LogError($"Path: {QuarkEditorConstant.DEFAULT_DATASET_PATH} invalid !");
                 return string.Empty;
             }
             tabData = new AssetBundleBuildProfileData();
@@ -114,10 +113,10 @@ namespace Quark.Editor
         /// <returns>生成后的地址</returns>
         public static string EncryptBuildAssetBundle(BuildTarget buildTarget, string aseKey, int offset, bool nameByHash = false, bool copyToStreamingAssets = false)
         {
-            dataset = AssetDatabase.LoadAssetAtPath<QuarkDataset>(QuarkDatasetPath);
+            dataset = AssetDatabase.LoadAssetAtPath<QuarkDataset>(QuarkEditorConstant.DEFAULT_DATASET_PATH);
             if (dataset == null)
             {
-                QuarkUtility.LogError($"Path: {QuarkDatasetPath} invalid !");
+                QuarkUtility.LogError($"Path: {QuarkEditorConstant.DEFAULT_DATASET_PATH} invalid !");
                 return string.Empty;
             }
             tabData = new AssetBundleBuildProfileData();
@@ -153,10 +152,10 @@ namespace Quark.Editor
         }
         public static string[] GetBuildScenePath()
         {
-            dataset = AssetDatabase.LoadAssetAtPath<QuarkDataset>(QuarkDatasetPath);
+            dataset = AssetDatabase.LoadAssetAtPath<QuarkDataset>(QuarkEditorConstant.DEFAULT_DATASET_PATH);
             if (dataset == null)
             {
-                QuarkUtility.LogError($"Path: {QuarkDatasetPath} invalid !");
+                QuarkUtility.LogError($"Path: {QuarkEditorConstant.DEFAULT_DATASET_PATH} invalid !");
                 return new string[0];
             }
             return dataset.QuarkSceneList.Select(s => s.ObjectPath).ToArray();

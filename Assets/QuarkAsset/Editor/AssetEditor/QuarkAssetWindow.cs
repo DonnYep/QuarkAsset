@@ -132,7 +132,7 @@ namespace Quark.Editor
 
         QuarkDataset CreateQuarkAssetDataset()
         {
-            var dataset = QuarkEditorUtility.CreateScriptableObject<QuarkDataset>("Assets/NewQuarkAssetDataset.asset", HideFlags.NotEditable);
+            var dataset = QuarkEditorUtility.CreateScriptableObject<QuarkDataset>(QuarkEditorConstant.NEW_DATASET_PATH, HideFlags.NotEditable);
             dataset.QuarkAssetExts.AddRange(QuarkEditorConstant.Extensions);
             QuarkEditorUtility.SaveScriptableObject(dataset);
             return dataset;
