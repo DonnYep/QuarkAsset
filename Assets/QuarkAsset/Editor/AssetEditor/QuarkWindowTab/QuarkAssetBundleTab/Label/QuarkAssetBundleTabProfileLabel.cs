@@ -78,9 +78,19 @@ namespace Quark.Editor
         }
         public QuarkBuildParams GetBuildParams()
         {
+            string abOutputPath = parent.TabData.ProfileTabAbsAssetBundleBuildPath;
             if (buildProfile == null)
-                return new QuarkBuildParams();
-            return buildProfile.GetBuildParams();
+            {
+                var defaultBuildParams = new QuarkBuildParams();
+                defaultBuildParams.AssetBundleOutputPath = abOutputPath;
+                return defaultBuildParams;
+            }
+            else
+            {
+                var buildParams = buildProfile.GetBuildParams();
+                buildParams.AssetBundleOutputPath = abOutputPath;
+                return buildParams;
+            }
         }
         public void Reset()
         {
@@ -161,7 +171,7 @@ namespace Quark.Editor
             buildProfile.AssetBundleBuildProfileData.BuildType = (QuarkBuildType)EditorGUILayout.EnumPopup("Build type", buildProfile.AssetBundleBuildProfileData.BuildType);
             buildProfile.AssetBundleBuildProfileData.AssetBundleNameType = (AssetBundleNameType)EditorGUILayout.EnumPopup("Bundle name type", buildProfile.AssetBundleBuildProfileData.AssetBundleNameType);
             buildProfile.AssetBundleBuildProfileData.BuildVersion = EditorGUILayout.TextField("Build version", buildProfile.AssetBundleBuildProfileData.BuildVersion?.Trim());
-
+            var profileData = buildProfile.AssetBundleBuildProfileData;
             switch (buildProfile.AssetBundleBuildProfileData.BuildType)
             {
                 case QuarkBuildType.Full:
@@ -169,34 +179,56 @@ namespace Quark.Editor
                         buildProfile.AssetBundleBuildProfileData.InternalBuildVersion = EditorGUILayout.IntField("Internal build version", buildProfile.AssetBundleBuildProfileData.InternalBuildVersion);
                         if (buildProfile.AssetBundleBuildProfileData.InternalBuildVersion < 0)
                             buildProfile.AssetBundleBuildProfileData.InternalBuildVersion = 0;
-                        buildProfile.AssetBundleBuildProfileData.AssetBundleOutputPath = Path.Combine(buildProfile.AssetBundleBuildProfileData.BuildPath, buildProfile.AssetBundleBuildProfileData.BuildVersion, buildProfile.AssetBundleBuildProfileData.BuildTarget.ToString(), $"{buildProfile.AssetBundleBuildProfileData.BuildVersion}_{buildProfile.AssetBundleBuildProfileData.InternalBuildVersion}").Replace("\\", "/");
+                        var absPath = Path.Combine(QuarkEditorUtility.ApplicationPath, profileData.ProjectRelativeBuildPath, profileData.BuildVersion, profileData.BuildTarget.ToString(), $"{profileData.BuildVersion}_{profileData.InternalBuildVersion}").Replace("\\", "/");
+                        parent.TabData.ProfileTabAbsAssetBundleBuildPath = absPath;
                     }
                     break;
                 case QuarkBuildType.Incremental:
                     {
-                        buildProfile.AssetBundleBuildProfileData.AssetBundleOutputPath = Path.Combine(buildProfile.AssetBundleBuildProfileData.BuildPath, buildProfile.AssetBundleBuildProfileData.BuildVersion, buildProfile.AssetBundleBuildProfileData.BuildTarget.ToString(), buildProfile.AssetBundleBuildProfileData.BuildVersion).Replace("\\", "/");
+                        var absPath = Path.Combine(QuarkEditorUtility.ApplicationPath, profileData.ProjectRelativeBuildPath, profileData.BuildVersion, profileData.BuildTarget.ToString(), profileData.BuildVersion).Replace("\\", "/");
+                        parent.TabData.ProfileTabAbsAssetBundleBuildPath = absPath;
                     }
                     break;
             }
         }
         void DrawBuildPathLabel()
         {
-            GUILayout.BeginHorizontal();
+            GUILayout.Space(16);
+
+            buildProfile.AssetBundleBuildProfileData.UseProjectRelativeBuildPath = EditorGUILayout.ToggleLeft("Use project relative path", buildProfile.AssetBundleBuildProfileData.UseProjectRelativeBuildPath);
+
+            if (buildProfile.AssetBundleBuildProfileData.UseProjectRelativeBuildPath)
             {
-                buildProfile.AssetBundleBuildProfileData.BuildPath = EditorGUILayout.TextField("Build path", buildProfile.AssetBundleBuildProfileData.BuildPath.Trim());
-                if (GUILayout.Button("Browse", GUILayout.MaxWidth(128f)))
+                GUILayout.BeginHorizontal();
                 {
-                    BrowseFolder();
+                    buildProfile.AssetBundleBuildProfileData.ProjectRelativeBuildPath = EditorGUILayout.TextField("Project relative path", buildProfile.AssetBundleBuildProfileData.ProjectRelativeBuildPath.Trim());
+                    if (GUILayout.Button("Browse", GUILayout.MaxWidth(128f)))
+                    {
+                        BrowseProjectRelativeFolder();
+                    }
                 }
+                GUILayout.EndHorizontal();
             }
-            GUILayout.EndHorizontal();
-            EditorGUILayout.LabelField("Build full path", buildProfile.AssetBundleBuildProfileData.AssetBundleOutputPath);
+            else
+            {
+                GUILayout.BeginHorizontal();
+                {
+                    parent.TabData.ProfileTabAbsPath = EditorGUILayout.TextField("Build path", parent.TabData.ProfileTabAbsPath.Trim());
+                    if (GUILayout.Button("Browse", GUILayout.MaxWidth(128f)))
+                    {
+                        BrowseFolder();
+                    }
+                }
+                GUILayout.EndHorizontal();
+            }
+
+            EditorGUILayout.LabelField("Build absolute path", parent.TabData.ProfileTabAbsAssetBundleBuildPath);
             GUILayout.BeginHorizontal();
             {
                 GUILayout.FlexibleSpace();
                 if (GUILayout.Button("Open build Path", GUILayout.MaxWidth(128f)))
                 {
-                    var path = buildProfile.AssetBundleBuildProfileData.AssetBundleOutputPath;
+                    var path = parent.TabData.ProfileTabAbsAssetBundleBuildPath;
                     if (!Directory.Exists(path))
                     {
                         EditorUtility.RevealInFinder(Application.dataPath);
@@ -242,6 +274,24 @@ namespace Quark.Editor
             if (!string.IsNullOrEmpty(newPath))
             {
                 buildProfile.AssetBundleBuildProfileData.BuildPath = newPath.Replace("\\", "/");
+            }
+        }
+        void BrowseProjectRelativeFolder()
+        {
+            var absPath = Path.Combine(QuarkEditorUtility.ApplicationPath, buildProfile.AssetBundleBuildProfileData.ProjectRelativeBuildPath);
+
+            var newPath = EditorUtility.OpenFolderPanel("Bundle Folder", absPath, string.Empty);
+            if (!string.IsNullOrEmpty(newPath))
+            {
+                if (newPath.Contains(QuarkEditorUtility.ApplicationPath))
+                {
+                    var charLength = QuarkEditorUtility.ApplicationPath.Length;
+                    buildProfile.AssetBundleBuildProfileData.ProjectRelativeBuildPath = newPath.Remove(0, charLength + 1);
+                }
+                else
+                {
+                    buildProfile.AssetBundleBuildProfileData.ProjectRelativeBuildPath = QuarkEditorConstant.DEFAULT_ASSETBUNDLE_RELATIVE_PATH;
+                }
             }
         }
         QuarkBuildProfile CreateBuildProfile()

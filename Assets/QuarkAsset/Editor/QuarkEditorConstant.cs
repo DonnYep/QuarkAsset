@@ -28,11 +28,25 @@
         public const string BUILD_LOG_NAME = "BuildLog.json";
 
         public const int ICON_WIDTH = 28;
+        /// <summary>
+        /// 新建构建预设地址
+        /// </summary>
         public const string NEW_BUILD_PROFILE_PATH = "Assets/Editor/NewQuarkBuildProfile.asset";
-
+        /// <summary>
+        /// 新建资源寻址预设地址
+        /// </summary>
         public const string NEW_DATASET_PATH = "Assets/NewQuarkAssetDataset.asset";
-
+        /// <summary>
+        /// 默认资源寻址文件地址
+        /// </summary>
         public const string DEFAULT_DATASET_PATH = "Assets/QuarkAssetDataset.asset";
-
+        /// <summary>
+        /// 默认构建预设地址
+        /// </summary>
+        public const string DEFAULT_BUILD_PROFILE_PATH = "Assets/Editor/QuarkBuildProfile.asset";
+        /// <summary>
+        /// AssetBundle构建使用的Application.dataPath相对路径
+        /// </summary>
+        public const string DEFAULT_ASSETBUNDLE_RELATIVE_PATH = "AssetBundles/QuarkAsset";
     }
 }

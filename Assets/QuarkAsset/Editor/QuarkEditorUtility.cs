@@ -35,7 +35,7 @@ namespace Quark.Editor
             {
                 if (string.IsNullOrEmpty(applicationPath))
                 {
-                    applicationPath = Directory.GetCurrentDirectory();
+                    applicationPath = Directory.GetCurrentDirectory().Replace("\\", "/");
                 }
                 return applicationPath;
             }

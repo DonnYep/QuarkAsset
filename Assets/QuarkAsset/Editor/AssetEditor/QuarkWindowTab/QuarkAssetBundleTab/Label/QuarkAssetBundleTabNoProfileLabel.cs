@@ -7,6 +7,8 @@ namespace Quark.Editor
     public class QuarkAssetBundleTabNoProfileLabel
     {
         AssetBundleBuildProfileData profileData;
+        QuarkAssetBundleTab parent;
+
         string[] buildHandlers;
         public const string LabelDataName = "QuarkAsset_AssetBundleTabNoProfileLabelData.json";
         bool isAesKeyInvalid = false;
@@ -14,9 +16,10 @@ namespace Quark.Editor
         {
             get { return isAesKeyInvalid; }
         }
-        public void OnEnable(string[] buildHandlers)
+        public void OnEnable(QuarkAssetBundleTab parent, string[] buildHandlers)
         {
             this.buildHandlers = buildHandlers;
+            this.parent = parent;
             GetTabData();
         }
         public void OnGUI()
@@ -42,9 +45,10 @@ namespace Quark.Editor
                 profileData.DeterministicAssetBundle,
                 profileData.ForceRebuildAssetBundle,
                 profileData.IgnoreTypeTreeChanges);
+            string abOutputPath = parent.TabData.NoProfileTabAbsAssetBundleBuildPath;
             var buildParams = new QuarkBuildParams()
             {
-                AssetBundleOutputPath = profileData.AssetBundleOutputPath,
+                AssetBundleOutputPath = abOutputPath,
                 BuildPath = profileData.BuildPath,
                 AssetBundleCompressType = profileData.AssetBundleCompressType,
                 BuildAssetBundleOptions = buildOption,
@@ -148,34 +152,55 @@ namespace Quark.Editor
                         profileData.InternalBuildVersion = EditorGUILayout.IntField("Internal build version", profileData.InternalBuildVersion);
                         if (profileData.InternalBuildVersion < 0)
                             profileData.InternalBuildVersion = 0;
-                        profileData.AssetBundleOutputPath = Path.Combine(profileData.BuildPath, profileData.BuildVersion, profileData.BuildTarget.ToString(), $"{profileData.BuildVersion}_{profileData.InternalBuildVersion}").Replace("\\", "/");
+                        var absPath = Path.Combine(QuarkEditorUtility.ApplicationPath, profileData.ProjectRelativeBuildPath, profileData.BuildVersion, profileData.BuildTarget.ToString(), $"{profileData.BuildVersion}_{profileData.InternalBuildVersion}").Replace("\\", "/");
+                        parent.TabData.NoProfileTabAbsAssetBundleBuildPath = absPath;
+
                     }
                     break;
                 case QuarkBuildType.Incremental:
                     {
-                        profileData.AssetBundleOutputPath = Path.Combine(profileData.BuildPath, profileData.BuildVersion, profileData.BuildTarget.ToString(), profileData.BuildVersion).Replace("\\", "/");
+                        var absPath = Path.Combine(QuarkEditorUtility.ApplicationPath, profileData.ProjectRelativeBuildPath, profileData.BuildVersion, profileData.BuildTarget.ToString(), profileData.BuildVersion).Replace("\\", "/");
+                        parent.TabData.NoProfileTabAbsAssetBundleBuildPath = absPath;
                     }
                     break;
             }
         }
         void DrawBuildPathLabel()
         {
-            GUILayout.BeginHorizontal();
+            GUILayout.Space(16);
+            profileData.UseProjectRelativeBuildPath = EditorGUILayout.ToggleLeft("Use project relative path", profileData.UseProjectRelativeBuildPath);
+            if (profileData.UseProjectRelativeBuildPath)
             {
-                profileData.BuildPath = EditorGUILayout.TextField("Build path", profileData.BuildPath.Trim());
-                if (GUILayout.Button("Browse", GUILayout.MaxWidth(128f)))
+                GUILayout.BeginHorizontal();
                 {
-                    BrowseFolder();
+                    profileData.ProjectRelativeBuildPath = EditorGUILayout.TextField("Project relative path", profileData.ProjectRelativeBuildPath.Trim());
+                    if (GUILayout.Button("Browse", GUILayout.MaxWidth(128f)))
+                    {
+                        BrowseProjectRelativeFolder();
+                    }
                 }
+                GUILayout.EndHorizontal();
             }
-            GUILayout.EndHorizontal();
-            EditorGUILayout.LabelField("Build full path", profileData.AssetBundleOutputPath);
+            else
+            {
+                GUILayout.BeginHorizontal();
+                {
+                    parent.TabData.NoProfileTabAbsPath = EditorGUILayout.TextField("Build path", parent.TabData.NoProfileTabAbsPath.Trim());
+                    if (GUILayout.Button("Browse", GUILayout.MaxWidth(128f)))
+                    {
+                        BrowseFolder();
+                    }
+                }
+                GUILayout.EndHorizontal();
+            }
+            EditorGUILayout.LabelField("Build absolute path", parent.TabData.NoProfileTabAbsAssetBundleBuildPath);
+
             GUILayout.BeginHorizontal();
             {
                 GUILayout.FlexibleSpace();
                 if (GUILayout.Button("Open build Path", GUILayout.MaxWidth(128f)))
                 {
-                    var path = profileData.AssetBundleOutputPath;
+                    var path = parent.TabData.NoProfileTabAbsAssetBundleBuildPath;
                     if (!Directory.Exists(path))
                     {
                         EditorUtility.RevealInFinder(Application.dataPath);
@@ -221,6 +246,24 @@ namespace Quark.Editor
             if (!string.IsNullOrEmpty(newPath))
             {
                 profileData.BuildPath = newPath.Replace("\\", "/");
+            }
+        }
+        void BrowseProjectRelativeFolder()
+        {
+            var absPath = Path.Combine(QuarkEditorUtility.ApplicationPath, profileData.ProjectRelativeBuildPath);
+
+            var newPath = EditorUtility.OpenFolderPanel("Bundle Folder", absPath, string.Empty);
+            if (!string.IsNullOrEmpty(newPath))
+            {
+                if (newPath.Contains(QuarkEditorUtility.ApplicationPath))
+                {
+                    var charLength = QuarkEditorUtility.ApplicationPath.Length;
+                    profileData.ProjectRelativeBuildPath = newPath.Remove(0, charLength + 1);
+                }
+                else
+                {
+                    profileData.ProjectRelativeBuildPath = QuarkEditorConstant.DEFAULT_ASSETBUNDLE_RELATIVE_PATH;
+                }
             }
         }
     }

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.IO;
+using UnityEngine;
 namespace Quark.Editor
 {
     public class QuarkBuildProfile : ScriptableObject
@@ -30,7 +31,7 @@ namespace Quark.Editor
 
             QuarkBuildParams buildParams = new QuarkBuildParams()
             {
-                AssetBundleOutputPath = AssetBundleBuildProfileData.AssetBundleOutputPath,
+                //AssetBundleOutputPath = GetBuildPath(),
                 BuildPath = AssetBundleBuildProfileData.BuildPath,
                 AssetBundleCompressType = AssetBundleBuildProfileData.AssetBundleCompressType,
                 BuildAssetBundleOptions = buildOption,

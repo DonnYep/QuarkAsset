@@ -11,7 +11,10 @@ namespace Quark.Editor
         public string BuildVersion;
         public int InternalBuildVersion;
         public string BuildPath;
-        public string AssetBundleOutputPath;
+
+        public bool UseProjectRelativeBuildPath;
+        public string ProjectRelativeBuildPath;
+
         public bool CopyToStreamingAssets;
         public string StreamingRelativePath;
         public AssetBundleNameType AssetBundleNameType;
@@ -77,8 +80,10 @@ namespace Quark.Editor
         public AssetBundleBuildProfileData()
         {
             BuildTarget = BuildTarget.StandaloneWindows;
+            UseProjectRelativeBuildPath = true;
             AssetBundleCompressType = AssetBundleCompressType.ChunkBasedCompression_LZ4;
-            BuildPath = Path.Combine(Path.GetFullPath("."), "AssetBundles", "QuarkAsset").Replace("\\", "/");
+            ProjectRelativeBuildPath = QuarkEditorConstant.DEFAULT_ASSETBUNDLE_RELATIVE_PATH;
+            BuildPath = Path.Combine(Path.GetFullPath("."), ProjectRelativeBuildPath).Replace("\\", "/");
             CopyToStreamingAssets = false;
             AssetBundleNameType = AssetBundleNameType.DefaultName;
             UseOffsetEncryptionForAssetBundle = false;

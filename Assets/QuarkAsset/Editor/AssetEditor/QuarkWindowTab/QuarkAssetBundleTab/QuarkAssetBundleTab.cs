@@ -35,7 +35,7 @@ namespace Quark.Editor
             //createAddNewIcon = QuarkEditorUtility.GetCreateAddNewIcon();
             //saveActiveIcon = QuarkEditorUtility.GetSaveActiveIcon();
             buildHandlers = QuarkEditorUtility.GetDerivedTypeHandlers<IQuarkBuildHandler>();
-            noProfileLabel.OnEnable(buildHandlers);
+            noProfileLabel.OnEnable(this,buildHandlers);
             profileLabel.OnEnable(this, buildHandlers);
         }
         public void OnDisable()
