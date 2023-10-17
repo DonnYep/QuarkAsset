@@ -167,7 +167,6 @@ namespace Quark.Editor
             else
                 profileData.AssetBundleNameType = AssetBundleNameType.DefaultName;
             profileData.CopyToStreamingAssets = copyToStreamingAssets;
-            //profileData.AssetBundleOutputPath = Path.Combine(profileData.BuildPath, profileData.BuildTarget.ToString(), $"{profileData.BuildVersion}_{profileData.InternalBuildVersion}").Replace("\\", "/");
             var buildPath = Path.Combine(QuarkEditorUtility.ApplicationPath, profileData.ProjectRelativeBuildPath, profileData.BuildPath, profileData.BuildTarget.ToString(), $"{profileData.BuildVersion}_{profileData.InternalBuildVersion}").Replace("\\", "/");
 
             profileData.StreamingRelativePath = buildTarget.ToString().ToLower();
@@ -188,7 +187,7 @@ namespace Quark.Editor
                 return;
             }
             var profileData = DefaultBuildProfile.AssetBundleBuildProfileData;
-            var buildPath = Path.Combine(QuarkEditorUtility.ApplicationPath, profileData.ProjectRelativeBuildPath, profileData.BuildPath, profileData.BuildTarget.ToString(), $"{profileData.BuildVersion}_{profileData.InternalBuildVersion}").Replace("\\", "/");
+            var buildPath = Path.Combine(QuarkEditorUtility.ApplicationPath, profileData.ProjectRelativeBuildPath, profileData.BuildTarget.ToString(), $"{profileData.BuildVersion}_{profileData.InternalBuildVersion}").Replace("\\", "/");
             var buildParams = DefaultBuildProfile.GetBuildParams();
             buildParams.AssetBundleOutputPath = buildPath;
             BuildAssetBundle(DefaultDataset, buildParams);
@@ -203,34 +202,34 @@ namespace Quark.Editor
             }
             return dataset.QuarkSceneList.Select(s => s.ObjectPath).ToArray();
         }
-        static void BuildAssetBundle(QuarkDataset dataset, AssetBundleBuildProfileData tabData, string buildPath)
+        static void BuildAssetBundle(QuarkDataset dataset, AssetBundleBuildProfileData profileData, string buildPath)
         {
             QuarkUtility.LogInfo("Quark build pipeline start");
             var assetBundleBuildPath = buildPath;
             QuarkUtility.EmptyFolder(assetBundleBuildPath);
             var quarkManifest = new QuarkManifest();
-            dataset.CacheAllBundleInfos();
             var buildParams = new QuarkBuildParams()
             {
-                AesEncryptionKeyForManifest = tabData.AesEncryptionKeyForManifest,
+                AesEncryptionKeyForManifest = profileData.AesEncryptionKeyForManifest,
                 AssetBundleOutputPath = assetBundleBuildPath,
-                AssetBundleCompressType = tabData.AssetBundleCompressType,
-                AssetBundleNameType = tabData.AssetBundleNameType,
-                BuildAssetBundleOptions = tabData.BuildAssetBundleOptions,
-                BuildTarget = tabData.BuildTarget,
-                BuildVersion = tabData.BuildVersion,
-                CopyToStreamingAssets = tabData.CopyToStreamingAssets,
-                EncryptionOffsetForAssetBundle = tabData.EncryptionOffsetForAssetBundle,
-                InternalBuildVersion = tabData.InternalBuildVersion,
-                StreamingRelativePath = tabData.StreamingRelativePath,
-                UseAesEncryptionForManifest = tabData.UseAesEncryptionForManifest,
-                UseOffsetEncryptionForAssetBundle = tabData.UseOffsetEncryptionForAssetBundle,
+                AssetBundleCompressType = profileData.AssetBundleCompressType,
+                AssetBundleNameType = profileData.AssetBundleNameType,
+                BuildAssetBundleOptions = profileData.BuildAssetBundleOptions,
+                BuildTarget = profileData.BuildTarget,
+                BuildVersion = profileData.BuildVersion,
+                CopyToStreamingAssets = profileData.CopyToStreamingAssets,
+                EncryptionOffsetForAssetBundle = profileData.EncryptionOffsetForAssetBundle,
+                InternalBuildVersion = profileData.InternalBuildVersion,
+                StreamingRelativePath = profileData.StreamingRelativePath,
+                UseAesEncryptionForManifest = profileData.UseAesEncryptionForManifest,
+                UseOffsetEncryptionForAssetBundle = profileData.UseOffsetEncryptionForAssetBundle,
                 ClearStreamingAssetsDestinationPath = true
             };
             QuarkBuildController.BuildDataset(dataset);
+            dataset.CacheAllBundleInfos();
             QuarkBuildController.ProcessBundleInfos(dataset, quarkManifest, buildParams);
             QuarkBuildController.SetBundleDependent(dataset, quarkManifest);
-            var assetBundleManifest = BuildPipeline.BuildAssetBundles(assetBundleBuildPath, tabData.BuildAssetBundleOptions, tabData.BuildTarget);
+            var assetBundleManifest = BuildPipeline.BuildAssetBundles(assetBundleBuildPath, profileData.BuildAssetBundleOptions, profileData.BuildTarget);
             QuarkBuildController.FinishBuild(assetBundleManifest, dataset, quarkManifest, buildParams);
             QuarkBuildController.OverwriteManifest(quarkManifest, buildParams);
             QuarkUtility.LogInfo("Quark build pipeline done");
@@ -241,13 +240,14 @@ namespace Quark.Editor
             var quarkManifest = new QuarkManifest();
             var assetBundleBuildPath = buildParams.AssetBundleOutputPath;
             QuarkUtility.EmptyFolder(assetBundleBuildPath);
-            dataset.CacheAllBundleInfos();
             QuarkBuildController.BuildDataset(dataset);
+            dataset.CacheAllBundleInfos();
             QuarkBuildController.ProcessBundleInfos(dataset, quarkManifest, buildParams);
             QuarkBuildController.SetBundleDependent(dataset, quarkManifest);
             var assetBundleManifest = BuildPipeline.BuildAssetBundles(buildParams.AssetBundleOutputPath, buildParams.BuildAssetBundleOptions, buildParams.BuildTarget);
             QuarkBuildController.FinishBuild(assetBundleManifest, dataset, quarkManifest, buildParams);
             QuarkBuildController.OverwriteManifest(quarkManifest, buildParams);
+            QuarkBuildController.CopyToStreamingAssets(buildParams);
             QuarkUtility.LogInfo("Quark build pipeline done");
         }
     }
