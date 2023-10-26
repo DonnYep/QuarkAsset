@@ -53,7 +53,7 @@ namespace Quark.Editor
             else
                 profileData.AssetBundleNameType = AssetBundleNameType.DefaultName;
             profileData.CopyToStreamingAssets = copyToStreamingAssets;
-            var buildPath = Path.Combine(QuarkEditorUtility.ApplicationPath, profileData.ProjectRelativeBuildPath, profileData.BuildPath, profileData.BuildTarget.ToString(), $"{profileData.BuildVersion}_{profileData.InternalBuildVersion}").Replace("\\", "/");
+            var buildPath = Path.Combine(QuarkEditorUtility.ApplicationPath, profileData.ProjectRelativeBuildPath,  profileData.BuildTarget.ToString(), $"{profileData.BuildVersion}_{profileData.InternalBuildVersion}").Replace("\\", "/");
             profileData.StreamingRelativePath = buildTarget.ToString().ToLower();
             BuildAssetBundle(dataset, profileData, buildPath);
             return buildPath;
@@ -101,7 +101,7 @@ namespace Quark.Editor
             else
                 profileData.AssetBundleNameType = AssetBundleNameType.DefaultName;
             profileData.CopyToStreamingAssets = copyToStreamingAssets;
-            var buildPath = Path.Combine(QuarkEditorUtility.ApplicationPath, profileData.ProjectRelativeBuildPath, profileData.BuildPath, profileData.BuildTarget.ToString(), $"{profileData.BuildVersion}_{profileData.InternalBuildVersion}").Replace("\\", "/");
+            var buildPath = Path.Combine(QuarkEditorUtility.ApplicationPath, profileData.ProjectRelativeBuildPath, profileData.BuildTarget.ToString(), $"{profileData.BuildVersion}_{profileData.InternalBuildVersion}").Replace("\\", "/");
 
             profileData.StreamingRelativePath = buildTarget.ToString().ToLower();
             BuildAssetBundle(dataset, profileData, buildPath);

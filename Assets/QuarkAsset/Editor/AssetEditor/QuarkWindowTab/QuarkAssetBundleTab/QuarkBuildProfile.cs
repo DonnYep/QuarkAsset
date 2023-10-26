@@ -49,8 +49,11 @@ namespace Quark.Editor
                 AesEncryptionKeyForManifest = AssetBundleBuildProfileData.AesEncryptionKeyForManifest,
                 ForceRemoveAllAssetBundleNames = AssetBundleBuildProfileData.ForceRemoveAllAssetBundleNames,
                 BuildHandlerName = AssetBundleBuildProfileData.BuildHandlerName
-
             };
+            if (AssetBundleBuildProfileData.BuildType == QuarkBuildType.Incremental && AssetBundleBuildProfileData.UseProjectRelativeBuildPath)
+            {
+                buildParams.BuildPath = Path.Combine(QuarkEditorUtility.ApplicationPath, AssetBundleBuildProfileData.ProjectRelativeBuildPath).Replace("\\", "/");
+            }
             return buildParams;
         }
         public void Reset()

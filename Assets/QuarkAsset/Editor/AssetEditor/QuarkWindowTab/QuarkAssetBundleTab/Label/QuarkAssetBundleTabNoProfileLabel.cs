@@ -67,6 +67,10 @@ namespace Quark.Editor
                 ForceRemoveAllAssetBundleNames = profileData.ForceRemoveAllAssetBundleNames,
                 BuildHandlerName = profileData.BuildHandlerName
             };
+            if (profileData.BuildType == QuarkBuildType.Incremental && profileData.UseProjectRelativeBuildPath)
+            {
+                buildParams.BuildPath = Path.Combine(QuarkEditorUtility.ApplicationPath, profileData.ProjectRelativeBuildPath).Replace("\\", "/");
+            }
             return buildParams;
         }
         void GetTabData()

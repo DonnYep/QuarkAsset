@@ -1,7 +1,7 @@
 {
   "name": "com.quarkasset",
   "displayName": "QuarkAsset",
-  "version": "0.7.1-rc",
+  "version": "0.7.3-rc",
   "unity": "2019.3",
   "description": "Unity resource management solution",
   "dependencies": {

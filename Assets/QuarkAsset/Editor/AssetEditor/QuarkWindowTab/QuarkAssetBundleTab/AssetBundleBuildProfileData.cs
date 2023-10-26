@@ -10,6 +10,9 @@ namespace Quark.Editor
         public BuildTarget BuildTarget;
         public string BuildVersion;
         public int InternalBuildVersion;
+        /// <summary>
+        /// AB构建的文件夹{WORKSPACE}/{BuildTarget}/
+        /// </summary>
         public string BuildPath;
 
         public bool UseProjectRelativeBuildPath;

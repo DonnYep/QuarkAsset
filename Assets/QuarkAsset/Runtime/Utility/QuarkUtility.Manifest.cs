@@ -1,7 +1,6 @@
 ﻿using Quark.Asset;
 using Quark.Manifest;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 
 namespace Quark
@@ -348,34 +347,6 @@ namespace Quark
                 result.NewlyAddedInfos = newlyAdded.ToArray();
                 result.DeletedInfos = deleted.ToArray();
                 result.UnchangedInfos = unchanged.ToArray();
-            }
-            public static void CleanInvalidBundlesByCompareResult(QuarkManifestCompareResult result, string directoryPath)
-            {
-                if (result == null)
-                    return;
-                if (!Directory.Exists(directoryPath))
-                    return;
-                var dirInfo = new DirectoryInfo(directoryPath);
-                var fileInfos = dirInfo.GetFiles();
-                var invalidFileNames = new HashSet<string>();
-                var fileNames = fileInfos.Select(f => f.Name);
-                var changedInfos = result.ChangedInfos;
-                var deletedInfos = result.DeletedInfos;
-                for (int i = 0; i < changedInfos.Length; i++)
-                {
-                    var name = changedInfos[i].BundleKey;
-                    invalidFileNames.Add(name);
-                }
-                for (int i = 0; i < deletedInfos.Length; i++)
-                {
-                    var name = deletedInfos[i].BundleKey;
-                    invalidFileNames.Add(name);
-                }
-                foreach (var fileInfo in fileInfos)
-                {
-                    if (invalidFileNames.Contains(fileInfo.Name))
-                        fileInfo.Delete();
-                }
             }
         }
     }
