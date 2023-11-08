@@ -136,10 +136,17 @@ namespace Quark.Networking
                 pendingTaskDict.Add(task.DownloadUri, task);
                 pendingTasks.Add(task);
                 downloadCount++;
-                var remainSize = task.RecordedBundleSize - task.LocalBundleSize;
+                long localBundleSize = 0;
+                if (File.Exists(task.DownloadPath))
+                {
+                    var fileInfo = new FileInfo(task.DownloadPath);
+                    localBundleSize = fileInfo.Length;
+                }
+                var remainSize = task.RecordedBundleSize - localBundleSize;
                 if (remainSize < 0)
                     remainSize = 0;
                 totalRequiredDownloadSize += remainSize;
+
             }
         }
         public void RemoveDownload(string downloadUri)
