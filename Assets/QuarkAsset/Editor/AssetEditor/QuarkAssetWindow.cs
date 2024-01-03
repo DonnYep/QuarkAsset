@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using UnityEditor;
 using Quark.Asset;
+using UnityEditor.Compilation;
+
 namespace Quark.Editor
 {
     public class QuarkAssetWindow : EditorWindow
@@ -29,7 +31,12 @@ namespace Quark.Editor
         }
         void OnEnable()
         {
+            CompilationPipeline.compilationFinished += OnCompilationFinished;
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+            InitWindow();
+        }
+        void InitWindow()
+        {
             if (assetDatabaseTab == null)
                 assetDatabaseTab = new QuarkAssetDatabaseTab();
             if (assetBundleTab == null)
@@ -55,6 +62,7 @@ namespace Quark.Editor
             assetDatasetTab.OnDisable();
             QuarkEditorDataProxy.QuarkAssetDataset = null;
             EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+            CompilationPipeline.compilationFinished -= OnCompilationFinished;
         }
         void OnGUI()
         {
@@ -129,7 +137,10 @@ namespace Quark.Editor
         {
             QuarkEditorDataProxy.QuarkAssetDataset = null;
         }
-
+        void OnCompilationFinished(object args)
+        {
+            InitWindow();
+        }
         QuarkDataset CreateQuarkAssetDataset()
         {
             var dataset = QuarkEditorUtility.CreateScriptableObject<QuarkDataset>(QuarkEditorConstant.NEW_DATASET_PATH, HideFlags.NotEditable);
