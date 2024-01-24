@@ -100,7 +100,16 @@ namespace Quark.Editor
             if (profileData.UseAesEncryptionForManifest)
             {
                 EditorGUILayout.LabelField("BuildInfo AES encryption key, key should be 16,24 or 32 bytes long");
-                profileData.AesEncryptionKeyForManifest = EditorGUILayout.TextField("AESKey", profileData.AesEncryptionKeyForManifest);
+                EditorGUILayout.BeginHorizontal();
+                {
+                    profileData.AesEncryptionKeyForManifest = EditorGUILayout.TextField("AESKey", profileData.AesEncryptionKeyForManifest);
+                    if (GUILayout.Button("Generate Key", GUILayout.MaxWidth(128f)))
+                    {
+                        profileData.AesEncryptionKeyForManifest = QuarkUtility.GenerateRandomString(16);
+                    }
+                }
+                EditorGUILayout.EndHorizontal();
+
 
                 var aesKeyStr = profileData.AesEncryptionKeyForManifest;
                 var aesKeyLength = System.Text.Encoding.UTF8.GetBytes(aesKeyStr).Length;

@@ -30,6 +30,10 @@ namespace Quark.Editor
         void OnEnable()
         {
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+            InitWindow();
+        }
+        void InitWindow()
+        {
             if (assetDatabaseTab == null)
                 assetDatabaseTab = new QuarkAssetDatabaseTab();
             if (assetBundleTab == null)
@@ -129,7 +133,6 @@ namespace Quark.Editor
         {
             QuarkEditorDataProxy.QuarkAssetDataset = null;
         }
-
         QuarkDataset CreateQuarkAssetDataset()
         {
             var dataset = QuarkEditorUtility.CreateScriptableObject<QuarkDataset>(QuarkEditorConstant.NEW_DATASET_PATH, HideFlags.NotEditable);

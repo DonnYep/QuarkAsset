@@ -16,6 +16,11 @@ namespace Quark
         static UTF8Encoding utf8Encoding = new UTF8Encoding(false);
         [ThreadStatic]//每个静态类型字段对于每一个线程都是唯一的
         static StringBuilder stringBuilderCache = new StringBuilder(1024);
+        static char[] stringConstant ={
+            '0','1','2','3','4','5','6','7','8','9',
+            'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z',
+            'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'
+            };
         #endregion
 
         #region Assembly
@@ -550,6 +555,8 @@ namespace Quark
             }
         }
         #endregion
+
+        #region Converter
         public static string FormatBytes(long bytes, int decimals = 2)
         {
             string[] suffix = { "Byte", "KB", "MB", "GB", "TB" };
@@ -560,5 +567,24 @@ namespace Quark
                     dblSByte = bytes / 1024.0;
             return $"{Math.Round(dblSByte, decimals)}{suffix[i]}";
         }
+        #endregion
+
+        #region Text
+        /// <summary>
+        /// 生成指定长度的随机字符串
+        /// </summary>
+        /// <param name="length">字符串长度</param>
+        /// <returns>生成的随机字符串</returns>
+        public static string GenerateRandomString(int length)
+        {
+            stringBuilderCache.Clear();
+            Random rd = new Random();
+            for (int i = 0; i < length; i++)
+            {
+                stringBuilderCache.Append(stringConstant[rd.Next(62)]);
+            }
+            return stringBuilderCache.ToString();
+        }
+        #endregion
     }
 }
