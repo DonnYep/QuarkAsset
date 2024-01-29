@@ -10,6 +10,10 @@ namespace Quark.Editor
         static AssetBundleBuildProfileData profileData;
         static QuarkBuildProfile buildProfile;
         static QuarkDataset dataset;
+        /// <summary>
+        /// 默认dataset寻址配置
+        /// <para><see cref="QuarkEditorConstant.DEFAULT_DATASET_PATH"/></para>
+        /// </summary>
         public static QuarkDataset DefaultDataset
         {
             get
@@ -21,6 +25,10 @@ namespace Quark.Editor
                 return dataset;
             }
         }
+        /// <summary>
+        /// 默认构建预设
+        /// <para><see cref="QuarkEditorConstant.DEFAULT_BUILD_PROFILE_PATH"/></para>
+        /// </summary>
         public static QuarkBuildProfile DefaultBuildProfile
         {
             get
@@ -53,13 +61,13 @@ namespace Quark.Editor
             else
                 profileData.AssetBundleNameType = AssetBundleNameType.DefaultName;
             profileData.CopyToStreamingAssets = copyToStreamingAssets;
-            var buildPath = Path.Combine(QuarkEditorUtility.ApplicationPath, profileData.ProjectRelativeBuildPath,  profileData.BuildTarget.ToString(), $"{profileData.BuildVersion}_{profileData.InternalBuildVersion}").Replace("\\", "/");
+            var buildPath = Path.Combine(QuarkEditorUtility.ApplicationPath, profileData.ProjectRelativeBuildPath, profileData.BuildTarget.ToString(), $"{profileData.BuildVersion}_{profileData.InternalBuildVersion}").Replace("\\", "/");
             profileData.StreamingRelativePath = buildTarget.ToString().ToLower();
             BuildAssetBundle(dataset, profileData, buildPath);
             return buildPath;
         }
         /// <summary>
-        /// 加密构建assetBundle；
+        /// 加密构建assetBundle
         /// </summary>
         /// <param name="buildTarget">目标平台</param>
         /// <param name="aseKey">manifest加密的aes密钥</param>
@@ -107,8 +115,13 @@ namespace Quark.Editor
             BuildAssetBundle(dataset, profileData, buildPath);
             return buildPath;
         }
-        [MenuItem("Window/QuarkAsset/Build/BuildAssetBundleByProfile")]
-        public static void BuildAssetBundleByProfile()
+        /// <summary>
+        /// 通过预设进行构建
+        /// <para>dataset地址：<see cref="QuarkEditorConstant.DEFAULT_DATASET_PATH"/></para>
+        /// <para>buildProfile地址：<see cref="QuarkEditorConstant.DEFAULT_BUILD_PROFILE_PATH"/></para>
+        /// </summary>
+        [MenuItem("Window/QuarkAsset/Build/BuildAssetBundleByDefaultProfile")]
+        public static void BuildAssetBundleByDefaultProfile()
         {
             if (DefaultDataset == null)
             {
@@ -125,6 +138,33 @@ namespace Quark.Editor
             var buildParams = DefaultBuildProfile.GetBuildParams();
             buildParams.AssetBundleOutputPath = buildPath;
             BuildAssetBundle(DefaultDataset, buildParams);
+        }
+        /// <summary>
+        /// 通过预设进行构建
+        /// <para>dataset参考地址：<see cref="QuarkEditorConstant.DEFAULT_DATASET_PATH"/></para>
+        /// <para>buildProfile参考地址：<see cref="QuarkEditorConstant.DEFAULT_BUILD_PROFILE_PATH"/></para>
+        /// </summary>
+        /// <param name="datasetPath">dataset寻址预设地址</param>
+        /// <param name="buildProfilePath">构建预设地址</param>
+        public static void BuildAssetBundleByProfile(string datasetPath, string buildProfilePath)
+        {
+            var dataset = AssetDatabase.LoadAssetAtPath<QuarkDataset>(datasetPath);
+            if (dataset == null)
+            {
+                QuarkUtility.LogError($"QuarkDataset : {datasetPath} not exist !");
+                return;
+            }
+            var buildProfile = AssetDatabase.LoadAssetAtPath<QuarkBuildProfile>(buildProfilePath);
+            if (buildProfile == null)
+            {
+                QuarkUtility.LogError($"QuarkBuildProfile : {buildProfile} not exist !");
+                return;
+            }
+            var profileData = buildProfile.AssetBundleBuildProfileData;
+            var buildPath = Path.Combine(QuarkEditorUtility.ApplicationPath, profileData.ProjectRelativeBuildPath, profileData.BuildTarget.ToString(), $"{profileData.BuildVersion}_{profileData.InternalBuildVersion}").Replace("\\", "/");
+            var buildParams = buildProfile.GetBuildParams();
+            buildParams.AssetBundleOutputPath = buildPath;
+            BuildAssetBundle(dataset, buildParams);
         }
         public static string[] GetBuildScenePath()
         {
@@ -168,7 +208,6 @@ namespace Quark.Editor
             QuarkBuildController.OverwriteManifest(quarkManifest, buildParams);
             QuarkUtility.LogInfo("Quark build pipeline done");
         }
-
         static void BuildAssetBundle(QuarkDataset dataset, QuarkBuildParams buildParams)
         {
             var quarkManifest = new QuarkManifest();
