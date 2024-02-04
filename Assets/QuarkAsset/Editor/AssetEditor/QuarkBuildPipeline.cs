@@ -197,8 +197,15 @@ namespace Quark.Editor
                 StreamingRelativePath = profileData.StreamingRelativePath,
                 UseAesEncryptionForManifest = profileData.UseAesEncryptionForManifest,
                 UseOffsetEncryptionForAssetBundle = profileData.UseOffsetEncryptionForAssetBundle,
-                ClearStreamingAssetsDestinationPath = true
+                ClearStreamingAssetsDestinationPath = true,
+                BuildHandlerName = profileData.BuildHandlerName,
             };
+            var buildHanlder = QuarkUtility.GetTypeInstance<IQuarkBuildHandler>(buildParams.BuildHandlerName);
+            var hasBuildHandler = buildHanlder != null;
+            if (hasBuildHandler)
+            {
+                buildHanlder.OnBuildStart(buildParams.BuildTarget, buildParams.AssetBundleOutputPath);
+            }
             QuarkBuildController.BuildDataset(dataset);
             dataset.CacheAllBundleInfos();
             QuarkBuildController.ProcessBundleInfos(dataset, quarkManifest, buildParams);
@@ -206,10 +213,20 @@ namespace Quark.Editor
             var assetBundleManifest = BuildPipeline.BuildAssetBundles(assetBundleBuildPath, profileData.BuildAssetBundleOptions, profileData.BuildTarget);
             QuarkBuildController.FinishBuild(assetBundleManifest, dataset, quarkManifest, buildParams);
             QuarkBuildController.OverwriteManifest(quarkManifest, buildParams);
+            if (hasBuildHandler)
+            {
+                buildHanlder.OnBuildComplete(buildParams.BuildTarget, buildParams.AssetBundleOutputPath);
+            }
             QuarkUtility.LogInfo("Quark build pipeline done");
         }
         static void BuildAssetBundle(QuarkDataset dataset, QuarkBuildParams buildParams)
         {
+            var buildHanlder = QuarkUtility.GetTypeInstance<IQuarkBuildHandler>(buildParams.BuildHandlerName);
+            var hasBuildHandler = buildHanlder != null;
+            if (hasBuildHandler)
+            {
+                buildHanlder.OnBuildStart(buildParams.BuildTarget, buildParams.AssetBundleOutputPath);
+            }
             var quarkManifest = new QuarkManifest();
             var assetBundleBuildPath = buildParams.AssetBundleOutputPath;
             QuarkUtility.EmptyFolder(assetBundleBuildPath);
@@ -221,6 +238,10 @@ namespace Quark.Editor
             QuarkBuildController.FinishBuild(assetBundleManifest, dataset, quarkManifest, buildParams);
             QuarkBuildController.OverwriteManifest(quarkManifest, buildParams);
             QuarkBuildController.CopyToStreamingAssets(buildParams);
+            if (hasBuildHandler)
+            {
+                buildHanlder.OnBuildComplete(buildParams.BuildTarget, buildParams.AssetBundleOutputPath);
+            }
             QuarkUtility.LogInfo("Quark build pipeline done");
         }
     }

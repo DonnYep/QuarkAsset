@@ -476,11 +476,12 @@ namespace Quark.Loader
         {
             if (!bundleWarpperDict.TryGetValue(bundleName, out var bundleWarpper))
                 return;
-            var ResourceObjectList = bundleWarpper.QuarkAssetBundle.ObjectList;
-            foreach (var resourceObject in ResourceObjectList)
+            var objectList = bundleWarpper.QuarkAssetBundle.ObjectList;
+            foreach (var resourceObject in objectList)
             {
                 OnResourceObjectLoad(resourceObject);
             }
+            bundleWarpper.ReferenceCount += objectList.Count;
         }
     }
 }
