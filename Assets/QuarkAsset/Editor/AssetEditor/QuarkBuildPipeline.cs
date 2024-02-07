@@ -157,7 +157,80 @@ namespace Quark.Editor
             var buildProfile = AssetDatabase.LoadAssetAtPath<QuarkBuildProfile>(buildProfilePath);
             if (buildProfile == null)
             {
-                QuarkUtility.LogError($"QuarkBuildProfile : {buildProfile} not exist !");
+                QuarkUtility.LogError($"QuarkBuildProfile : {buildProfilePath} not exist !");
+                return;
+            }
+            var profileData = buildProfile.AssetBundleBuildProfileData;
+            var buildPath = Path.Combine(QuarkEditorUtility.ApplicationPath, profileData.ProjectRelativeBuildPath, profileData.BuildTarget.ToString(), $"{profileData.BuildVersion}_{profileData.InternalBuildVersion}").Replace("\\", "/");
+            var buildParams = buildProfile.GetBuildParams();
+            buildParams.AssetBundleOutputPath = buildPath;
+            BuildAssetBundle(dataset, buildParams);
+        }
+        /// <summary>
+        /// 通过预设进行构建
+        /// <para>dataset参考地址：<see cref="QuarkEditorConstant.DEFAULT_DATASET_PATH"/></para>
+        /// </summary>
+        /// <param name="datasetPath">dataset寻址预设地址</param>
+        /// <param name="buildProfile">构建预设</param>
+        public static void BuildAssetBundleByProfile(string datasetPath, QuarkBuildProfile buildProfile)
+        {
+            var dataset = AssetDatabase.LoadAssetAtPath<QuarkDataset>(datasetPath);
+            if (dataset == null)
+            {
+                QuarkUtility.LogError($"QuarkDataset : {datasetPath} not exist !");
+                return;
+            }
+            if (buildProfile == null)
+            {
+                QuarkUtility.LogError($"QuarkBuildProfile null!");
+                return;
+            }
+            var profileData = buildProfile.AssetBundleBuildProfileData;
+            var buildPath = Path.Combine(QuarkEditorUtility.ApplicationPath, profileData.ProjectRelativeBuildPath, profileData.BuildTarget.ToString(), $"{profileData.BuildVersion}_{profileData.InternalBuildVersion}").Replace("\\", "/");
+            var buildParams = buildProfile.GetBuildParams();
+            buildParams.AssetBundleOutputPath = buildPath;
+            BuildAssetBundle(dataset, buildParams);
+        }
+        /// <summary>
+        /// 通过预设进行构建
+        /// <para>buildProfile参考地址：<see cref="QuarkEditorConstant.DEFAULT_BUILD_PROFILE_PATH"/></para>
+        /// </summary>
+        /// <param name="dataset">dataset寻址预设</param>
+        /// <param name="buildProfilePath">构建预设地址</param>
+        public static void BuildAssetBundleByProfile(QuarkDataset dataset, string buildProfilePath)
+        {
+            if (dataset == null)
+            {
+                QuarkUtility.LogError($"QuarkDataset null!");
+                return;
+            }
+            var buildProfile = AssetDatabase.LoadAssetAtPath<QuarkBuildProfile>(buildProfilePath);
+            if (buildProfile == null)
+            {
+                QuarkUtility.LogError($"QuarkBuildProfile : {buildProfilePath} not exist !");
+                return;
+            }
+            var profileData = buildProfile.AssetBundleBuildProfileData;
+            var buildPath = Path.Combine(QuarkEditorUtility.ApplicationPath, profileData.ProjectRelativeBuildPath, profileData.BuildTarget.ToString(), $"{profileData.BuildVersion}_{profileData.InternalBuildVersion}").Replace("\\", "/");
+            var buildParams = buildProfile.GetBuildParams();
+            buildParams.AssetBundleOutputPath = buildPath;
+            BuildAssetBundle(dataset, buildParams);
+        }
+        /// <summary>
+        /// 通过预设进行构建
+        /// </summary>
+        /// <param name="dataset">dataset寻址预设</param>
+        /// <param name="buildProfile">构建预设</param>
+        public static void BuildAssetBundleByProfile(QuarkDataset dataset, QuarkBuildProfile buildProfile)
+        {
+            if (dataset == null)
+            {
+                QuarkUtility.LogError($"QuarkDataset null!");
+                return;
+            }
+            if (buildProfile == null)
+            {
+                QuarkUtility.LogError($"QuarkBuildProfile null!");
                 return;
             }
             var profileData = buildProfile.AssetBundleBuildProfileData;
