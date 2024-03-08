@@ -1,7 +1,6 @@
 ﻿using System;
 using UnityEngine;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Quark.Asset
 {
@@ -76,9 +75,13 @@ namespace Quark.Asset
             for (int i = 0; i < length; i++)
             {
                 var bundleInfo = quarkBundleInfoList[i];
-                if (bundleInfo.Splittable)
+                if (bundleInfo.Split)
                 {
                     GetSubBundleInfo(bundleInfo, ref infoList);
+                }
+                else if (bundleInfo.Extract)
+                {
+                    GetIndividualBundleInfo(bundleInfo, ref infoList);
                 }
                 else
                 {
@@ -99,6 +102,32 @@ namespace Quark.Asset
             {
                 var subBundleInfo = subBundleInfos[i];
                 infoList.Add(subBundleInfo);
+            }
+        }
+        /// <summary>
+        /// 获取独立成为bundle的资源
+        /// </summary>
+        /// <param name="bundleInfo"></param>
+        /// <param name="infoList"></param>
+        void GetIndividualBundleInfo(IQuarkBundleInfo bundleInfo, ref List<IQuarkBundleInfo> infoList)
+        {
+            var extract = bundleInfo.Extract;
+            if (!extract)
+                return;
+            var objectInfoList = bundleInfo.ObjectInfoList;
+            var length = objectInfoList.Count;
+            for (int i = 0; i < length; i++)
+            {
+                var objectInfo = objectInfoList[i];
+                var individualBundleInfo = new QuarkIndividualBundleInfo()
+                {
+                    BundlePath = objectInfo.ObjectPath,
+                    BundleName = objectInfo.ObjectPath,
+                    Extract = true
+                };
+                individualBundleInfo.ObjectInfoList.Add(objectInfo);
+                individualBundleInfo.BundleKey = individualBundleInfo.BundleName;
+                infoList.Add(individualBundleInfo);
             }
         }
     }

@@ -11,7 +11,7 @@ namespace Quark.Editor
             get
             {
                 if (string.IsNullOrEmpty(bundleSize))
-                    return "<UNKONW>";
+                    return QuarkEditorConstant.UNKONW;
                 return bundleSize;
             }
             set { bundleSize = value; }

@@ -7,16 +7,20 @@ namespace Quark.Editor
     {
         string bundleSize;
         public int ObjectCount { get; set; }
-        public bool Splittable{ get; set; }
-        public int SplittedBundleCount { get; set; }
-        public Texture2D SplittableIcon { get; set; }
-        public Texture2D UnsplittableIcon { get; set; }
+        public bool Split{ get; set; }
+        public bool Extract{ get; set; }
+        public int SplitBundleCount { get; set; }
+        public Texture2D SplitIcon { get; set; }
+        public Texture2D NotSplitIcon { get; set; }
+        public Texture2D ExtractIcon { get; set; }
+        public Texture2D NotExtractIcon { get; set; }
+        public Texture2D FolerOpenedIcon { get; set; }
         public string BundleSize
         {
             get
             {
                 if (string.IsNullOrEmpty(bundleSize))
-                    return "<UNKONW>";
+                    return QuarkEditorConstant.UNKONW;
                 return bundleSize;
             }
             set { bundleSize = value; }

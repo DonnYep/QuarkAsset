@@ -10,7 +10,6 @@ namespace Quark.Editor
         public string FormatBytes { get; set; }
         public string AssetPath { get; set; }
         public string AssetType { get; set; }
-        public Texture2D ObjectTypeIcon { get; set; }
 
         public QuarkObjectTreeViewItem(int id, int depth, string displayName, Texture2D icon) : base(id, depth, displayName)
         {

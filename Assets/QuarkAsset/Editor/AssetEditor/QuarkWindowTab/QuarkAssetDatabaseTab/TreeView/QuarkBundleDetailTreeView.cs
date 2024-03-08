@@ -71,7 +71,7 @@ namespace Quark.Editor
                 var dependentItemList = new List<TreeViewItem>();
                 var subBundleItemList = new List<TreeViewItem>();
 
-                if (bundleInfo.Splittable)
+                if (bundleInfo.Split)
                 {
                     var subBundleLength = bundleInfo.SubBundleInfoList.Count;
                     for (int j = 0; j < subBundleLength; j++)

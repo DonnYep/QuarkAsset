@@ -4,9 +4,9 @@ using System.Collections.Generic;
 namespace Quark.Asset
 {
     /// <summary>
-    /// 被拆分的子包体
+    /// 这个数据结构用于记录单个资源被标记为独立bundle的信息
     /// </summary>
-    public class QuarkSubBundleInfo : IEquatable<QuarkSubBundleInfo>, IQuarkBundleInfo
+    public class QuarkIndividualBundleInfo: IEquatable<QuarkIndividualBundleInfo>, IQuarkBundleInfo
     {
         string bundleName;
         string bundlePath;
@@ -17,7 +17,7 @@ namespace Quark.Asset
         List<QuarkObjectInfo> objectInfoList;
         List<QuarkBundleDependentInfo> dependentBundleKeyList;
         /// <summary>
-        /// AB包的名称；
+        /// AB包的名称
         /// </summary>
         public string BundleName
         {
@@ -33,7 +33,7 @@ namespace Quark.Asset
             }
         }
         /// <summary>
-        /// AB在Assets目录下的地址；
+        /// AB在Assets目录下的地址
         /// </summary>
         public string BundlePath
         {
@@ -90,7 +90,7 @@ namespace Quark.Asset
             set { extract = value; }
         }
 
-        public bool Equals(QuarkSubBundleInfo other)
+        public bool Equals(QuarkIndividualBundleInfo other)
         {
             return other.bundleName == this.bundleName || other.bundlePath == bundlePath;
         }

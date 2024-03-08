@@ -158,7 +158,10 @@ namespace Quark.Editor
             {
                 QuarkCommand.ForceRemoveAllAssetBundleNames();
             }
-            yield return assetDatabaseTab.BuildDataset();
+            //yield return assetDatabaseTab.BuildDataset();
+            dataset.CacheAllBundleInfos();
+            QuarkBuildController.BuildDataset(dataset);
+            yield return null;
             switch (buildParams.BuildType)
             {
                 case QuarkBuildType.Full:

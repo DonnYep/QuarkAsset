@@ -76,8 +76,6 @@ namespace Quark.Editor
             InitRects(pos);
         }
 
-
-
         public void OnDisable()
         {
             QuarkEditorUtility.SaveData(QuarkAssetDatabaseTabDataFileName, tabData);
@@ -327,8 +325,8 @@ namespace Quark.Editor
                     continue;
                 }
                 bundleInfo.SubBundleInfoList.Clear();
-                #region SunBundlle
-                if (bundleInfo.Splittable)
+                #region SubBundlle
+                if (bundleInfo.Split)
                 {
                     var subBundlePaths = AssetDatabase.GetSubFolders(bundlePath);
                     var subBundlePathLength = subBundlePaths.Length;

@@ -48,5 +48,10 @@
         /// AssetBundle构建使用的Application.dataPath相对路径
         /// </summary>
         public const string DEFAULT_ASSETBUNDLE_RELATIVE_PATH = "AssetBundles/QuarkAsset";
+        /// <summary>
+        /// 未知类型
+        /// </summary>
+        public const string UNKONW = "<UNKONW>";
+
     }
 }

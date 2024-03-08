@@ -82,6 +82,10 @@ namespace Quark.Editor
         {
             return EditorGUIUtility.FindTexture("Folder Icon");
         }
+        public static Texture2D GetFolderOpenedIcon()
+        {
+            return EditorGUIUtility.FindTexture("FolderOpened Icon");
+        }
         public static Texture2D GetFindDependenciesIcon()
         {
             return EditorGUIUtility.FindTexture("UnityEditor.FindDependencies");
@@ -135,7 +139,7 @@ namespace Quark.Editor
             return list.ToArray();
         }
         /// <summary>
-        /// 获取文件夹的MD5；
+        /// 获取文件夹的MD5
         /// </summary>
         /// <param name="dirPath">文件夹路径</param>
         /// <returns>MD5</returns>
@@ -151,6 +155,31 @@ namespace Quark.Editor
                     {
                         file.CopyTo(ms);
                     }
+                }
+                using (var hash = MD5Cng.Create())
+                {
+                    byte[] data = hash.ComputeHash(ms.ToArray());
+                    var sBuilder = new StringBuilder();
+                    for (int i = 0; i < data.Length; i++)
+                    {
+                        sBuilder.Append(data[i].ToString("x2"));
+                    }
+                    return sBuilder.ToString();
+                }
+            }
+        }
+        /// <summary>
+        /// 生成文件的Md5
+        /// </summary>
+        /// <param name="filePath">文件地址</param>
+        /// <returns>MD5</returns>
+        public static string CreateFileMd5(string filePath)
+        {
+            using (var ms = new MemoryStream())
+            {
+                using (var file = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+                {
+                    file.CopyTo(ms);
                 }
                 using (var hash = MD5Cng.Create())
                 {
@@ -240,9 +269,21 @@ namespace Quark.Editor
                     autoResize = false,
                     canSort=true
                 },
-                  new MultiColumnHeaderState.Column
+                new MultiColumnHeaderState.Column
                 {
                     headerContent = new GUIContent("Splittable"),
+                    headerTextAlignment = TextAlignment.Left,
+                    sortingArrowAlignment = TextAlignment.Left,
+                    sortedAscending = false,
+                    minWidth=48,
+                    width = 64,
+                    maxWidth=92,
+                    autoResize = false,
+                    canSort=true
+                },
+                new MultiColumnHeaderState.Column
+                {
+                    headerContent = new GUIContent("Extract"),
                     headerTextAlignment = TextAlignment.Left,
                     sortingArrowAlignment = TextAlignment.Left,
                     sortedAscending = false,
@@ -316,17 +357,6 @@ namespace Quark.Editor
                     maxWidth=192,
                     autoResize = true,
                 },
-                 new MultiColumnHeaderState.Column
-                {
-                   headerContent = new GUIContent("Type"),
-                    headerTextAlignment = TextAlignment.Left,
-                    sortingArrowAlignment = TextAlignment.Left,
-                    sortedAscending = false,
-                    minWidth=92,
-                    width=160,
-                    maxWidth=320,
-                    autoResize = true,
-                },
                 new MultiColumnHeaderState.Column
                 {
                     headerContent = new GUIContent("BundleName"),
@@ -371,12 +401,12 @@ namespace Quark.Editor
                 },
                 new MultiColumnHeaderState.Column
                 {
-                    headerContent = new GUIContent("Count"),
+                    headerContent = new GUIContent("ObjectCount"),
                     headerTextAlignment = TextAlignment.Left,
                     sortingArrowAlignment = TextAlignment.Left,
                     sortedAscending = false,
-                    minWidth=36,
-                    width = 48,
+                     minWidth=36,
+                    width=72,
                     maxWidth=92,
                     autoResize = false,
                     canSort=false
@@ -715,7 +745,7 @@ namespace Quark.Editor
             return state;
         }
         /// <summary>
-        /// 获取文件夹中文件的总体大小；
+        /// 获取文件夹中文件的总体大小
         /// </summary>
         /// <param name="path">路径</param>
         /// <param name="availableExtes">可识别的后缀名</param>
@@ -738,6 +768,46 @@ namespace Quark.Editor
                     totalSize += file.Length;
             }
             return totalSize;
+        }
+        /// <summary>
+        /// 返回文件是否存在
+        /// </summary>
+        /// <param name="path">Assets目录下文件地址</param>
+        /// <returns>文件存在结果</returns>
+        public static bool IsValidFile(string path)
+        {
+            if (!path.StartsWith("Assets"))
+                return false;
+            var filePath = Path.Combine(ApplicationPath, path);
+            if (!Directory.Exists(Path.GetDirectoryName(filePath)))
+            {
+                return false;
+            }
+            else if (File.Exists(filePath))
+            {
+                return true;
+            }
+            return false;
+        }
+        /// <summary>
+        /// 获取unity中的文件大小
+        /// </summary>
+        /// <param name="path">Assets目录下文件地址</param>
+        /// <returns>文件大小</returns>
+        public static long GetUnityFileSize(string path)
+        {
+            if (!path.StartsWith("Assets"))
+                return 0;
+            var filePath = Path.Combine(ApplicationPath, path);
+            if (!Directory.Exists(Path.GetDirectoryName(filePath)))
+            {
+                return 0;
+            }
+            else if (File.Exists(filePath))
+            {
+                return new FileInfo(filePath).Length;
+            }
+            return 0;
         }
         public static T CreateScriptableObject<T>(string path, HideFlags hideFlags = HideFlags.None) where T : ScriptableObject
         {

@@ -25,7 +25,12 @@ namespace Quark.Asset
         [SerializeField]
         List<QuarkBundleDependentInfo> dependentBundleKeyList;
         [SerializeField]
-        bool splittable;
+        bool split;
+        /// <summary>
+        /// 标记对象为独立的ab包
+        /// </summary>
+        [SerializeField]
+        bool extract;
         [SerializeField]
         List<QuarkSubBundleInfo> subBundleInfoList;
         /// <summary>
@@ -96,10 +101,33 @@ namespace Quark.Asset
             }
             set { dependentBundleKeyList = value; }
         }
-        public bool Splittable
+        /// <summary>
+        /// 是否分割包体下的子目录作为独立的一个bundle。
+        /// <para>此参数与<see cref="Extract"/>互斥</para>
+        /// </summary>
+        public bool Split
         {
-            get { return splittable; }
-            set { splittable = value; }
+            get { return split; }
+            set
+            {
+                split = value;
+                if (split)
+                    extract = false;
+            }
+        }
+        /// <summary>
+        /// 是否将包体内的所有资源作为单独的bundle。
+        /// <para>此参数与<see cref="Split"/>互斥</para>
+        /// </summary>
+        public bool Extract
+        {
+            get { return extract; }
+            set
+            {
+                extract = value;
+                if (extract)
+                    split = false;
+            }
         }
         public List<QuarkSubBundleInfo> SubBundleInfoList
         {
@@ -111,7 +139,6 @@ namespace Quark.Asset
             }
             set { subBundleInfoList = value; }
         }
-
         public bool Equals(QuarkBundleInfo other)
         {
             return other.bundleName == this.bundleName || other.bundlePath == bundlePath;

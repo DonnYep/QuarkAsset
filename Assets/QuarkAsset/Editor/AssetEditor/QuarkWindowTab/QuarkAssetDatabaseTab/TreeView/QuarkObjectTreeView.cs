@@ -10,7 +10,7 @@ namespace Quark.Editor
     public class QuarkObjectTreeView : TreeView
     {
         readonly List<QuarkObjectInfo> objectInfoList = new List<QuarkObjectInfo>();
-        readonly List<QuarkObjectInfo> selectedObjectInfos= new List<QuarkObjectInfo>();
+        readonly List<QuarkObjectInfo> selectedObjectInfos = new List<QuarkObjectInfo>();
         public Action<List<QuarkObjectInfo>> onObjectSelectionChanged;
         public int Count { get { return objectInfoList.Count; } }
         bool detailPreview;
@@ -101,8 +101,6 @@ namespace Quark.Editor
 
                     var objectInfo = objectInfoList[i];
                     Texture2D objectIcon = null;
-                    Texture2D objectTypeIcon = null;
-                    var objectType = QuarkUtility.GetTypeFromAllAssemblies(objectInfo.ObjectType);
                     if (objectInfo.ObjectValid)
                     {
                         if (detailPreview)
@@ -117,8 +115,6 @@ namespace Quark.Editor
                     }
                     else
                         objectIcon = EditorGUIUtility.FindTexture("console.erroricon");
-                    if (objectType != null)
-                        objectTypeIcon = AssetPreview.GetMiniTypeThumbnail(objectType);
                     var item = new QuarkObjectTreeViewItem(i, 1, objectInfo.ObjectName, objectIcon)
                     {
                         BundleName = objectInfo.BundleName,
@@ -126,7 +122,6 @@ namespace Quark.Editor
                         AssetExtension = objectInfo.ObjectExtension,
                         FormatBytes = objectInfo.ObjectFormatBytes,
                         AssetType = objectInfo.ObjectType,
-                        ObjectTypeIcon = objectTypeIcon
                     };
                     allItems.Add(item);
                 }
@@ -177,15 +172,7 @@ namespace Quark.Editor
                             objectInfoList.Sort((lhs, rhs) => rhs.BundleName.CompareTo(lhs.BundleName));
                     }
                     break;
-                case 4://Type
-                    {
-                        if (ascending)
-                            objectInfoList.Sort((lhs, rhs) => lhs.ObjectType.CompareTo(rhs.ObjectType));
-                        else
-                            objectInfoList.Sort((lhs, rhs) => rhs.ObjectType.CompareTo(lhs.ObjectType));
-                    }
-                    break;
-                case 5://BundleName
+                case 4://BundleName
                     {
                         if (ascending)
                             objectInfoList.Sort((lhs, rhs) => rhs.BundleName.CompareTo(lhs.BundleName));
@@ -193,7 +180,7 @@ namespace Quark.Editor
                             objectInfoList.Sort((lhs, rhs) => lhs.BundleName.CompareTo(rhs.BundleName));
                     }
                     break;
-                case 6://AssetPath
+                case 5://AssetPath
                     {
                         if (ascending)
                             objectInfoList.Sort((lhs, rhs) => rhs.ObjectPath.CompareTo(lhs.ObjectPath));
@@ -235,20 +222,10 @@ namespace Quark.Editor
                     break;
                 case 4:
                     {
-                        var iconRect = new Rect(cellRect.x + 4, cellRect.y, cellRect.height, cellRect.height);
-                        if (treeView.icon != null)
-                            GUI.DrawTexture(iconRect, treeView.ObjectTypeIcon, ScaleMode.ScaleToFit);
-                        var lablCellRect = new Rect(cellRect.x + iconRect.width + 4, cellRect.y, cellRect.width - iconRect.width, cellRect.height);
-                        DefaultGUI.Label(lablCellRect, treeView.AssetType, args.selected, args.focused);
-                        //DefaultGUI.Label(cellRect, treeView.AssetType, args.selected, args.focused);
-                    }
-                    break;
-                case 5:
-                    {
                         DefaultGUI.Label(cellRect, treeView.BundleName, args.selected, args.focused);
                     }
                     break;
-                case 6:
+                case 5:
                     {
                         DefaultGUI.Label(cellRect, treeView.AssetPath, args.selected, args.focused);
                     }

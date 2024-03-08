@@ -1,4 +1,5 @@
 ﻿using Quark.Asset;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -27,16 +28,44 @@ namespace Quark.Editor
             {
                 currentBundleIndex++;
                 var bundlePath = bundleInfo.BundlePath;
-                if (!AssetDatabase.IsValidFolder(bundlePath))
+                if (bundleInfo.Extract)
                 {
-                    invalidBundleInfos.Add(bundleInfo);
-                    continue;
+                    var fileExists = QuarkEditorUtility.IsValidFile(bundlePath);
+                    if (!fileExists)
+                    {
+                        invalidBundleInfos.Add(bundleInfo);
+                        continue;
+                    }
+                }
+                else
+                {
+                    if (!AssetDatabase.IsValidFolder(bundlePath))
+                    {
+                        invalidBundleInfos.Add(bundleInfo);
+                        continue;
+                    }
                 }
                 bundleInfo.ObjectInfoList.Clear();
-                bundleInfo.BundleSize = QuarkEditorUtility.GetUnityDirectorySize(bundlePath, dataset.QuarkAssetExts);
+                if (bundleInfo.Extract)
+                {
+                    bundleInfo.BundleSize = QuarkEditorUtility.GetUnityFileSize(bundlePath);
+                }
+                else
+                {
+                    bundleInfo.BundleSize = QuarkEditorUtility.GetUnityDirectorySize(bundlePath, dataset.QuarkAssetExts);
+                }
                 bundleInfo.BundleFormatBytes = EditorUtility.FormatBytes(bundleInfo.BundleSize);
                 bundleInfo.BundleKey = bundleInfo.BundleName;
-                var filePaths = Directory.GetFiles(bundlePath, ".", SearchOption.AllDirectories);
+                string[] filePaths = default;
+                if (!bundleInfo.Extract)
+                {
+                    filePaths = Directory.GetFiles(bundlePath, ".", SearchOption.AllDirectories);
+                }
+                else
+                {
+                    filePaths = new string[1];
+                    filePaths[0] = bundlePath;
+                }
                 var fileLength = filePaths.Length;
                 for (int i = 0; i < fileLength; i++)
                 {
@@ -91,7 +120,15 @@ namespace Quark.Editor
                 var nameType = buildParams.AssetBundleNameType;
                 var bundleKey = bundleInfo.BundleName;
                 var path = Path.Combine(QuarkEditorUtility.ApplicationPath, bundlePath);
-                var hash = QuarkEditorUtility.CreateDirectoryMd5(path);
+                string hash = string.Empty;
+                if (!bundleInfo.Extract)
+                {
+                    hash = QuarkEditorUtility.CreateDirectoryMd5(path);
+                }
+                else
+                {
+                    hash = QuarkEditorUtility.CreateFileMd5(path);
+                }
                 switch (nameType)
                 {
                     case AssetBundleNameType.DefaultName:
@@ -343,7 +380,7 @@ namespace Quark.Editor
             List<AssetCache> cmpList = new List<AssetCache>();
             foreach (var bundleInfo in bundleInfos)
             {
-                //过滤空包。若文件夹被标记为bundle，且不包含内容，则unity会过滤。因此遵循unity的规范；
+                //过滤空包。若文件夹被标记为bundle，且不包含内容，则unity会过滤。因此遵循unity的规范。
                 if (bundleInfo.ObjectInfoList.Count <= 0)
                 {
                     continue;
@@ -351,7 +388,15 @@ namespace Quark.Editor
                 var bundlePath = bundleInfo.BundlePath;
                 var bundleName = bundleInfo.BundleName;
                 var path = Path.Combine(QuarkEditorUtility.ApplicationPath, bundlePath);
-                var hash = QuarkEditorUtility.CreateDirectoryMd5(path);
+                string hash = string.Empty;
+                if (!bundleInfo.Extract)
+                {
+                    hash = QuarkEditorUtility.CreateDirectoryMd5(path);
+                }
+                else
+                {
+                    hash = QuarkEditorUtility.CreateFileMd5(path);
+                }
                 var assetNames = bundleInfo.ObjectInfoList.Select(o => o.ObjectPath).ToArray();
                 var cmpInfo = new AssetCache()
                 {
