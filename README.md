@@ -19,15 +19,19 @@ QuarkAsset是一套轻量级的插件化Unity资源加载方案。 内置AssetDa
       - [查看AssetBundle中的资源](#查看assetbundle中的资源)
       - [查看AssetBundle依赖](#查看assetbundle依赖)
       - [拆分AssetBundle](#拆分assetbundle)
+        - [依据子文件夹拆分](#依据子文件夹拆分)
+        - [依据每个资源个体拆分](#依据每个资源个体拆分)
     - [AssetBundleTab](#assetbundletab)
+      - [使用本地设置](#使用本地设置)
+      - [使用构建预设](#使用构建预设)
     - [AssetDatasetTab](#assetdatasettab)
   - [QuarkRuntime入口-QuarkConfig](#quarkruntime入口-quarkconfig)
     - [未选择加载模式](#未选择加载模式)
     - [AssetDatabase加载模式](#assetdatabase加载模式)
     - [AssetBundle加载模式](#assetbundle加载模式)
-  - [QuarkRuntime加载&卸载](#quarkruntime加载&卸载)
   - [QuarkRuntime应用实例](#quarkruntime应用实例)
     - [自定义入口实例](#自定义入口实例)
+  - [QuarkRuntime](#quarkruntime)
     - [QuarkResources加载](#quarkresources加载)
       - [QuarkResources同步加载](#quarkresources同步加载)
       - [QuarkResources异步加载](#quarkresources异步加载)
@@ -41,6 +45,7 @@ QuarkAsset是一套轻量级的插件化Unity资源加载方案。 内置AssetDa
     - [文件清单合并](#文件清单合并)
   - [注意事项](#注意事项)
 
+---
 
 <a name="UPM支持"></a>
 
@@ -51,6 +56,8 @@ QuarkAsset是一套轻量级的插件化Unity资源加载方案。 内置AssetDa
 * UPM本地导入。选择Assets/QuarkAsset文件夹，拷贝到工程目录的Packages目录下，完成导入。
 
 * UPM从git导入。url链接: https://github.com/DonnYep/QuarkAsset.git#upm 
+
+---
 
 <a name="QuarkEditor编辑器"></a>
 
@@ -75,6 +82,7 @@ QuarkAsset是一套轻量级的插件化Unity资源加载方案。 内置AssetDa
 <a name="QuarkEditor-AssetDatabaseTab"></a>
 
 ### AssetDatabaseTab
+
 ![Quark_AssetDatabaseTab](Docs/Images/Quark_AssetDatabaseTab.png)
 
 * 此页面显示dataset中包含的AssetBundle信息。
@@ -85,45 +93,100 @@ QuarkAsset是一套轻量级的插件化Unity资源加载方案。 内置AssetDa
 
 <a name="设置AssetBundle"></a>
 
-#### 设置AssetBundle
+#### &nbsp; 设置AssetBundle
 
 * 将需要被打包为ab的文件夹或资源拖拽入bundle label窗口，被拖入的资源会自动生成ab名称。点击上方Build按钮，完成dataset资源识别。
   
 <a name="查看AssetBundle中的资源"></a>
 
-#### 查看AssetBundle中的资源
-![Quark_AssetDatabaseTab_Preview](Docs/Images/Quark_AssetDatabaseTab_Preview.png)
+#### &nbsp; 查看AssetBundle中的资源
 
 * 选中需要查看的bundle，在右侧label中可缩放查看缩略图信息。
+![Quark_AssetDatabaseTab_Preview](Docs/Images/Quark_AssetDatabaseTab_Preview.png)
+
 
 <a name="查看AssetBundle依赖"></a>
 
-#### 查看AssetBundle依赖
-![Quark_AssetDatabaseTab_Dependent](Docs/Images/Quark_AssetDatabaseTab_Dependent.png)
+#### &nbsp; 查看AssetBundle依赖
 
 * 如图所示，选择显示区类别，可查看bundle的依赖关系以及subbundle信息。
+![Quark_AssetDatabaseTab_Dependent](Docs/Images/Quark_AssetDatabaseTab_Dependent.png)
+
 
 <a name="拆分AssetBundle"></a>
 
-#### 拆分AssetBundle
+#### &nbsp; 拆分AssetBundle
+
+<a name="依据子文件夹拆分"></a>
+
+##### &nbsp; &nbsp; 依据子文件夹拆分
+
+* Mark as splittable
 ![Quark_AssetDatabaseTab_SplitBundle](Docs/Images/Quark_AssetDatabaseTab_SplitBundle.png)
 
 * 选择bundle，点击右键显示菜单，点击"Mark as splittable"选项，被选中的bundle会被标记为可分割的bundle，点击"Build"按钮，刷新信息。
   
 * 分割bundle的逻辑为，若bundle存在子文件夹，则第一级的子文件夹被标记为新的bundle，在构建bundle时会生成新的bundle，同时父级bundle则不会再构建。
 
+* `Splittable`与`Extract`是互斥的。即Splittable为true时，Extract无法为true，反之亦然。
+
+<br>
+
+<a name="依据每个资源个体拆分"></a>
+
+##### &nbsp; &nbsp; 依据每个资源个体拆分
+
+* Mark as extract
+![Quark_AssetDatabaseTab_ExtractBundle](Docs/Images/Quark_AssetDatabaseTab_ExtractBundle.png)
+
+* 选择bundle，点击右键显示菜单，点击"Mark as extract"选项，被选中的bundle会被标记为可分割的bundle，点击"Build"按钮，刷新信息。
+  
+* 当bundle被标记为Extract时，此bundle下的所有资源对象都将作为`独立的assetbundle`进行构建。此功能适用于变更频繁的资产。
+
+* `Extract`与`Splittable`是互斥的。即Extract为true时，Splittable无法为true，反之亦然。
+
+<div style="border-top: 1px solid black; margin-top: 20px; margin-bottom: 20px;"></div>
 
 <a name="QuarkEditor-AssetBundleTab"></a>
 
 ### AssetBundleTab
-![Quark_AssetBundleTab](Docs/Images/Quark_AssetBundleTab.png)
 
 * 此Tab用于ab打包操作。
 
 * 打包ab时需要选择ab所对应的平台。若需要拷贝到streamingAssets文件夹，则勾选CopyToStreamingAssets选项。
 
-* 其余可选择使用默认预设。
+* 打包ab配置有两种选择，第一种是`使用本地设置`，第二种是`使用构建预设`。
+  * `本地设置`指打包ab的配置存储在本地设备。配置无法对其进行版本管理。
+  * `构建预设`指生成一个预设文件，可以在不同机器上使用相同的配置进行ab打包，且可以被版本控制管理。
 
+* 配置打包设置时，在更改需要变更的参数后，其余参数推荐使用默认值。
+
+<a name="使用本地设置"></a>
+
+#### &nbsp; 使用本地设置
+
+* 如图，调整变更自己需要的参数。
+![Quark_AssetBundleTab](Docs/Images/Quark_AssetBundleTab.png)
+
+<a name="使用构建预设"></a>
+
+#### &nbsp; 使用构建预设
+
+* 使用构建预设，如图。勾选`Use build profile`选项，勾选后切换为预设构建。
+![Quark_AssetBundleTab_UseBuildProfile](Docs/Images/Quark_AssetBundleTab_UseBuildProfile.png)
+
+<br>
+
+* 当构建预设不存在时，点击`+`按钮，生成一个构建预设。
+![Quark_AssetBundleTab_CreateBuildProfile](Docs/Images/Quark_AssetBundleTab_CreateBuildProfile.png)
+
+<br>
+
+* 构建预设与本地配置大体相同。
+![Quark_AssetBundleTab_BuildProfile](Docs/Images/Quark_AssetBundleTab_BuildProfile.png)
+
+
+<div style="border-top: 1px solid black; margin-top: 20px; margin-bottom: 20px;"></div>
 
 <a name="QuarkEditor-AssetDatasetTab"></a>
 
@@ -145,6 +208,7 @@ QuarkAsset是一套轻量级的插件化Unity资源加载方案。 内置AssetDa
 ### 未选择加载模式
 ![QuarkConfig_None](Docs/Images/QuarkConfig_None.png)
 
+<div style="border-top: 1px solid black; margin-top: 20px; margin-bottom: 20px;"></div>
 
 <a name="QuarkConfig-AssetDatabase加载模式"></a>
 
@@ -152,6 +216,8 @@ QuarkAsset是一套轻量级的插件化Unity资源加载方案。 内置AssetDa
 ![QuarkConfig_AssetDatabase](Docs/Images/QuarkConfig_AssetDatabase.png)
 
 * 为`QuarkAssetDataset`赋予build好的dataset，即完成配置。
+
+<div style="border-top: 1px solid black; margin-top: 20px; margin-bottom: 20px;"></div>
 
 <a name="QuarkConfig-AssetBundle加载模式"></a>
 
@@ -167,24 +233,7 @@ QuarkAsset是一套轻量级的插件化Unity资源加载方案。 内置AssetDa
 * QuarkRuntime加载资源会自动计算引用计数，并根据引用计数加载或卸载assetbundle，无需手动管理ab资源。
 
 -----
-
-<a name="QuarkRuntime加载&卸载"></a>
-
-## QuarkRuntime加载&卸载
-
-* Quark的加载&卸载类为`QuarkResources`。
-
-* 加载资源时输入的名称可采用以下三种范式：
-    * 1、资源名。      
-    * 2、资源名.后缀   
-    * 3、资源路径      
-
-* 加载&卸载时请注意以下内容：
-    * 1、资源名大小写敏感的资源名 。示例：MyAudio
-    * 2、后缀名大小写不敏感。示例：MyAudio.mp3或MyAudio.MP3
-    * 3、资源路径大小写敏感，地址须以Assets/开头。示例：Assets/Audio/MyAudio.mp3。采用地址加载时，后缀名需要小写。
     
------
 
 <a name="QuarkRuntime应用实例"></a>
 
@@ -196,39 +245,74 @@ QuarkAsset是一套轻量级的插件化Unity资源加载方案。 内置AssetDa
 
 ```csharp
 using Quark;
+using Quark.Asset;
+using System.IO;
 using UnityEngine;
-[DefaultExecutionOrder(-2000)]//建议延后入口执行优先级
-public class GameLauncher : MonoBehaviour
+public class MyLauncher : MonoBehaviour
 {
-    private void Awake()
-    {
-        QuarkResources.OnCompareManifestSuccess += OnCompareManifestSuccess;
-        QuarkResources.OnCompareManifestFailure += OnCompareManifestFailure; 
-    }
+    /// <summary>
+    /// QuarkAssetLoadMode下AssetDatabase模式所需的寻址数据。
+    /// <see cref="Quark.QuarkLoadMode"/>
+    /// </summary>
+    [SerializeField] QuarkDataset quarkDataset;
+    /// <summary>
+    /// ab Build 的相对地址。
+    /// </summary>
+    [SerializeField] string streamingRelativeBuildPath;
+    /// <summary>
+    /// 对称加密密钥。
+    /// </summary>
+    [SerializeField] string manifestAesKey;
+    /// <summary>
+    /// 加密偏移量。
+    /// </summary>
+    [SerializeField] ulong encryptionOffset;
     private void Start()
     {
-        if (QuarkResources.QuarkAssetLoadMode == QuarkLoadMode.AssetDatabase)
+        //根据需要调用函数
+    }
+    void LanchAssetBundleMode()
+    {
+        //以AssetBundle模式启动
+        var myPath = Path.Combine(Application.streamingAssetsPath, streamingRelativeBuildPath);
+        QuarkResources.LaunchAssetBundleMode(myPath, () =>
         {
-            InitGame();
-        }
+                //启动成功，进入游戏逻辑
+            }, (errorMsg) =>
+            {
+                //启动失败，处理异常
+            }, manifestAesKey, encryptionOffset);
     }
-    private void OnCompareManifestSuccess(long size)
+    void LanchAssetDatabaseMode()
     {
-        if (QuarkResources.QuarkAssetLoadMode == QuarkLoadMode.AssetBundle)
+        //以AssetDatabase(unity editor 调试)模式启动。
+        QuarkResources.LaunchAssetDatabaseMode(quarkDataset, () =>
         {
-            InitGame();
-        }
-    }
-    private void OnCompareManifestFailure(string message)
-    {
-       //这里表示文件清单未被读取到，需要检查build后的文件是否存在以及路径是否正确
-    }
-    void InitGame()
-    {
-        //Quark资源初始化成功，可进行初始化！
+                //启动成功，进入游戏逻辑
+            }, (errorMsg) =>
+            {
+                //启动失败，处理异常
+            });
     }
 }
 ```
+-----
+
+<a name="QuarkRuntime"></a>
+
+## QuarkRuntime
+
+* Quark的运行时类为为`QuarkResources`。
+
+* 加载资源时输入的名称可采用以下三种范式：
+    * 1、资源名。      
+    * 2、资源名.后缀   
+    * 3、资源路径      
+
+* 加载&卸载时请注意以下内容：
+    * 1、资源名大小写敏感的资源名 。示例：MyAudio
+    * 2、后缀名大小写不敏感。示例：MyAudio.mp3或MyAudio.MP3
+    * 3、资源路径大小写敏感，地址须以Assets/开头。示例：Assets/Audio/MyAudio.mp3。采用地址加载时，后缀名需要小写。
 
 <a name="QuarkResources加载"></a>
 
@@ -236,7 +320,7 @@ public class GameLauncher : MonoBehaviour
 
 <a name="QuarkResources同步加载"></a>
 
-#### QuarkResources同步加载
+#### &nbsp; QuarkResources同步加载
 
 ```csharp
 var myAudio = QuarkResources.LoadAsset<AudioClip>("MyAudio");// 资源名加载
@@ -246,7 +330,7 @@ var myTexture = QuarkResources.LoadAsset<Texture>("Assets/Textures/MyTexture.png
 
 <a name="QuarkResources异步加载"></a>
 
-#### QuarkResources异步加载
+#### &nbsp; QuarkResources异步加载
 
 ```csharp
 QuarkResources.LoadAssetAsync<AudioClip>("MyAudio",res=> 
@@ -264,13 +348,15 @@ QuarkResources.LoadAssetAsync<Texture>("Assets/Textures/MyTexture.png",res=>
 QuarkResources.LoadSceneAsync("MyScene",progress=>{Debug.Log(progress);},()=>{Debug.Log("Load Done");},false);
 ```
 
+
+
 <a name="QuarkResources卸载"></a>
 
 ### QuarkResources卸载
 
 <a name="QuarkResources资源单个卸载"></a>
 
-#### QuarkResources卸载单个资源
+#### &nbsp; QuarkResources卸载单个资源
 
 * 卸载与加载相同，都支持三种三种范式：
     * 1、资源名。      
@@ -290,14 +376,33 @@ QuarkResources.UnloadSceneAsync("MyScene",progress=>{Debug.Log(progress);},()=>{
 
 <a name="QuarkResources卸载assetbundle"></a>
 
-#### QuarkResources卸载assetbundle
+#### &nbsp; QuarkResources卸载assetbundle
 
 ```csharp
 //卸载assetbundle
 QuarkResources.UnloadAssetBundle("MyBundle",true); 
 ```
+<div style="border-top: 1px solid black; margin-top: 20px; margin-bottom: 20px;"></div>
+
+<a name="QuarkResources获取资源信息"></a>
+
+### QuarkResources获取资源信息
+
+```csharp
+  //获取单个资源的状态信息
+  QuarkResources.GetObjectInfo(myAssetName, out var info);
+```
+<a name="QuarkResources获取包体信息"></a>
+
+### QuarkResources获取包体信息
+
+```csharp
+  //获取一个包体的状态信息
+  QuarkResources.GetBundleInfo(myBundleName, out var info);
+```
 
 -----
+
 <a name="BuildPipeline"></a>
 
 ## BuildPipeline
@@ -319,11 +424,15 @@ Assets/QuarkAssetDataset.asset
 * 命令行可调用的API如下：
 
 ```csharp
-//对当前活跃平台的资源进行打包
-QuarkBuildPipeline.BuildActivePlatformAssetBundle();
 //打包指定平台的资源
 QuarkBuildPipeline.BuildAssetBundle(BuildTarget buildTarget);
+//通过预设进行构建
+QuarkBuildPipeline.BuildAssetBundleByProfile(string datasetPath, string buildProfilePath);
 ```
+
+* 详细的命令可查看`QuarkBuildPipeline.cs`类。
+
+---
 
 <a name="差量更新"></a>
 
@@ -341,13 +450,11 @@ QuarkBuildPipeline.BuildAssetBundle(BuildTarget buildTarget);
 ```csharp
 QuarkUtility.Manifest.MergeManifest(srcManifest,diffManifest,out var mergedManifest);
 ```
-
+---
 
 <a name="注意事项"></a>
 
 ## 注意事项
-
-* 若在编辑器环境下对AB进行构建，为使得构建的资源准确无误，建议每次都手动清理StreamingAssets下的文件夹。
 
 * 自动化部署构建资源请根据打包策略选择合适的清理方式。建议采用所有资源重新构建的策略。
 
