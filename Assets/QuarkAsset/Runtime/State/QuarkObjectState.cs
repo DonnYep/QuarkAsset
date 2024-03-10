@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 namespace Quark
 {
     /// <summary>
     /// 资源体的状态信息
     /// </summary>
+    [StructLayout(LayoutKind.Auto)]
     public struct QuarkObjectState : IEquatable<QuarkObjectState>
     {
         /// <summary>
@@ -32,7 +34,7 @@ namespace Quark
         public string AssetExtension { get; private set; }
         public QuarkObjectState Clone()
         {
-             return Create(this.AssetName, this.AssetPath, this.AssetBundleName, this.AssetExtension,this.AssetType, this.ReferenceCount);
+            return Create(this.AssetName, this.AssetPath, this.AssetBundleName, this.AssetExtension, this.AssetType, this.ReferenceCount);
         }
         public bool Equals(QuarkObjectState other)
         {
@@ -40,8 +42,8 @@ namespace Quark
                 other.AssetPath == this.AssetPath &&
                 other.AssetBundleName == this.AssetBundleName &&
                 other.AssetExtension == this.AssetExtension &&
-                other.ReferenceCount == this.ReferenceCount&&
-                other.AssetType==this.AssetType;
+                other.ReferenceCount == this.ReferenceCount &&
+                other.AssetType == this.AssetType;
         }
         public override string ToString()
         {
@@ -49,7 +51,7 @@ namespace Quark
                 $",AssetBundleName:{AssetBundleName},ReferenceCount:{ReferenceCount}";
         }
         public static QuarkObjectState None { get { return new QuarkObjectState(); } }
-        internal static QuarkObjectState Create(string assetName, string assetPath, string assetBundleName, string assetExtension,string assetType, int referenceCount)
+        internal static QuarkObjectState Create(string assetName, string assetPath, string assetBundleName, string assetExtension, string assetType, int referenceCount)
         {
             QuarkObjectState info = new QuarkObjectState();
             info.AssetName = assetName;
@@ -57,7 +59,7 @@ namespace Quark
             info.AssetBundleName = assetBundleName;
             info.ReferenceCount = referenceCount;
             info.AssetExtension = assetExtension;
-            info.AssetType= assetType;
+            info.AssetType = assetType;
             return info;
         }
     }

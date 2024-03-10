@@ -61,7 +61,7 @@ namespace Quark.Loader
         /// 重置清空寻址信息；
         /// </summary>
         public abstract void ResetLoader();
-        public bool GetInfo(string assetName, out QuarkObjectState info)
+        public bool GetObjectInfo(string assetName, out QuarkObjectState info)
         {
             info = QuarkObjectState.None;
             var hasWapper = GetQuarkObject(assetName, out var wapper);
@@ -73,7 +73,19 @@ namespace Quark.Loader
             }
             return false;
         }
-        public QuarkObjectState[] GetAllLoadedInfos()
+        public bool GetBundleInfo(string bundleName, out QuarkBundleState info)
+        {
+            info = QuarkBundleState.None;
+            var hasWapper = bundleWarpperDict.TryGetValue(bundleName, out var warpper);
+            if (hasWapper)
+            {
+                var referenceCount = warpper.ReferenceCount;
+                info = QuarkBundleState.Create(bundleName, referenceCount, warpper.QuarkAssetBundle.ObjectList.Count);
+                return true;
+            }
+            return false;
+        }
+        public QuarkObjectState[] GetAllLoadedObjectInfo()
         {
             QuarkObjectState[] quarkAssetObjectInfos = new QuarkObjectState[objectWarpperDict.Count];
             int idx = 0;
@@ -85,6 +97,19 @@ namespace Quark.Loader
                 idx++;
             }
             return quarkAssetObjectInfos;
+        }
+        public QuarkBundleState[] GetAllBundleInfo()
+        {
+            QuarkBundleState[] quarkBundleStates = new QuarkBundleState[bundleWarpperDict.Count];
+            int idx = 0;
+            foreach (var warpper in bundleWarpperDict.Values)
+            {
+                var referenceCount = warpper.ReferenceCount;
+                var info = QuarkBundleState.Create(warpper.QuarkAssetBundle.BundleName, referenceCount, warpper.QuarkAssetBundle.ObjectList.Count);
+                quarkBundleStates[idx] = info;
+                idx++;
+            }
+            return quarkBundleStates;
         }
         protected bool GetQuarkObject(string assetName, Type type, out QuarkObject quarkObject)
         {

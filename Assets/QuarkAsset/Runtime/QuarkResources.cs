@@ -236,21 +236,28 @@ where T : Object
             return quarkLoadModeProvider.UnloadAllSceneAsync(progress, callback);
         }
         /// <summary>
-        /// 重置清空寻址信息；
+        /// 重置清空寻址信息。
         /// </summary>
         public static void ResetLoader(QuarkLoadMode loadMode)
         {
             quarkLoadModeProvider.ResetLoader(loadMode);
         }
-        public static bool GetInfo(string assetName, out QuarkObjectState info)
+        public static bool GetObjectInfo(string assetName, out QuarkObjectState info)
         {
-            return quarkLoadModeProvider.GetInfo(assetName, out info);
+            return quarkLoadModeProvider.GetObjectInfo(assetName, out info);
         }
-        public static QuarkObjectState[] GetAllLoadedInfos()
+        public static bool GetBundleInfo(string bundleName, out QuarkBundleState info)
         {
-            return quarkLoadModeProvider.GetAllLoadedInfos();
+            return quarkLoadModeProvider.GetBundleInfo(bundleName, out info);
         }
-
+        public static QuarkObjectState[] GetAllLoadedObjectInfo()
+        {
+            return quarkLoadModeProvider.GetAllLoadedObjectInfo();
+        }
+        public static QuarkBundleState[] GetAllBundleInfo()
+        {
+            return quarkLoadModeProvider.GetAllBundleInfo();
+        }
         public static async Task<T> LoadAssetAsync<T>(string assetName) where T : Object
         {
             return await new QuarkLoadAwaiter<T>(assetName);

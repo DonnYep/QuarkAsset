@@ -170,18 +170,31 @@ where T : UnityEngine.Object
                 return loader.UnloadAllSceneAsync(progress, callback);
             return null;
         }
-        internal bool GetInfo(string assetName, out QuarkObjectState info)
+        internal bool GetObjectInfo(string assetName, out QuarkObjectState info)
         {
             info = QuarkObjectState.None;
             if (quarkLoaderDict.TryGetValue(QuarkDataProxy.QuarkAssetLoadMode, out var loader))
-                return loader.GetInfo(assetName, out info);
+                return loader.GetObjectInfo(assetName, out info);
             return false;
         }
-        internal QuarkObjectState[] GetAllLoadedInfos()
+        internal bool GetBundleInfo(string bundleName, out QuarkBundleState info)
+        {
+            info = QuarkBundleState.None;
+            if (quarkLoaderDict.TryGetValue(QuarkDataProxy.QuarkAssetLoadMode, out var loader))
+                return loader.GetBundleInfo(bundleName, out info);
+            return false;
+        }
+        internal QuarkObjectState[] GetAllLoadedObjectInfo()
         {
             if (quarkLoaderDict.TryGetValue(QuarkDataProxy.QuarkAssetLoadMode, out var loader))
-                return loader.GetAllLoadedInfos();
+                return loader.GetAllLoadedObjectInfo();
             return new QuarkObjectState[0];
+        }
+        internal QuarkBundleState[] GetAllBundleInfo()
+        {
+            if (quarkLoaderDict.TryGetValue(QuarkDataProxy.QuarkAssetLoadMode, out var loader))
+                return loader.GetAllBundleInfo();
+            return new QuarkBundleState[0];
         }
     }
 }
