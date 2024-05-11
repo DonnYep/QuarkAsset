@@ -9,7 +9,7 @@ using UnityEngine;
 using Object = UnityEngine.Object;
 namespace Quark
 {
-    public static class QuarkResources
+    public static partial class QuarkResources
     {
         static QuarkAssetDownloader quarkAssetDownloader;
         static QuarkManifestVerifier quarkManifestVerifier;
@@ -262,5 +262,6 @@ where T : Object
         {
             return await new QuarkLoadAwaiter<T>(assetName);
         }
+
     }
 }

@@ -143,7 +143,7 @@ namespace Quark.Editor
         /// </summary>
         /// <param name="dirPath">文件夹路径</param>
         /// <returns>MD5</returns>
-        public static string CreateDirectoryMd5(string dirPath)
+        public static string CreateDirectoryMd5(string dirPath, List<string> exts)
         {
             var filePaths = Directory.GetFiles(dirPath, "*", SearchOption.AllDirectories).OrderBy(p => p).ToArray();
 
@@ -151,6 +151,9 @@ namespace Quark.Editor
             {
                 foreach (var filePath in filePaths)
                 {
+                    string fileExt = Path.GetExtension(filePath).ToLower();
+                    if (!exts.Contains(fileExt))
+                        continue;
                     using (var file = new FileStream(filePath, FileMode.Open, FileAccess.Read))
                     {
                         file.CopyTo(ms);

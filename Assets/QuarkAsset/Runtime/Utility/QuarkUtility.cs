@@ -133,6 +133,19 @@ namespace Quark
             }
             return context;
         }
+        /// <summary>
+        /// 合并路径；
+        /// web类型地址合并， 获得的路径将以 / 作为分割符；
+        /// 返回结果示例：github.com/DonnYep/CosmosFramework
+        /// </summary>
+        /// <param name="paths">路径</param>
+        /// <returns>合并的路径</returns>
+        public static string WebPathCombine(params string[] paths)
+        {
+            var pathResult = Path.Combine(paths);
+            pathResult = pathResult.Replace("\\", "/");
+            return pathResult;
+        }
         #endregion
 
         #region Encryption

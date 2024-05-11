@@ -30,6 +30,11 @@ namespace Quark
                 {
                     this.gameObject.hideFlags = HideFlags.HideInHierarchy;
                     DontDestroyOnLoad(gameObject);
+                    OperationSystem.Initialize();
+                }
+                void Update()
+                {
+                    OperationSystem.Update();
                 }
                 IEnumerator EnumCoroutine(Action handler)
                 {
@@ -63,6 +68,14 @@ namespace Quark
                         coroutineProvider = go.AddComponent<CoroutineProvider>();
                     }
                     return coroutineProvider;
+                }
+            }
+            public static void CheckCoroutineProvider()
+            {
+                var comp = CoroutineProviderComp;
+                if (comp == null)
+                {
+                    throw new Exception("QuarkCoroutinePorvider invalid!");
                 }
             }
             public static Coroutine StartCoroutine(IEnumerator routine)

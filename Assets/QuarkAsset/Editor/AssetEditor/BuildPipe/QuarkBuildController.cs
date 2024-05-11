@@ -123,7 +123,7 @@ namespace Quark.Editor
                 string hash = string.Empty;
                 if (!bundleInfo.Extract)
                 {
-                    hash = QuarkEditorUtility.CreateDirectoryMd5(path);
+                    hash = QuarkEditorUtility.CreateDirectoryMd5(path, dataset.QuarkAssetExts);
                 }
                 else
                 {
@@ -391,7 +391,7 @@ namespace Quark.Editor
                 string hash = string.Empty;
                 if (!bundleInfo.Extract)
                 {
-                    hash = QuarkEditorUtility.CreateDirectoryMd5(path);
+                    hash = QuarkEditorUtility.CreateDirectoryMd5(path, dataset.QuarkAssetExts);
                 }
                 else
                 {
