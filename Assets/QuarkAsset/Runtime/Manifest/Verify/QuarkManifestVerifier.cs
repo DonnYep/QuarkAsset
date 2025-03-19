@@ -1,4 +1,4 @@
-﻿using Quark.Asset;
+﻿﻿using Quark.Asset;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -100,12 +100,12 @@ namespace Quark.Manifest
 #endif
                 {
                     var bundleLength = Convert.ToInt64(size);
-                    bool bundleLengthMatched = false;
+                    bool resourceBundleSizeMatched = false;
                     if (task.ResourceBundleSize == bundleLength)
                     {
-                        bundleLengthMatched = true;
+                        resourceBundleSizeMatched = true;
                     }
-                    verificationSuccessInfos.Add(new QuarkManifestVerifyInfo(task.Url, task.ResourceBundleName, task.ResourceBundleSize, bundleLengthMatched, bundleLength));
+                    verificationSuccessInfos.Add(new QuarkManifestVerifyInfo(task.Url, task.ResourceBundleName, task.ResourceBundleSize, resourceBundleSizeMatched, bundleLength));
                 }
                 else
                 {

@@ -1,4 +1,4 @@
-﻿using Quark.Asset;
+﻿﻿using Quark.Asset;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -42,12 +42,16 @@ namespace Quark.Manifest
         {
             if (!reqTaskDict.ContainsKey(url))
             {
-                var reqTask = new QuarkManifestRequestTask(ManifestRequestTaskIndex, url, aesKeyBytes, onSuccess, onFailure);
+                long taskId = ManifestRequestTaskIndex;
+                var reqTask = new QuarkManifestRequestTask((int)taskId, url, aesKeyBytes, onSuccess, onFailure);
                 reqTaskDict.Add(url, reqTask);
                 reqTaskList.Add(reqTask);
                 ManifestRequestTaskIndex++;
+                return taskId;
             }
-            return long.MinValue;
+            
+            // 如果URL已存在，返回现有任务的ID
+            return reqTaskDict[url].TaskId;
         }
         public bool RemoveTask(string url)
         {

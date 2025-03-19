@@ -21,6 +21,8 @@ namespace Quark.Networking
         /// 总共需要下载的大小
         /// </summary>
         public long TotalRequiredDownloadSize { get; private set; }
+        public int TotalDownloadCount { get; internal set; }
+
         public override void Clear()
         {
             CurrentDownloadNode = default;

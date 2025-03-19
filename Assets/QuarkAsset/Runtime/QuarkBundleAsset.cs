@@ -9,5 +9,7 @@ namespace Quark.Asset
         public string BundleName;
         public long BundleSize;
         public QuarkBundle QuarkAssetBundle;
+
+        public object BundleHash { get; internal set; }
     }
 }
