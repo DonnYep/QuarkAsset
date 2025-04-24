@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d9637266265250a459098465393f21b5, type: 3}
+  m_Name: QuarkGlobalConfig
+  m_EditorClassIdentifier: 
+  profiles:
+  - {fileID: 11400000, guid: d196ac2dcda6bbc4d8ad13dded57bfc0, type: 2}
+  - {fileID: 11400000, guid: 9763901b5877c0648b5d0768e6ed9748, type: 2}
+  - {fileID: 11400000, guid: 8bc5233a041a31c49b314da632722817, type: 2}
+  activeProfileIndex: 0
+  defaultBuildVersion: 1.0.0
+  defaultInternalBuildVersion: 1

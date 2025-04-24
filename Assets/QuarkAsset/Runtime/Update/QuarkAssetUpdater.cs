@@ -1,28 +1,35 @@
+using System;
+using System.IO;
+using System.Collections.Generic;
 using Quark.Asset;
 using Quark.Manifest;
 using Quark.Networking;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using UnityEngine;
 
 namespace Quark
 {
     /// <summary>
-    /// QuarkAsset资源更新管理器
-    /// 提供统一的资源热更新流程，包括下载清单、校验资源、下载更新等功能
+    /// QuarkAsset更新器
+    /// 用于处理资源的下载、更新、验证等操作
     /// </summary>
     public class QuarkAssetUpdater
     {
+        #region 私有字段
+        private string remoteUrl;
+        private string persistentPath;
+        private byte[] aesKeyBytes;
+        private QuarkManifest remoteManifest;
+        private List<QuarkUpdateTask> updateTasks = new List<QuarkUpdateTask>();
+        private QuarkManifestVerifyResult verifyResult;
+        private int currentDownloadIndex = -1;
+        private int retryCount = 3;
+        private int downloadTimeout = 30;
+        private bool deleteFailureFile = true;
+        private bool isUpdating = false;
+        #endregion
+
         #region 事件
         /// <summary>
-        /// 更新开始事件
-        /// </summary>
-        public event Action OnUpdateStart;
-        
-        /// <summary>
-        /// 远程清单下载成功事件
+        /// 远程清单下载完成事件
         /// </summary>
         public event Action<QuarkManifest> OnRemoteManifestDownloaded;
         
@@ -32,86 +39,97 @@ namespace Quark
         public event Action<string> OnRemoteManifestDownloadFailed;
         
         /// <summary>
-        /// 资源校验完成事件
+        /// 清单验证完成事件
         /// </summary>
         public event Action<QuarkManifestVerifyResult> OnManifestVerified;
         
         /// <summary>
-        /// 资源更新进度事件
+        /// 下载开始事件
+        /// </summary>
+        public event Action OnDownloadStarted;
+        
+        /// <summary>
+        /// 更新进度事件
         /// </summary>
         public event Action<QuarkUpdateProgressInfo> OnUpdateProgress;
         
         /// <summary>
-        /// 资源更新完成事件
+        /// 更新完成事件
         /// </summary>
         public event Action<QuarkUpdateResult> OnUpdateCompleted;
-
+        
         /// <summary>
-        /// 下载任务准备完成事件
+        /// 单个资源下载开始事件
         /// </summary>
-        public event Action<int> OnDownloadTasksPrepared;
+        public event Action<QuarkUpdateTask> OnResourceDownloadStarted;
+        
+        /// <summary>
+        /// 单个资源下载成功事件
+        /// </summary>
+        public event Action<QuarkUpdateTask> OnResourceDownloadSucceeded;
+        
+        /// <summary>
+        /// 单个资源下载失败事件
+        /// </summary>
+        public event Action<QuarkUpdateTask, string> OnResourceDownloadFailed;
         #endregion
 
-        private string remoteUrl;
-        private string persistentPath;
-        private byte[] aesKeyBytes;
-        private int downloadTimeout = 30;
-        private bool deleteFailureFile = true;
-        private int maxRetryCount = 3;
-        private float retryDelay = 1f;
-        
-        private QuarkManifest localManifest;
-        private QuarkManifest remoteManifest;
-        private QuarkManifestVerifyResult verifyResult;
-        private QuarkAssetDownloader assetDownloader;
-        
-        private bool isUpdating = false;
-        private List<QuarkDownloadTask> downloadTasks = new List<QuarkDownloadTask>();
-        private Dictionary<string, int> retryCountDict = new Dictionary<string, int>();
-
+        #region 属性
         /// <summary>
-        /// 是否正在更新
+        /// 重试次数
         /// </summary>
-        public bool IsUpdating => isUpdating;
-
+        public int RetryCount
+        {
+            get { return retryCount; }
+            set { retryCount = Math.Max(0, value); }
+        }
+        
         /// <summary>
         /// 下载超时时间(秒)
         /// </summary>
         public int DownloadTimeout
         {
-            get => downloadTimeout;
-            set => downloadTimeout = value > 0 ? value : 30;
+            get { return downloadTimeout; }
+            set { downloadTimeout = Math.Max(1, value); }
         }
-
+        
         /// <summary>
         /// 下载失败是否删除文件
         /// </summary>
         public bool DeleteFailureFile
         {
-            get => deleteFailureFile;
-            set => deleteFailureFile = value;
+            get { return deleteFailureFile; }
+            set { deleteFailureFile = value; }
         }
-
+        
         /// <summary>
-        /// 最大重试次数
+        /// 是否正在更新
         /// </summary>
-        public int MaxRetryCount
+        public bool IsUpdating
         {
-            get => maxRetryCount;
-            set => maxRetryCount = value >= 0 ? value : 0;
+            get { return isUpdating; }
         }
-
+        
         /// <summary>
-        /// 重试延迟时间(秒)
+        /// 远程清单
         /// </summary>
-        public float RetryDelay
+        public QuarkManifest RemoteManifest
         {
-            get => retryDelay;
-            set => retryDelay = value >= 0 ? value : 0;
+            get { return remoteManifest; }
         }
-
+        
         /// <summary>
-        /// 创建资源更新管理器
+        /// 验证结果
+        /// </summary>
+        public QuarkManifestVerifyResult VerifyResult
+        {
+            get { return verifyResult; }
+        }
+        #endregion
+
+        #region 构造函数
+        /// <summary>
+        /// 构造函数
         /// </summary>
         /// <param name="remoteUrl">远程资源URL</param>
         /// <param name="persistentPath">本地持久化路径</param>
@@ -120,13 +138,10 @@ namespace Quark
             this.remoteUrl = remoteUrl;
             this.persistentPath = persistentPath;
             this.aesKeyBytes = new byte[0];
-            this.assetDownloader = new QuarkAssetDownloader();
-            
-            InitDownloader();
         }
-
+        
         /// <summary>
-        /// 创建资源更新管理器（带AES加密）
+        /// 构造函数(带AES加密)
         /// </summary>
         /// <param name="remoteUrl">远程资源URL</param>
         /// <param name="persistentPath">本地持久化路径</param>
@@ -136,13 +151,10 @@ namespace Quark
             this.remoteUrl = remoteUrl;
             this.persistentPath = persistentPath;
             this.aesKeyBytes = QuarkUtility.GenerateBytesAESKey(aesKey);
-            this.assetDownloader = new QuarkAssetDownloader();
-            
-            InitDownloader();
         }
-
+        
         /// <summary>
-        /// 创建资源更新管理器（带AES加密）
+        /// 构造函数(带AES加密)
         /// </summary>
         /// <param name="remoteUrl">远程资源URL</param>
         /// <param name="persistentPath">本地持久化路径</param>
@@ -152,487 +164,483 @@ namespace Quark
             this.remoteUrl = remoteUrl;
             this.persistentPath = persistentPath;
             this.aesKeyBytes = aesKeyBytes;
-            this.assetDownloader = new QuarkAssetDownloader();
-            
-            InitDownloader();
         }
+        #endregion
 
+        #region 公共方法
         /// <summary>
-        /// 开始资源更新流程
+        /// 开始更新
         /// </summary>
-        /// <param name="localManifest">本地清单（如果为null，则表示首次安装）</param>
+        /// <param name="localManifest">本地清单(可为null)</param>
         public void StartUpdate(QuarkManifest localManifest = null)
         {
             if (isUpdating)
+            {
+                QuarkUtility.LogWarning("更新器已经在运行，请先停止当前更新");
                 return;
-
-            isUpdating = true;
-            this.localManifest = localManifest;
-            OnUpdateStart?.Invoke();
+            }
             
-            // 开始下载远程清单
-            DownloadRemoteManifest();
+            isUpdating = true;
+            
+            // 重置状态
+            remoteManifest = null;
+            verifyResult = null;
+            updateTasks.Clear();
+            currentDownloadIndex = -1;
+            
+            // 下载远程清单
+            DownloadRemoteManifest(manifestData => {
+                try
+                {
+                    // 解析清单
+                    remoteManifest = ParseManifest(manifestData);
+                    
+                    if (remoteManifest != null)
+                    {
+                        // 触发清单下载完成事件
+                        OnRemoteManifestDownloaded?.Invoke(remoteManifest);
+                        
+                        // 验证清单
+                        VerifyManifest(localManifest, remoteManifest);
+                        
+                        // 准备下载任务
+                        PrepareUpdateTasks();
+                        
+                        // 开始下载
+                        if (updateTasks.Count > 0)
+                        {
+                            OnDownloadStarted?.Invoke();
+                            DownloadNextResource();
+                        }
+                        else
+                        {
+                            // 没有需要下载的资源，完成更新
+                            CompleteUpdate();
+                        }
+                    }
+                    else
+                    {
+                        // 清单解析失败
+                        OnRemoteManifestDownloadFailed?.Invoke("远程清单解析失败");
+                        isUpdating = false;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // 处理异常
+                    OnRemoteManifestDownloadFailed?.Invoke($"处理远程清单时出错: {ex.Message}");
+                    isUpdating = false;
+                }
+            }, error => {
+                // 下载失败
+                OnRemoteManifestDownloadFailed?.Invoke(error);
+                isUpdating = false;
+            });
         }
-
+        
         /// <summary>
-        /// 停止资源更新流程
+        /// 停止更新
         /// </summary>
         public void StopUpdate()
         {
             if (!isUpdating)
                 return;
-
+                
             isUpdating = false;
-            QuarkResources.QuarkManifestRequester.StopRequestManifest();
-            QuarkResources.QuarkManifestVerifier.StopVerify();
-            assetDownloader.StopDownload();
             
-            // 清理资源
-            retryCountDict.Clear();
-            downloadTasks.Clear();
-        }
-
-        #region 私有方法
-        private void InitDownloader()
-        {
-            assetDownloader.DownloadTimeout = downloadTimeout;
-            assetDownloader.DeleteFailureFile = deleteFailureFile;
-            
-            assetDownloader.OnDownloadUpdate += (args) => {
-                var progressInfo = new QuarkUpdateProgressInfo(
-                    args.CurrentDownloadNode,
-                    args.CurrentDownloadIndex,
-                    args.TotalDownloadCount,
-                    args.CompletedDownloadSize,
-                    args.TotalRequiredDownloadSize
-                );
-                OnUpdateProgress?.Invoke(progressInfo);
-            };
-            
-            assetDownloader.OnDownloadFailure += (args) => {
-                var downloadUri = args.CurrentDownloadNode.DownloadUri;
-                var downloadPath = args.CurrentDownloadNode.DownloadPath;
-                
-                // 获取当前重试次数
-                if (!retryCountDict.TryGetValue(downloadUri, out int retryCount))
-                {
-                    retryCount = 0;
-                    retryCountDict[downloadUri] = retryCount;
-                }
-                
-                // 如果还有重试次数，则重新添加到下载队列
-                if (retryCount < maxRetryCount)
-                {
-                    retryCountDict[downloadUri] = retryCount + 1;
-                    
-                    // 使用协程延迟重试
-                    QuarkUtility.Unity.StartCoroutine(DelayRetry(downloadUri, downloadPath));
-                }
-            };
-            
-            assetDownloader.OnDownloadStart += (args) => {
-                // 记录下载开始
-                QuarkUtility.LogInfo($"开始下载: {args.CurrentDownloadNode.DownloadUri}");
-            };
-            
-            assetDownloader.OnDownloadSuccess += (args) => {
-                // 记录下载成功
-                QuarkUtility.LogInfo($"下载成功: {args.CurrentDownloadNode.DownloadUri}");
-            };
-            
-            assetDownloader.OnDownloadAllTasksFinish += (args) => {
-                var updateResult = new QuarkUpdateResult(
-                    args.DownloadSuccessedTasks,
-                    args.DownloadFailedTasks,
-                    args.DownloadSuccessedNodes,
-                    args.DownloadFailedNodes,
-                    args.DownloadedSize,
-                    args.DownloadAllTasksCompletedTimeSpan
-                );
-                isUpdating = false;
-                retryCountDict.Clear();
-                OnUpdateCompleted?.Invoke(updateResult);
-            };
-        }
-
-        private IEnumerator DelayRetry(string downloadUri, string downloadPath)
-        {
-            // 延迟一段时间后重试
-            yield return new WaitForSeconds(retryDelay);
-            
-            if (!isUpdating)
-                yield break;
-                
-            // 获取远程清单中的资源信息
-            foreach (var bundleInfo in remoteManifest.BundleInfoDict.Values)
-            {
-                var bundleKey = bundleInfo.QuarkAssetBundle.BundleKey;
-                var bundleUri = QuarkUtility.WebPathCombine(remoteUrl, bundleKey);
-                
-                if (bundleUri == downloadUri)
-                {
-                    // 创建新的下载任务
-                    var task = new QuarkDownloadTask(downloadUri, downloadPath, bundleInfo.BundleSize);
-                    assetDownloader.AddDownload(task);
-                    assetDownloader.StartDownload();
-                    break;
-                }
-            }
-        }
-
-        private void DownloadRemoteManifest()
-        {
-            var operation = new DownloadRemoteManifestOperation(remoteUrl, aesKeyBytes);
-            operation.Completed += (op) => {
-                if (op.Status == AsyncOperationStatus.Succeeded)
-                {
-                    remoteManifest = operation.Manifest;
-                    OnRemoteManifestDownloaded?.Invoke(remoteManifest);
-                    
-                    // 验证资源
-                    VerifyAssets();
-                }
-                else
-                {
-                    isUpdating = false;
-                    OnRemoteManifestDownloadFailed?.Invoke(op.Error);
-                }
-            };
-            QuarkResources.EnqueueOperation(operation);
-        }
-
-        private void VerifyAssets()
-        {
-            if (remoteManifest == null)
-            {
-                isUpdating = false;
-                OnRemoteManifestDownloadFailed?.Invoke("Remote manifest is null");
-                return;
-            }
-
-            // 如果是首次安装，不需要验证资源，直接下载所有资源
-            if (localManifest == null)
-            {
-                PrepareDownloadTasks(remoteManifest, new QuarkManifestVerifyResult());
-                return;
-            }
-
-            // 验证本地资源
-            QuarkResources.QuarkManifestVerifier.OnVerifyDone += OnVerifyComplete;
-            QuarkResources.QuarkManifestVerifier.VerifyManifest(remoteManifest, persistentPath);
-        }
-
-        private void OnVerifyComplete(QuarkManifestVerifyResult result)
-        {
-            QuarkResources.QuarkManifestVerifier.OnVerifyDone -= OnVerifyComplete;
-            verifyResult = result;
-            OnManifestVerified?.Invoke(result);
-            
-            // 准备下载任务
-            PrepareDownloadTasks(remoteManifest, result);
-        }
-
-        private void PrepareDownloadTasks(QuarkManifest manifest, QuarkManifestVerifyResult verifyResult)
-        {
-            downloadTasks.Clear();
-            
-            // 确保持久化目录存在
-            if (!Directory.Exists(persistentPath))
-            {
-                try
-                {
-                    Directory.CreateDirectory(persistentPath);
-                }
-                catch (Exception e)
-                {
-                    isUpdating = false;
-                    OnUpdateCompleted?.Invoke(new QuarkUpdateResult(
-                        new QuarkDownloadTask[0],
-                        new QuarkDownloadTask[0],
-                        new QuarkDownloadNode[0],
-                        new QuarkDownloadNode[0],
-                        0,
-                        TimeSpan.Zero
-                    ));
-                    OnRemoteManifestDownloadFailed?.Invoke($"Failed to create persistent directory: {e.Message}");
-                    return;
-                }
-            }
-            
-            // 如果是首次安装，或者本地资源不完整，则需要下载所有资源
-            if (localManifest == null)
-            {
-                // 添加所有资源到下载列表
-                foreach (var bundleInfo in manifest.BundleInfoDict.Values)
-                {
-                    var bundleKey = bundleInfo.QuarkAssetBundle.BundleKey;
-                    var bundleSize = bundleInfo.BundleSize;
-                    var downloadUri = QuarkUtility.WebPathCombine(remoteUrl, bundleKey);
-                    var downloadPath = Path.Combine(persistentPath, bundleKey);
-                    
-                    // 确保目录存在
-                    var directory = Path.GetDirectoryName(downloadPath);
-                    if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
-                    {
-                        try
-                        {
-                            Directory.CreateDirectory(directory);
-                        }
-                        catch (Exception e)
-                        {
-                            QuarkUtility.LogWarning($"Failed to create directory {directory}: {e.Message}");
-                            continue;
-                        }
-                    }
-                    
-                    downloadTasks.Add(new QuarkDownloadTask(downloadUri, downloadPath, bundleSize));
-                }
-            }
-            else
-            {
-                // 比较本地和远程清单，仅下载需要更新的资源
-                foreach (var bundleInfo in manifest.BundleInfoDict.Values)
-                {
-                    var bundleKey = bundleInfo.QuarkAssetBundle.BundleKey;
-                    var bundleSize = bundleInfo.BundleSize;
-                    
-                    bool needDownload = !localManifest.BundleInfoDict.ContainsKey(bundleKey);
-                    
-                    if (!needDownload)
-                    {
-                        var localBundleInfo = localManifest.BundleInfoDict[bundleKey];
-                        
-                        // 比较Hash或者大小，判断是否需要更新
-                        if (localBundleInfo.BundleHash != bundleInfo.BundleHash || 
-                            localBundleInfo.BundleSize != bundleInfo.BundleSize)
-                        {
-                            needDownload = true;
-                        }
-                    }
-                    
-                    // 检查验证失败的资源
-                    if (verifyResult.VerificationFailureInfos != null)
-                    {
-                        foreach (var failInfo in verifyResult.VerificationFailureInfos)
-                        {
-                            if (failInfo.ResourceBundleName == bundleInfo.QuarkAssetBundle.BundleName)
-                            {
-                                needDownload = true;
-                                break;
-                            }
-                        }
-                    }
-                    
-                    // 检查验证成功但大小不匹配的资源
-                    if (verifyResult.VerificationSuccessInfos != null)
-                    {
-                        foreach (var successInfo in verifyResult.VerificationSuccessInfos)
-                        {
-                            if (successInfo.ResourceBundleName == bundleInfo.QuarkAssetBundle.BundleName && 
-                                !successInfo.ResourceBundleSizeMatched)
-                            {
-                                needDownload = true;
-                                break;
-                            }
-                        }
-                    }
-                    
-                    if (needDownload)
-                    {
-                        var downloadUri = QuarkUtility.WebPathCombine(remoteUrl, bundleKey);
-                        var downloadPath = Path.Combine(persistentPath, bundleKey);
-                        
-                        // 确保目录存在
-                        var directory = Path.GetDirectoryName(downloadPath);
-                        if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
-                        {
-                            try
-                            {
-                                Directory.CreateDirectory(directory);
-                            }
-                            catch (Exception e)
-                            {
-                                QuarkUtility.LogWarning($"Failed to create directory {directory}: {e.Message}");
-                                continue;
-                            }
-                        }
-                        
-                        downloadTasks.Add(new QuarkDownloadTask(downloadUri, downloadPath, bundleSize));
-                    }
-                }
-            }
-            
-            // 通知准备完成
-            OnDownloadTasksPrepared?.Invoke(downloadTasks.Count);
-            
-            // 开始下载资源
-            if (downloadTasks.Count > 0)
-            {
-                assetDownloader.AddDownloads(downloadTasks);
-                assetDownloader.StartDownload();
-            }
-            else
-            {
-                // 没有需要更新的资源，直接完成
-                isUpdating = false;
-                OnUpdateCompleted?.Invoke(new QuarkUpdateResult(
-                    new QuarkDownloadTask[0],
-                    new QuarkDownloadTask[0],
-                    new QuarkDownloadNode[0],
-                    new QuarkDownloadNode[0],
-                    0,
-                    TimeSpan.Zero
-                ));
-            }
-        }
-        
-        /// <summary>
-        /// 获取当前下载的进度信息
-        /// </summary>
-        /// <returns>下载进度信息</returns>
-        public QuarkUpdateProgressInfo GetUpdateProgressInfo()
-        {
-            if (!isUpdating)
-                return new QuarkUpdateProgressInfo();
-                
-            // 获取当前进度
-            var currentNode = new QuarkDownloadNode();
-            var currentIndex = 0;
-            var totalCount = downloadTasks.Count;
-            var downloadedSize = 0L;
-            var totalSize = 0L;
-            
-            foreach (var task in downloadTasks)
-            {
-                totalSize += task.RecordedBundleSize;
-            }
-            
-            return new QuarkUpdateProgressInfo(currentNode, currentIndex, totalCount, downloadedSize, totalSize);
+            // 可以在这里添加取消下载的代码
         }
         #endregion
-    }
 
-    /// <summary>
-    /// 资源更新进度信息
-    /// </summary>
-    public struct QuarkUpdateProgressInfo
-    {
+        #region 私有方法
         /// <summary>
-        /// 当前下载节点
+        /// 下载远程清单
         /// </summary>
-        public QuarkDownloadNode Node { get; private set; }
-        
-        /// <summary>
-        /// 当前下载索引
-        /// </summary>
-        public int CurrentDownloadIndex { get; private set; }
-        
-        /// <summary>
-        /// 总下载数量
-        /// </summary>
-        public int TotalDownloadCount { get; private set; }
-        
-        /// <summary>
-        /// 已下载大小
-        /// </summary>
-        public long DownloadedSize { get; private set; }
-        
-        /// <summary>
-        /// 总需下载大小
-        /// </summary>
-        public long TotalRequiredDownloadSize { get; private set; }
-        
-        /// <summary>
-        /// 总进度 (0-1)
-        /// </summary>
-        public float TotalProgress
+        /// <param name="onSuccess">成功回调</param>
+        /// <param name="onError">失败回调</param>
+        private void DownloadRemoteManifest(Action<string> onSuccess, Action<string> onError)
         {
-            get
+            try
             {
-                if (TotalRequiredDownloadSize <= 0)
-                    return 1f;
-                return (float)DownloadedSize / TotalRequiredDownloadSize;
-            }
-        }
-
-        public QuarkUpdateProgressInfo(QuarkDownloadNode node, int currentIndex, int totalCount, 
-            long downloadedSize, long totalSize)
-        {
-            Node = node;
-            CurrentDownloadIndex = currentIndex;
-            TotalDownloadCount = totalCount;
-            DownloadedSize = downloadedSize;
-            TotalRequiredDownloadSize = totalSize;
-        }
-    }
-
-    /// <summary>
-    /// 资源更新结果
-    /// </summary>
-    public struct QuarkUpdateResult
-    {
-        /// <summary>
-        /// 成功的下载任务
-        /// </summary>
-        public QuarkDownloadTask[] SuccessedTasks { get; private set; }
-        
-        /// <summary>
-        /// 失败的下载任务
-        /// </summary>
-        public QuarkDownloadTask[] FailedTasks { get; private set; }
-        
-        /// <summary>
-        /// 成功的下载节点
-        /// </summary>
-        public QuarkDownloadNode[] SuccessedNodes { get; private set; }
-        
-        /// <summary>
-        /// 失败的下载节点
-        /// </summary>
-        public QuarkDownloadNode[] FailedNodes { get; private set; }
-        
-        /// <summary>
-        /// 已下载大小
-        /// </summary>
-        public long DownloadedSize { get; private set; }
-        
-        /// <summary>
-        /// 下载耗时
-        /// </summary>
-        public TimeSpan DownloadTimeSpan { get; private set; }
-        
-        /// <summary>
-        /// 是否完全成功
-        /// </summary>
-        public bool IsCompleteSuccess => FailedTasks == null || FailedTasks.Length == 0;
-
-        public QuarkUpdateResult(QuarkDownloadTask[] successTasks, QuarkDownloadTask[] failTasks, 
-            QuarkDownloadNode[] successNodes, QuarkDownloadNode[] failNodes, 
-            long downloadedSize, TimeSpan timeSpan)
-        {
-            SuccessedTasks = successTasks;
-            FailedTasks = failTasks;
-            SuccessedNodes = successNodes;
-            FailedNodes = failNodes;
-            DownloadedSize = downloadedSize;
-            DownloadTimeSpan = timeSpan;
-        }
-        
-        /// <summary>
-        /// 获取失败任务信息字符串
-        /// </summary>
-        /// <returns>失败任务信息</returns>
-        public string GetFailedTasksInfo()
-        {
-            if (IsCompleteSuccess)
-                return "No failed tasks";
+                // 构建清单URL
+                string manifestUrl = QuarkUtility.WebPathCombine(remoteUrl, QuarkConstant.MANIFEST_NAME);
                 
-            var result = $"Failed {FailedTasks.Length} tasks:\n";
-            for (int i = 0; i < FailedTasks.Length; i++)
-            {
-                result += $"  {i+1}. {FailedTasks[i].DownloadUri}\n";
+                // 创建下载节点
+                var node = new QuarkDownloadNode
+                {
+                    DownloadUri = manifestUrl,
+                    SavePath = Path.Combine(persistentPath, QuarkConstant.MANIFEST_NAME),
+                    Timeout = downloadTimeout
+                };
+                
+                // 确保目录存在
+                var directory = Path.GetDirectoryName(node.SavePath);
+                if (!Directory.Exists(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                }
+                
+                // 下载清单
+                // 这里应该使用实际的下载方法，以下是示例
+                UnityEngine.Networking.UnityWebRequest request = UnityEngine.Networking.UnityWebRequest.Get(node.DownloadUri);
+                request.timeout = node.Timeout;
+                
+                var asyncOperation = request.SendWebRequest();
+                asyncOperation.completed += (op) => {
+                    try
+                    {
+                        if (request.result == UnityEngine.Networking.UnityWebRequest.Result.Success)
+                        {
+                            string text = request.downloadHandler.text;
+                            File.WriteAllText(node.SavePath, text);
+                            onSuccess(text);
+                        }
+                        else
+                        {
+                            onError($"下载清单失败: {request.error}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        onError($"处理清单下载时出错: {ex.Message}");
+                    }
+                    finally
+                    {
+                        request.Dispose();
+                    }
+                };
             }
-            return result;
+            catch (Exception ex)
+            {
+                onError($"下载清单时出错: {ex.Message}");
+            }
         }
+        
+        /// <summary>
+        /// 解析清单数据
+        /// </summary>
+        /// <param name="manifestData">清单数据</param>
+        /// <returns>清单对象</returns>
+        private QuarkManifest ParseManifest(string manifestData)
+        {
+            try
+            {
+                // 如果有AES加密，先解密
+                if (aesKeyBytes.Length > 0)
+                {
+                    manifestData = QuarkUtility.AESDecryptStringToString(manifestData, aesKeyBytes);
+                }
+                
+                // 解析JSON
+                return QuarkUtility.ToObject<QuarkManifest>(manifestData);
+            }
+            catch (Exception ex)
+            {
+                QuarkUtility.LogError($"解析清单失败: {ex.Message}");
+                return null;
+            }
+        }
+        
+        /// <summary>
+        /// 验证清单
+        /// </summary>
+        /// <param name="localManifest">本地清单</param>
+        /// <param name="remoteManifest">远程清单</param>
+        private void VerifyManifest(QuarkManifest localManifest, QuarkManifest remoteManifest)
+        {
+            List<QuarkManifestVerifyInfo> successList = new List<QuarkManifestVerifyInfo>();
+            List<QuarkManifestVerifyInfo> failureList = new List<QuarkManifestVerifyInfo>();
+            
+            // 如果本地清单为空，所有远程资源都需要下载
+            if (localManifest == null)
+            {
+                foreach (var bundle in remoteManifest.BundleInfoDict.Values)
+                {
+                    var info = new QuarkManifestVerifyInfo(
+                        bundle.BundleName,
+                        bundle.QuarkAssetBundle.BundlePath,
+                        bundle.Hash,
+                        bundle.BundleSize,
+                        false
+                    );
+                    failureList.Add(info);
+                }
+            }
+            else
+            {
+                // 验证每个远程资源
+                foreach (var remoteBundle in remoteManifest.BundleInfoDict.Values)
+                {
+                    if (localManifest.BundleInfoDict.TryGetValue(remoteBundle.QuarkAssetBundle.BundleKey, out var localBundle))
+                    {
+                        // 本地存在此资源，验证哈希和大小
+                        bool hashMatch = remoteBundle.Hash == localBundle.Hash;
+                        bool sizeMatch = remoteBundle.BundleSize == localBundle.BundleSize;
+                        
+                        var info = new QuarkManifestVerifyInfo(
+                            remoteBundle.BundleName,
+                            remoteBundle.QuarkAssetBundle.BundlePath,
+                            remoteBundle.Hash,
+                            remoteBundle.BundleSize,
+                            sizeMatch
+                        );
+                        
+                        if (hashMatch && sizeMatch)
+                        {
+                            successList.Add(info);
+                        }
+                        else
+                        {
+                            failureList.Add(info);
+                        }
+                    }
+                    else
+                    {
+                        // 本地不存在此资源，需要下载
+                        var info = new QuarkManifestVerifyInfo(
+                            remoteBundle.BundleName,
+                            remoteBundle.QuarkAssetBundle.BundlePath,
+                            remoteBundle.Hash,
+                            remoteBundle.BundleSize,
+                            false
+                        );
+                        failureList.Add(info);
+                    }
+                }
+            }
+            
+            // 创建验证结果
+            verifyResult = new QuarkManifestVerifyResult(
+                successList.ToArray(),
+                failureList.ToArray()
+            );
+            
+            // 触发验证完成事件
+            OnManifestVerified?.Invoke(verifyResult);
+        }
+        
+        /// <summary>
+        /// 准备更新任务
+        /// </summary>
+        private void PrepareUpdateTasks()
+        {
+            updateTasks.Clear();
+            
+            if (verifyResult == null || remoteManifest == null)
+                return;
+                
+            // 为每个需要更新的资源创建任务
+            foreach (var info in verifyResult.VerificationFailureInfos)
+            {
+                if (remoteManifest.BundleInfoDict.TryGetValue(info.ResourceBundleName, out var bundle))
+                {
+                    string downloadUrl = QuarkUtility.WebPathCombine(remoteUrl, bundle.QuarkAssetBundle.BundleKey);
+                    string localPath = Path.Combine(persistentPath, bundle.QuarkAssetBundle.BundleKey);
+                    
+                    var task = new QuarkUpdateTask(
+                        info.ResourceBundleName,
+                        downloadUrl,
+                        localPath,
+                        info.ResourceBundleSize
+                    );
+                    
+                    updateTasks.Add(task);
+                }
+            }
+        }
+        
+        /// <summary>
+        /// 下载下一个资源
+        /// </summary>
+        private void DownloadNextResource()
+        {
+            currentDownloadIndex++;
+            
+            if (currentDownloadIndex >= updateTasks.Count)
+            {
+                // 所有资源下载完成
+                CompleteUpdate();
+                return;
+            }
+            
+            var task = updateTasks[currentDownloadIndex];
+            DownloadResource(task, 0);
+        }
+        
+        /// <summary>
+        /// 下载资源
+        /// </summary>
+        /// <param name="task">下载任务</param>
+        /// <param name="retryAttempt">重试次数</param>
+        private void DownloadResource(QuarkUpdateTask task, int retryAttempt)
+        {
+            if (!isUpdating)
+                return;
+                
+            try
+            {
+                // 创建下载节点
+                var node = new QuarkDownloadNode
+                {
+                    DownloadUri = task.DownloadUri,
+                    SavePath = task.LocalPath,
+                    Timeout = downloadTimeout
+                };
+                
+                // 确保目录存在
+                var directory = Path.GetDirectoryName(node.SavePath);
+                if (!Directory.Exists(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                }
+                
+                // 触发资源下载开始事件
+                OnResourceDownloadStarted?.Invoke(task);
+                
+                // 这里应该使用实际的下载方法，以下是示例
+                UnityEngine.Networking.UnityWebRequest request = UnityEngine.Networking.UnityWebRequest.Get(node.DownloadUri);
+                request.timeout = node.Timeout;
+                
+                var asyncOperation = request.SendWebRequest();
+                
+                // 进度回调
+                asyncOperation.completed += (op) => {
+                    try
+                    {
+                        if (request.result == UnityEngine.Networking.UnityWebRequest.Result.Success)
+                        {
+                            // 下载成功
+                            File.WriteAllBytes(node.SavePath, request.downloadHandler.data);
+                            
+                            // 标记任务成功
+                            task.MarkAsSuccess();
+                            
+                            // 触发资源下载成功事件
+                            OnResourceDownloadSucceeded?.Invoke(task);
+                            
+                            // 触发进度事件
+                            NotifyProgress(task, node, 1f);
+                            
+                            // 下载下一个资源
+                            DownloadNextResource();
+                        }
+                        else
+                        {
+                            // 下载失败
+                            string errorMessage = request.error;
+                            
+                            // 如果需要重试
+                            if (retryAttempt < RetryCount)
+                            {
+                                // 删除失败文件
+                                if (DeleteFailureFile && File.Exists(node.SavePath))
+                                {
+                                    File.Delete(node.SavePath);
+                                }
+                                
+                                // 重试下载
+                                DownloadResource(task, retryAttempt + 1);
+                            }
+                            else
+                            {
+                                // 已达到最大重试次数，标记任务失败
+                                task.MarkAsFailed(errorMessage);
+                                
+                                // 删除失败文件
+                                if (DeleteFailureFile && File.Exists(node.SavePath))
+                                {
+                                    File.Delete(node.SavePath);
+                                }
+                                
+                                // 触发资源下载失败事件
+                                OnResourceDownloadFailed?.Invoke(task, errorMessage);
+                                
+                                // 下载下一个资源
+                                DownloadNextResource();
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // 处理异常
+                        string errorMessage = $"下载资源时出错: {ex.Message}";
+                        
+                        // 标记任务失败
+                        task.MarkAsFailed(errorMessage);
+                        
+                        // 触发资源下载失败事件
+                        OnResourceDownloadFailed?.Invoke(task, errorMessage);
+                        
+                        // 下载下一个资源
+                        DownloadNextResource();
+                    }
+                    finally
+                    {
+                        request.Dispose();
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                // 处理异常
+                string errorMessage = $"准备下载资源时出错: {ex.Message}";
+                
+                // 标记任务失败
+                task.MarkAsFailed(errorMessage);
+                
+                // 触发资源下载失败事件
+                OnResourceDownloadFailed?.Invoke(task, errorMessage);
+                
+                // 下载下一个资源
+                DownloadNextResource();
+            }
+        }
+        
+        /// <summary>
+        /// 通知进度
+        /// </summary>
+        /// <param name="task">下载任务</param>
+        /// <param name="node">下载节点</param>
+        /// <param name="currentProgress">当前进度</param>
+        private void NotifyProgress(QuarkUpdateTask task, QuarkDownloadNode node, float currentProgress)
+        {
+            if (!isUpdating)
+                return;
+                
+            // 计算总进度
+            float totalProgress = (currentDownloadIndex + currentProgress) / updateTasks.Count;
+            
+            // 创建进度信息
+            var progressInfo = new QuarkUpdateProgressInfo(
+                currentDownloadIndex,
+                updateTasks.Count,
+                (long)(task.FileSize * currentProgress),
+                task.FileSize,
+                currentProgress,
+                totalProgress,
+                node
+            );
+            
+            // 触发进度事件
+            OnUpdateProgress?.Invoke(progressInfo);
+        }
+        
+        /// <summary>
+        /// 完成更新
+        /// </summary>
+        private void CompleteUpdate()
+        {
+            if (!isUpdating)
+                return;
+                
+            isUpdating = false;
+            
+            // 创建更新结果
+            var result = QuarkUpdateResult.FromTasks(updateTasks);
+            
+            // 触发更新完成事件
+            OnUpdateCompleted?.Invoke(result);
+        }
+        #endregion
     }
 }

@@ -2,66 +2,98 @@
 
 namespace Quark.Manifest
 {
+    /// <summary>
+    /// 清单文件验证信息
+    /// </summary>
+    [Serializable]
     public struct QuarkManifestVerifyInfo : IEquatable<QuarkManifestVerifyInfo>
     {
+        private string resourceBundleName;
+        private string resourcePath;
+        private string hash;
+        private long resourceBundleSize;
+        private bool resourceBundleSizeMatched;
+
         /// <summary>
-        /// 文件的地址；
+        /// 资源包名称
         /// </summary>
-        public string Url;
-        
-        /// <summary>
-        /// 资源包的名称；
-        /// </summary>
-        public string ResourceBundleName;
-        
-        /// <summary>
-        /// 包应该存在的长度
-        /// </summary>
-        public long ResourceBundleSize;
-        
-        /// <summary>
-        /// 文件长度是否匹配；
-        /// </summary>
-        public bool ResourceBundleSizeMatched;
-        
-        /// <summary>
-        /// 请求到的文件长度
-        /// </summary>
-        public long RequestedBundleLength;
-        
-        /// <summary>
-        /// 向后兼容：包的名称
-        /// </summary>
-        [Obsolete("Use ResourceBundleName instead")]
-        public string BundleName { get { return ResourceBundleName; } }
-        
-        /// <summary>
-        /// 向后兼容：包应该存在的长度
-        /// </summary>
-        [Obsolete("Use ResourceBundleSize instead")]
-        public long BundleSize { get { return ResourceBundleSize; } }
-        
-        /// <summary>
-        /// 向后兼容：文件长度是否匹配
-        /// </summary>
-        [Obsolete("Use ResourceBundleSizeMatched instead")]
-        public bool BundleLengthMatched { get { return ResourceBundleSizeMatched; } }
-        
-        public QuarkManifestVerifyInfo(string url, string bundleName, long bundleSize, bool bundleLengthMatched, long requestedBundleLength)
+        public string ResourceBundleName
         {
-            Url = url;
-            ResourceBundleName = bundleName;
-            ResourceBundleSize = bundleSize;
-            ResourceBundleSizeMatched = bundleLengthMatched;
-            RequestedBundleLength = requestedBundleLength;
+            get { return resourceBundleName; }
+            set { resourceBundleName = value; }
         }
-        
+
+        /// <summary>
+        /// 资源路径
+        /// </summary>
+        public string ResourcePath
+        {
+            get { return resourcePath; }
+            set { resourcePath = value; }
+        }
+
+        /// <summary>
+        /// 资源哈希值
+        /// </summary>
+        public string Hash
+        {
+            get { return hash; }
+            set { hash = value; }
+        }
+
+        /// <summary>
+        /// 资源包大小
+        /// </summary>
+        public long ResourceBundleSize
+        {
+            get { return resourceBundleSize; }
+            set { resourceBundleSize = value; }
+        }
+
+        /// <summary>
+        /// 资源包大小是否匹配
+        /// </summary>
+        public bool ResourceBundleSizeMatched
+        {
+            get { return resourceBundleSizeMatched; }
+            set { resourceBundleSizeMatched = value; }
+        }
+
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="bundleName">资源包名称</param>
+        /// <param name="path">资源路径</param>
+        /// <param name="hash">资源哈希值</param>
+        /// <param name="size">资源包大小</param>
+        /// <param name="sizeMatched">资源包大小是否匹配</param>
+        public QuarkManifestVerifyInfo(string bundleName, string path, string hash, long size, bool sizeMatched)
+        {
+            resourceBundleName = bundleName;
+            resourcePath = path;
+            this.hash = hash;
+            resourceBundleSize = size;
+            resourceBundleSizeMatched = sizeMatched;
+        }
+
+        /// <summary>
+        /// 相等性比较
+        /// </summary>
+        /// <param name="other">比较对象</param>
+        /// <returns>是否相等</returns>
         public bool Equals(QuarkManifestVerifyInfo other)
         {
-            return Url == other.Url &&
-                ResourceBundleSize == other.ResourceBundleSize &&
-                ResourceBundleName == other.ResourceBundleName &&
-                ResourceBundleSizeMatched == other.ResourceBundleSizeMatched;
+            return resourceBundleName == other.resourceBundleName &&
+                   resourcePath == other.resourcePath &&
+                   hash == other.hash &&
+                   resourceBundleSize == other.resourceBundleSize &&
+                   resourceBundleSizeMatched == other.resourceBundleSizeMatched;
         }
+
+        // 兼容性属性 - 用于支持可能存在的旧代码
+        public string BundleName { get { return resourceBundleName; } set { resourceBundleName = value; } }
+        public string Path { get { return resourcePath; } set { resourcePath = value; } }
+        public long BundleSize { get { return resourceBundleSize; } set { resourceBundleSize = value; } }
+        public bool SizeMatched { get { return resourceBundleSizeMatched; } set { resourceBundleSizeMatched = value; } }
     }
 }
